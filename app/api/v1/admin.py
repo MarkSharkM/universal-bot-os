@@ -203,11 +203,15 @@ async def get_bot_stats(
     ).count()
     
     # Count active partners
-    active_partners_count = db.query(BusinessData).filter(
-        BusinessData.bot_id == bot_id,
-        BusinessData.data_type == 'partner',
-        BusinessData.data['active'].astext == 'Yes'
-    ).count()
+    try:
+        active_partners_count = db.query(BusinessData).filter(
+            BusinessData.bot_id == bot_id,
+            BusinessData.data_type == 'partner',
+            BusinessData.data['active'].astext == 'Yes'
+        ).count()
+    except Exception:
+        # Fallback: count all partners if JSON query fails
+        active_partners_count = partners_count
     
     # Total balance
     from sqlalchemy import func

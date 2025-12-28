@@ -87,12 +87,15 @@
         
         button {
             background: #2563eb;
-            color: white;
+            color: white !important;
             border: none;
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: inline-block !important;
         }
         
         button:hover {
@@ -101,10 +104,15 @@
         
         .btn-danger {
             background: #dc2626;
+            color: white !important;
         }
         
         .btn-danger:hover {
             background: #b91c1c;
+        }
+        
+        td button {
+            margin: 2px;
         }
         
         table {
@@ -372,20 +380,24 @@
         // Bots
         async function loadBots() {
             try {
-                const res = await fetch(`${API_BASE}/bots`);
+                const res = await fetch(`${API_BASE}/bots?is_active=true`);
                 const bots = await res.json();
                 const tbody = document.getElementById('bots-tbody');
-                tbody.innerHTML = bots.map(bot => `
-                    <tr>
-                        <td>${bot.name}</td>
-                        <td>${bot.platform_type}</td>
-                        <td>${bot.is_active ? '✅ Active' : '❌ Inactive'}</td>
-                        <td>
-                            <button onclick="showStatsTab('${bot.id}')">Stats</button>
-                            <button class="btn-danger" onclick="deleteBot('${bot.id}')">Delete</button>
-                        </td>
-                    </tr>
-                `).join('');
+                if (bots.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No active bots</td></tr>';
+                } else {
+                    tbody.innerHTML = bots.map(bot => `
+                        <tr>
+                            <td>${bot.name}</td>
+                            <td>${bot.platform_type}</td>
+                            <td>${bot.is_active ? '✅ Active' : '❌ Inactive'}</td>
+                            <td>
+                                <button onclick="showStatsTab('${bot.id}')" style="margin-right: 5px;">Stats</button>
+                                <button class="btn-danger" onclick="deleteBot('${bot.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
             } catch (error) {
                 showMessage('bots-message', 'Error loading bots: ' + error.message, 'error');
             }
@@ -428,13 +440,17 @@
         }
         
         async function deleteBot(botId) {
-            if (!confirm('Are you sure?')) return;
+            if (!confirm('Are you sure you want to delete this bot?')) return;
             
             try {
                 const res = await fetch(`${API_BASE}/bots/${botId}`, {method: 'DELETE'});
                 if (res.ok) {
-                    showMessage('bots-message', 'Bot deleted', 'success');
-                    loadBots();
+                    showMessage('bots-message', 'Bot deleted successfully', 'success');
+                    // Reload bots list after a short delay
+                    setTimeout(() => loadBots(), 500);
+                } else {
+                    const errorData = await res.json().catch(() => ({detail: 'Unknown error'}));
+                    showMessage('bots-message', 'Error: ' + (errorData.detail || 'Failed to delete bot'), 'error');
                 }
             } catch (error) {
                 showMessage('bots-message', 'Error: ' + error.message, 'error');
@@ -591,32 +607,46 @@
         // Statistics
         async function loadStats() {
             const botId = document.getElementById('stats-bot-select').value;
-            if (!botId) return;
+            if (!botId) {
+                document.getElementById('stats-content').innerHTML = '<p>Please select a bot</p>';
+                return;
+            }
             
             try {
                 const res = await fetch(`${API_BASE}/bots/${botId}/stats`);
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({detail: `HTTP ${res.status}`}));
+                    throw new Error(errorData.detail || 'Failed to load stats');
+                }
+                
                 const stats = await res.json();
+                
+                // Validate stats structure
+                if (!stats || !stats.users || !stats.partners) {
+                    throw new Error('Invalid stats data format');
+                }
                 
                 document.getElementById('stats-content').innerHTML = `
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-value">${stats.users.total}</div>
+                            <div class="stat-value">${stats.users.total || 0}</div>
                             <div class="stat-label">Total Users</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${stats.users.active}</div>
+                            <div class="stat-value">${stats.users.active || 0}</div>
                             <div class="stat-label">Active Users</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${stats.partners.total}</div>
+                            <div class="stat-value">${stats.partners.total || 0}</div>
                             <div class="stat-label">Total Partners</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${stats.partners.active}</div>
+                            <div class="stat-value">${stats.partners.active || 0}</div>
                             <div class="stat-label">Active Partners</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">${stats.total_balance.toFixed(2)}</div>
+                            <div class="stat-value">${(stats.total_balance || 0).toFixed(2)}</div>
                             <div class="stat-label">Total Balance</div>
                         </div>
                     </div>
