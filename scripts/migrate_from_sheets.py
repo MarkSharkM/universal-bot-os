@@ -100,7 +100,7 @@ def migrate_user_wallets(
                         platform='telegram',
                         language_code=row.get('Language', 'uk') or 'uk',
                         balance=parse_decimal(row.get('Total Earned TON', '0')),
-                        metadata={
+                        custom_data={
                             'username': row.get('Username', ''),
                             'wallet_address': row.get('Wallet Address', ''),
                             'total_invited': int(row.get('Total Invited', 0) or 0),
@@ -117,13 +117,13 @@ def migrate_user_wallets(
                     # Update existing
                     user.language_code = row.get('Language', user.language_code) or user.language_code
                     user.balance = parse_decimal(row.get('Total Earned TON', str(user.balance)))
-                    if not user.metadata:
-                        user.metadata = {}
-                    user.metadata.update({
-                        'username': row.get('Username', user.metadata.get('username', '')),
-                        'wallet_address': row.get('Wallet Address', user.metadata.get('wallet_address', '')),
-                        'total_invited': int(row.get('Total Invited', user.metadata.get('total_invited', 0)) or 0),
-                        'top_status': row.get('TOP Status', user.metadata.get('top_status', 'locked')) or 'locked',
+                    if not user.custom_data:
+                        user.custom_data = {}
+                    user.custom_data.update({
+                        'username': row.get('Username', user.custom_data.get('username', '')),
+                        'wallet_address': row.get('Wallet Address', user.custom_data.get('wallet_address', '')),
+                        'total_invited': int(row.get('Total Invited', user.custom_data.get('total_invited', 0)) or 0),
+                        'top_status': row.get('TOP Status', user.custom_data.get('top_status', 'locked')) or 'locked',
                     })
                     user.is_active = row.get('Status', 'active') != 'ban'
                 

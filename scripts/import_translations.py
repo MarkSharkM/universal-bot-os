@@ -66,10 +66,18 @@ def import_translations(csv_path: str):
 
 
 if __name__ == "__main__":
-    csv_path = Path(__file__).parent.parent / "translations_for prod tg.csv"
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Import translations from CSV')
+    parser.add_argument('--csv', help='Path to translations CSV file', 
+                       default=str(Path(__file__).parent.parent / "old-prod-hub-bot" / "translations_for prod tg.csv"))
+    
+    args = parser.parse_args()
+    csv_path = Path(args.csv)
     
     if not csv_path.exists():
         print(f"❌ CSV file not found: {csv_path}")
+        print(f"💡 Usage: python scripts/import_translations.py --csv path/to/translations.csv")
         sys.exit(1)
     
     print(f"📥 Importing translations from {csv_path}")
