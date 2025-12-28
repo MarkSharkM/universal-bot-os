@@ -377,10 +377,54 @@ async def update_partner(
 async def delete_partner(
     bot_id: UUID,
     partner_id: UUID,
+    hard_delete: bool = Query(False, description="If true, permanently delete. Otherwise soft delete."),
     db: Session = Depends(get_db)
 ):
     """
-    Delete partner.
+    Delete partner (soft delete by default, keeps history).
+    
+    Args:
+        bot_id: Bot UUID
+        partner_id: Partner UUID
+        hard_delete: If true, permanently delete. Otherwise soft delete.
+        db: Database session
+    
+    Returns:
+        Success message
+    """
+    from datetime import datetime
+    
+    partner = db.query(BusinessData).filter(
+        BusinessData.id == partner_id,
+        BusinessData.bot_id == bot_id,
+        BusinessData.data_type == 'partner'
+    ).first()
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    
+    if hard_delete:
+        # Permanent deletion
+        db.delete(partner)
+        message = "Partner permanently deleted"
+    else:
+        # Soft delete
+        partner.deleted_at = datetime.now()
+        message = "Partner deleted (can be restored)"
+    
+    db.commit()
+    
+    return {"message": message, "hard_delete": hard_delete}
+
+
+@router.post("/bots/{bot_id}/partners/{partner_id}/restore")
+async def restore_partner(
+    bot_id: UUID,
+    partner_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Restore soft-deleted partner.
     
     Args:
         bot_id: Bot UUID
@@ -399,10 +443,55 @@ async def delete_partner(
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     
-    db.delete(partner)
+    if partner.deleted_at is None:
+        raise HTTPException(status_code=400, detail="Partner is not deleted")
+    
+    partner.deleted_at = None
     db.commit()
     
-    return {"message": "Partner deleted successfully"}
+    return {"message": "Partner restored successfully"}
+
+
+@router.get("/bots/{bot_id}/partners/deleted")
+async def list_deleted_partners(
+    bot_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    List soft-deleted partners (deletion history).
+    
+    Args:
+        bot_id: Bot UUID
+        db: Database session
+    
+    Returns:
+        List of deleted partners
+    """
+    from sqlalchemy import and_
+    
+    partners = db.query(BusinessData).filter(
+        and_(
+            BusinessData.bot_id == bot_id,
+            BusinessData.data_type == 'partner',
+            BusinessData.deleted_at.isnot(None)
+        )
+    ).all()
+    
+    return [
+        {
+            "id": str(p.id),
+            "bot_name": p.data.get('bot_name', 'Unknown'),
+            "description": p.data.get('description', ''),
+            "referral_link": p.data.get('referral_link', ''),
+            "commission": float(p.data.get('commission', 0)),
+            "category": p.data.get('category', 'NEW'),
+            "active": p.data.get('active', 'No'),
+            "verified": p.data.get('verified', 'No'),
+            "roi_score": float(p.data.get('roi_score', 0)),
+            "deleted_at": p.deleted_at.isoformat() if p.deleted_at else None
+        }
+        for p in partners
+    ]
 
 
 @router.get("/bots/{bot_id}/ai-config")

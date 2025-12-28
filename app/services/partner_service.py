@@ -36,11 +36,12 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
-        # Query all partners, filter in Python to avoid JSONB query issues
+        # Query all partners (exclude soft-deleted), filter in Python to avoid JSONB query issues
         all_partners = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'partner'
+                BusinessData.data_type == 'partner',
+                BusinessData.deleted_at.is_(None)  # Exclude soft-deleted
             )
         ).all()
         
@@ -92,11 +93,12 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
-        # Query all partners, filter in Python to avoid JSONB query issues
+        # Query all partners (exclude soft-deleted), filter in Python to avoid JSONB query issues
         all_partners = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'partner'
+                BusinessData.data_type == 'partner',
+                BusinessData.deleted_at.is_(None)  # Exclude soft-deleted
             )
         ).all()
         

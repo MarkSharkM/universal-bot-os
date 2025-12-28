@@ -345,11 +345,16 @@
                 <button onclick="hideEditPartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
             </div>
             
+            <div style="margin-bottom: 20px;">
+                <button onclick="showDeletedPartners()" style="background: #ef4444;">🗑️ Show Deleted Partners</button>
+            </div>
+            
             <table id="partners-table">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Category</th>
+                        <th>Referral Link</th>
                         <th>Commission</th>
                         <th>Active</th>
                         <th>Verified</th>
@@ -359,6 +364,25 @@
                 </thead>
                 <tbody id="partners-tbody"></tbody>
             </table>
+            
+            <!-- Deleted Partners Modal -->
+            <div id="deleted-partners-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow: auto;">
+                <div style="background: white; margin: 50px auto; max-width: 900px; padding: 30px; border-radius: 12px;">
+                    <h2 style="margin-bottom: 20px;">🗑️ Deleted Partners History</h2>
+                    <table id="deleted-partners-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Deleted At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deleted-partners-tbody"></tbody>
+                    </table>
+                    <button onclick="hideDeletedPartners()" style="background: #666; margin-top: 20px;">Close</button>
+                </div>
+            </div>
         </div>
         
         <!-- AI Config Tab -->
@@ -548,20 +572,25 @@
                 const res = await fetch(`${API_BASE}/bots/${botId}/partners`);
                 const partners = await res.json();
                 const tbody = document.getElementById('partners-tbody');
-                tbody.innerHTML = partners.map(p => `
+                tbody.innerHTML = partners.map(p => {
+                    const refLink = p.referral_link || '';
+                    const shortLink = refLink.length > 30 ? refLink.substring(0, 30) + '...' : refLink;
+                    return `
                     <tr>
                         <td><strong>${p.bot_name}</strong></td>
                         <td><span style="background: ${p.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${p.category}</span></td>
+                        <td><a href="${refLink}" target="_blank" title="${refLink}" style="font-size: 11px; color: #2563eb;">${shortLink}</a></td>
                         <td>${p.commission}%</td>
                         <td>${p.active === 'Yes' ? '✅' : '❌'}</td>
                         <td>${p.verified === 'Yes' ? '✅' : '❌'}</td>
                         <td>${p.roi_score || 0}</td>
                         <td>
-                            <button onclick="showEditPartnerForm('${p.id}')" style="background: #059669; margin-right: 5px;">Edit</button>
-                            <button class="btn-danger" onclick="deletePartner('${botId}', '${p.id}')">Delete</button>
+                            <button onclick="showEditPartnerForm('${p.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
+                            <button class="btn-danger" onclick="deletePartner('${botId}', '${p.id}')" style="font-size: 12px; padding: 6px 10px;">Delete</button>
                         </td>
                     </tr>
-                `).join('');
+                    `;
+                }).join('');
                 
                 // Store partners data for editing
                 window.partnersData = partners;
@@ -677,16 +706,69 @@
         }
         
         async function deletePartner(botId, partnerId) {
-            if (!confirm('Are you sure?')) return;
+            if (!confirm('⚠️ Delete partner? (Can be restored from deletion history)')) return;
             
             try {
-                const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}`, {method: 'DELETE'});
+                // Soft delete by default
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}?hard_delete=false`, {method: 'DELETE'});
                 if (res.ok) {
-                    showMessage('partners-message', 'Partner deleted', 'success');
+                    showMessage('partners-message', 'Partner deleted (can be restored)', 'success');
                     loadPartners();
                 }
             } catch (error) {
                 showMessage('partners-message', 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function showDeletedPartners() {
+            const botId = document.getElementById('partners-bot-select').value;
+            if (!botId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners/deleted`);
+                const deleted = await res.json();
+                const tbody = document.getElementById('deleted-partners-tbody');
+                
+                if (deleted.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No deleted partners</td></tr>';
+                } else {
+                    tbody.innerHTML = deleted.map(p => `
+                        <tr>
+                            <td><strong>${p.bot_name}</strong></td>
+                            <td><span style="background: ${p.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${p.category}</span></td>
+                            <td>${new Date(p.deleted_at).toLocaleString()}</td>
+                            <td>
+                                <button onclick="restorePartner('${botId}', '${p.id}')" style="background: #059669;">♻️ Restore</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+                
+                document.getElementById('deleted-partners-modal').style.display = 'block';
+            } catch (error) {
+                showMessage('partners-message', 'Error loading deleted partners: ' + error.message, 'error');
+            }
+        }
+        
+        function hideDeletedPartners() {
+            document.getElementById('deleted-partners-modal').style.display = 'none';
+        }
+        
+        async function restorePartner(botId, partnerId) {
+            if (!confirm('Restore this partner?')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}/restore`, {method: 'POST'});
+                if (res.ok) {
+                    showMessage('partners-message', 'Partner restored successfully!', 'success');
+                    hideDeletedPartners();
+                    loadPartners();
+                } else {
+                    const error = await res.json();
+                    showMessage('partners-message', 'Error: ' + (error.detail || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('partners-message', 'Error restoring partner: ' + error.message, 'error');
             }
         }
         

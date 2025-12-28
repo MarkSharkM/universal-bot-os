@@ -22,6 +22,7 @@ class BusinessData(Base):
     data = Column(JSON, nullable=False)  # Flexible structure
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
     
     # Relationships
     bot = relationship("Bot", backref="business_data")
@@ -29,6 +30,7 @@ class BusinessData(Base):
     # Index for efficient queries
     __table_args__ = (
         Index("idx_business_data_bot_type", "bot_id", "data_type"),
+        Index("idx_business_data_deleted_at", "deleted_at"),
     )
     
     def __repr__(self):
