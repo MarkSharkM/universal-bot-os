@@ -699,3 +699,62 @@ async def update_translation(
         "message": "Translation updated successfully"
     }
 
+
+@router.get("/translations/{key}/{lang}/visual")
+async def get_translation_visual(
+    key: str,
+    lang: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get translation with visual formatting (spaces, line breaks visible).
+    Useful for comparing with production screenshots - shows all whitespace.
+    
+    Args:
+        key: Translation key
+        lang: Language code
+        db: Database session
+    
+    Returns:
+        Translation with visual formatting markers (spaces as ·, line breaks as |)
+    """
+    translation = db.query(Translation).filter(
+        Translation.key == key,
+        Translation.lang == lang
+    ).first()
+    
+    if not translation:
+        raise HTTPException(status_code=404, detail="Translation not found")
+    
+    text = translation.text
+    lines = text.split('\\n')
+    
+    # Visual representation
+    visual_lines = []
+    for i, line in enumerate(lines, 1):
+        # Show spaces as · and empty lines clearly
+        visual = line.replace(' ', '·')
+        if not line.strip():
+            visual = "[EMPTY LINE]"
+        visual_lines.append({
+            "line_number": i,
+            "original": line,
+            "visual": visual,
+            "is_empty": not line.strip(),
+            "length": len(line),
+            "spaces": line.count(' '),
+            "leading_spaces": len(line) - len(line.lstrip()),
+            "trailing_spaces": len(line) - len(line.rstrip())
+        })
+    
+    return {
+        "key": key,
+        "lang": lang,
+        "text": text,
+        "total_lines": len(lines),
+        "empty_lines": sum(1 for l in lines if not l.strip()),
+        "lines": visual_lines,
+        "raw": text,
+        "visual_preview": "\\n".join([f"{i:2}. {l['visual']}" for i, l in enumerate(visual_lines, 1)])
+    }
+
