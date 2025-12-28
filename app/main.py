@@ -187,8 +187,24 @@ from app.api.v1 import admin
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 
 # Static files (Admin UI)
-try:
-    app.mount("/admin", StaticFiles(directory="app/static", html=True), name="static")
-except:
-    pass  # Skip if static directory doesn't exist
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/admin")
+async def admin_ui():
+    """Serve admin UI"""
+    static_path = os.path.join(os.path.dirname(__file__), "static", "admin.html")
+    if os.path.exists(static_path):
+        return FileResponse(static_path)
+    else:
+        return {"error": "Admin UI not found"}
+
+@app.get("/admin/{path:path}")
+async def admin_static(path: str):
+    """Serve static files for admin UI"""
+    static_path = os.path.join(os.path.dirname(__file__), "static", path)
+    if os.path.exists(static_path):
+        return FileResponse(static_path)
+    else:
+        return {"error": "File not found"}
 
