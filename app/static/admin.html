@@ -289,13 +289,71 @@
                 <button onclick="hideCreatePartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
             </div>
             
+            <div id="edit-partner-form" style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #2563eb;">
+                <h3>Edit Partner</h3>
+                <input type="hidden" id="edit-partner-id">
+                <div class="form-group">
+                    <label>Bot Name</label>
+                    <input type="text" id="edit-partner-name" placeholder="Partner Bot Name">
+                </div>
+                <div class="form-group">
+                    <label>Description (UK)</label>
+                    <textarea id="edit-partner-description" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description (EN)</label>
+                    <textarea id="edit-partner-description-en" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description (RU)</label>
+                    <textarea id="edit-partner-description-ru" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Referral Link</label>
+                    <input type="text" id="edit-partner-link" placeholder="https://t.me/bot?start={TGR}">
+                </div>
+                <div class="form-group">
+                    <label>Commission (%)</label>
+                    <input type="number" id="edit-partner-commission" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="edit-partner-category">
+                        <option value="NEW">NEW</option>
+                        <option value="TOP">TOP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Active</label>
+                    <select id="edit-partner-active">
+                        <option value="Yes">Yes ✅</option>
+                        <option value="No">No ❌</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Verified</label>
+                    <select id="edit-partner-verified">
+                        <option value="Yes">Yes ✅</option>
+                        <option value="No">No ❌</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ROI Score</label>
+                    <input type="number" id="edit-partner-roi" step="0.1" min="0" max="10">
+                </div>
+                <button onclick="updatePartner()">Save Changes</button>
+                <button onclick="hideEditPartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
+            </div>
+            
             <table id="partners-table">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Category</th>
                         <th>Commission</th>
-                        <th>Status</th>
+                        <th>Active</th>
+                        <th>Verified</th>
+                        <th>ROI</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -492,15 +550,21 @@
                 const tbody = document.getElementById('partners-tbody');
                 tbody.innerHTML = partners.map(p => `
                     <tr>
-                        <td>${p.bot_name}</td>
-                        <td>${p.category}</td>
+                        <td><strong>${p.bot_name}</strong></td>
+                        <td><span style="background: ${p.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${p.category}</span></td>
                         <td>${p.commission}%</td>
                         <td>${p.active === 'Yes' ? '✅' : '❌'}</td>
+                        <td>${p.verified === 'Yes' ? '✅' : '❌'}</td>
+                        <td>${p.roi_score || 0}</td>
                         <td>
+                            <button onclick="showEditPartnerForm('${p.id}')" style="background: #059669; margin-right: 5px;">Edit</button>
                             <button class="btn-danger" onclick="deletePartner('${botId}', '${p.id}')">Delete</button>
                         </td>
                     </tr>
                 `).join('');
+                
+                // Store partners data for editing
+                window.partnersData = partners;
             } catch (error) {
                 showMessage('partners-message', 'Error loading partners: ' + error.message, 'error');
             }
@@ -512,6 +576,67 @@
         
         function hideCreatePartnerForm() {
             document.getElementById('create-partner-form').style.display = 'none';
+        }
+        
+        function showEditPartnerForm(partnerId) {
+            const partner = window.partnersData.find(p => p.id === partnerId);
+            if (!partner) return;
+            
+            document.getElementById('edit-partner-id').value = partner.id;
+            document.getElementById('edit-partner-name').value = partner.bot_name;
+            document.getElementById('edit-partner-description').value = partner.description || '';
+            document.getElementById('edit-partner-description-en').value = partner.description_en || '';
+            document.getElementById('edit-partner-description-ru').value = partner.description_ru || '';
+            document.getElementById('edit-partner-link').value = partner.referral_link || '';
+            document.getElementById('edit-partner-commission').value = partner.commission || 0;
+            document.getElementById('edit-partner-category').value = partner.category || 'NEW';
+            document.getElementById('edit-partner-active').value = partner.active || 'Yes';
+            document.getElementById('edit-partner-verified').value = partner.verified || 'Yes';
+            document.getElementById('edit-partner-roi').value = partner.roi_score || 0;
+            
+            document.getElementById('edit-partner-form').style.display = 'block';
+            document.getElementById('edit-partner-form').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function hideEditPartnerForm() {
+            document.getElementById('edit-partner-form').style.display = 'none';
+        }
+        
+        async function updatePartner() {
+            const botId = document.getElementById('partners-bot-select').value;
+            const partnerId = document.getElementById('edit-partner-id').value;
+            
+            const data = {
+                bot_name: document.getElementById('edit-partner-name').value,
+                description: document.getElementById('edit-partner-description').value,
+                description_en: document.getElementById('edit-partner-description-en').value,
+                description_ru: document.getElementById('edit-partner-description-ru').value,
+                referral_link: document.getElementById('edit-partner-link').value,
+                commission: parseFloat(document.getElementById('edit-partner-commission').value),
+                category: document.getElementById('edit-partner-category').value,
+                active: document.getElementById('edit-partner-active').value,
+                verified: document.getElementById('edit-partner-verified').value,
+                roi_score: parseFloat(document.getElementById('edit-partner-roi').value) || 0
+            };
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    showMessage('partners-message', 'Partner updated successfully!', 'success');
+                    hideEditPartnerForm();
+                    loadPartners();
+                } else {
+                    const error = await res.json();
+                    showMessage('partners-message', 'Error: ' + (error.detail || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('partners-message', 'Error updating partner: ' + error.message, 'error');
+            }
         }
         
         async function createPartner() {
