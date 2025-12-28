@@ -13,13 +13,12 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.models.bot import Bot
 
-# Import migration functions
-from scripts.import_translations import import_translations
-from scripts.migrate_from_sheets import (
-    migrate_user_wallets,
-    migrate_bot_log,
-    migrate_partners_settings
-)
+# Import migration functions directly
+# We'll import them inline to avoid circular imports
+def import_translations_func(csv_path: str):
+    """Import translations wrapper"""
+    from scripts.import_translations import import_translations
+    return import_translations(csv_path)
 
 
 def get_bot_by_name(db: Session, bot_name: str) -> Bot:
@@ -99,7 +98,7 @@ Examples:
             if translations_path.exists():
                 print(f"\n📥 [1/4] Importing translations from {translations_path.name}...")
                 try:
-                    import_translations(str(translations_path))
+                    import_translations_func(str(translations_path))
                     print("✅ Translations imported successfully")
                     total_imported += 1
                 except Exception as e:
@@ -115,6 +114,7 @@ Examples:
             if users_path.exists():
                 print(f"\n📥 [2/4] Importing users from {users_path.name}...")
                 try:
+                    from scripts.migrate_from_sheets import migrate_user_wallets
                     count = migrate_user_wallets(db, bot_id_str, str(users_path))
                     print(f"✅ Imported {count} users")
                     total_imported += count
@@ -131,6 +131,7 @@ Examples:
             if partners_path.exists():
                 print(f"\n📥 [3/4] Importing partners from {partners_path.name}...")
                 try:
+                    from scripts.migrate_from_sheets import migrate_partners_settings
                     count = migrate_partners_settings(db, bot_id_str, str(partners_path))
                     print(f"✅ Imported {count} partners")
                     total_imported += count
@@ -147,6 +148,7 @@ Examples:
             if logs_path.exists():
                 print(f"\n📥 [4/4] Importing logs from {logs_path.name}...")
                 try:
+                    from scripts.migrate_from_sheets import migrate_bot_log
                     count = migrate_bot_log(db, bot_id_str, str(logs_path))
                     print(f"✅ Imported {count} log entries")
                     total_imported += count
