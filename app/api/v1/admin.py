@@ -554,3 +554,103 @@ async def import_bot_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Import error: {str(e)}")
 
+
+@router.post("/bots/{bot_id}/test-command")
+async def test_command(
+    bot_id: UUID,
+    command: str = Query(..., description="Command to test (e.g., /start, /wallet, /partners)"),
+    user_external_id: Optional[str] = Query(None, description="Test user external ID (default: test_user)"),
+    user_lang: Optional[str] = Query("uk", description="User language code"),
+    db: Session = Depends(get_db)
+):
+    """
+    Test bot command without Telegram.
+    Useful for debugging and comparing with production.
+    
+    Args:
+        bot_id: Bot UUID
+        command: Command to test (e.g., "/start", "/wallet", "/partners")
+        user_external_id: Test user ID (default: "test_user")
+        user_lang: User language (default: "uk")
+        db: Database session
+    
+    Returns:
+        Command response (message, buttons, etc.)
+    """
+    from app.services import (
+        UserService, TranslationService, CommandService,
+        PartnerService, ReferralService, EarningsService
+    )
+    
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    # Initialize services
+    user_service = UserService(db, bot_id)
+    translation_service = TranslationService(db)
+    referral_service = ReferralService(db, bot_id)
+    partner_service = PartnerService(db, bot_id)
+    earnings_service = EarningsService(
+        db, bot_id, user_service, referral_service, translation_service
+    )
+    command_service = CommandService(
+        db, bot_id, user_service, translation_service,
+        partner_service, referral_service, earnings_service
+    )
+    
+    # Get or create test user
+    test_user_id = user_external_id or "test_user"
+    user = user_service.get_or_create_user(
+        external_id=test_user_id,
+        platform="telegram",
+        language_code=user_lang,
+        username="test_user",
+        first_name="Test",
+        last_name="User"
+    )
+    
+    # Parse command
+    parsed_command = command_service.parse_command(command)
+    start_param = command_service.extract_start_parameter(command)
+    
+    if not parsed_command:
+        return {
+            "error": "Unknown command",
+            "input": command,
+            "parsed": None
+        }
+    
+    # Handle command
+    try:
+        response = command_service.handle_command(
+            parsed_command,
+            user.id,
+            user_lang=user_lang,
+            start_param=start_param
+        )
+        
+        return {
+            "success": True,
+            "command": parsed_command,
+            "input": command,
+            "start_param": start_param,
+            "user_id": str(user.id),
+            "user_lang": user_lang,
+            "response": {
+                "message": response.get('message', ''),
+                "buttons": response.get('buttons', []),
+                "parse_mode": response.get('parse_mode', 'HTML'),
+                "other": {k: v for k, v in response.items() if k not in ['message', 'buttons', 'parse_mode']}
+            }
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "command": parsed_command,
+            "input": command
+        }
+
