@@ -193,18 +193,11 @@ import os
 @app.get("/admin")
 async def admin_ui():
     """Serve admin UI"""
+    # Шлях до admin.html відносно app/main.py
     static_path = os.path.join(os.path.dirname(__file__), "static", "admin.html")
     if os.path.exists(static_path):
-        return FileResponse(static_path)
+        return FileResponse(static_path, media_type="text/html")
     else:
-        return {"error": "Admin UI not found"}
-
-@app.get("/admin/{path:path}")
-async def admin_static(path: str):
-    """Serve static files for admin UI"""
-    static_path = os.path.join(os.path.dirname(__file__), "static", path)
-    if os.path.exists(static_path):
-        return FileResponse(static_path)
-    else:
-        return {"error": "File not found"}
+        # Fallback - повернути HTML напряму
+        return {"error": "Admin UI not found", "path": static_path}
 
