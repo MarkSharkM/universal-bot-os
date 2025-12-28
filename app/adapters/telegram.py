@@ -44,6 +44,11 @@ class TelegramAdapter(BaseAdapter):
             # TODO: Decrypt bot.token
             token = bot.token
             
+            # Decode escaped newlines for proper Telegram formatting
+            # When text comes from DB via JSON, \n becomes \\n (escaped)
+            # We need to convert it back to actual newline character
+            text = text.replace('\\n', '\n')
+            
             url = f"{self.BASE_URL}{token}/sendMessage"
             payload = {
                 "chat_id": user_external_id,
