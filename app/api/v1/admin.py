@@ -202,16 +202,15 @@ async def get_bot_stats(
         BusinessData.data_type == 'partner'
     ).count()
     
-    # Count active partners
-    try:
-        active_partners_count = db.query(BusinessData).filter(
-            BusinessData.bot_id == bot_id,
-            BusinessData.data_type == 'partner',
-            BusinessData.data['active'].astext == 'Yes'
-        ).count()
-    except Exception:
-        # Fallback: count all partners if JSON query fails
-        active_partners_count = partners_count
+    # Count active partners (filter in Python)
+    active_partners = db.query(BusinessData).filter(
+        BusinessData.bot_id == bot_id,
+        BusinessData.data_type == 'partner'
+    ).all()
+    active_partners_count = sum(
+        1 for p in active_partners 
+        if (p.data or {}).get('active') == 'Yes'
+    )
     
     # Total balance
     from sqlalchemy import func
@@ -262,25 +261,39 @@ async def list_bot_partners(
         BusinessData.data_type == 'partner'
     )
     
-    if active_only:
-        query = query.filter(BusinessData.data['active'].astext == 'Yes')
-    
-    if category:
-        query = query.filter(BusinessData.data['category'].astext == category)
-    
     partners = query.all()
     
-    return [{
-        "id": str(p.id),
-        "bot_name": p.data.get('bot_name'),
-        "description": p.data.get('description'),
-        "referral_link": p.data.get('referral_link'),
-        "commission": p.data.get('commission'),
-        "category": p.data.get('category'),
-        "active": p.data.get('active'),
-        "verified": p.data.get('verified'),
-        "roi_score": p.data.get('roi_score'),
-    } for p in partners]
+    # Filter in Python to avoid JSONB query issues
+    result = []
+    for p in partners:
+        partner_data = p.data or {}
+        
+        # Apply filters
+        if active_only and partner_data.get('active') != 'Yes':
+            continue
+        if category and partner_data.get('category') != category:
+            continue
+        
+        result.append({
+            "id": str(p.id),
+            "bot_name": partner_data.get('bot_name', ''),
+            "description": partner_data.get('description', ''),
+            "description_en": partner_data.get('description_en', ''),
+            "description_ru": partner_data.get('description_ru', ''),
+            "description_de": partner_data.get('description_de', ''),
+            "description_es": partner_data.get('description_es', ''),
+            "referral_link": partner_data.get('referral_link', ''),
+            "commission": partner_data.get('commission', 0),
+            "category": partner_data.get('category', 'NEW'),
+            "active": partner_data.get('active', 'No'),
+            "verified": partner_data.get('verified', 'No'),
+            "roi_score": partner_data.get('roi_score', 0),
+            "duration": partner_data.get('duration', ''),
+            "gpt": partner_data.get('gpt', ''),
+            "short_link": partner_data.get('short_link', ''),
+        })
+    
+    return result
 
 
 @router.post("/bots/{bot_id}/partners")

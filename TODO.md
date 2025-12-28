@@ -37,7 +37,7 @@
 - [x] **AI інтеграція** - Налаштувати OpenAI/Anthropic обгортки з підтримкою мови користувача
 - [x] **Міграція даних** - Створити скрипти для міграції з Google Sheets до PostgreSQL
 
-**Статус:** ✅ Створено AIService з підтримкою OpenAI/Anthropic, автоматичною детекцією мови, збереженням історії. API endpoints готові.
+**Статус:** ✅ Створено AIService з підтримкою OpenAI/Anthropic, автоматичною детекцією мови, збереженням історії. API endpoints готові. ✅ **Імпорт даних завершено:** translations, 5 users, 7 partners, 114 log entries.
 
 ---
 

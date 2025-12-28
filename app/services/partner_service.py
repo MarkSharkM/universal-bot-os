@@ -36,15 +36,22 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
-        partners = self.db.query(BusinessData).filter(
+        # Query all partners, filter in Python to avoid JSONB query issues
+        all_partners = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'partner',
-                BusinessData.data['category'].astext == 'TOP',
-                BusinessData.data['active'].astext == 'Yes',
-                BusinessData.data['verified'].astext == 'Yes'
+                BusinessData.data_type == 'partner'
             )
         ).all()
+        
+        # Filter in Python
+        partners = []
+        for p in all_partners:
+            data = p.data or {}
+            if (data.get('category') == 'TOP' and 
+                data.get('active') == 'Yes' and 
+                data.get('verified') == 'Yes'):
+                partners.append(p)
         
         # Convert to dicts and sort by ROI Score
         partner_list = []
@@ -85,15 +92,22 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
-        partners = self.db.query(BusinessData).filter(
+        # Query all partners, filter in Python to avoid JSONB query issues
+        all_partners = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'partner',
-                BusinessData.data['category'].astext != 'TOP',
-                BusinessData.data['active'].astext == 'Yes',
-                BusinessData.data['verified'].astext == 'Yes'
+                BusinessData.data_type == 'partner'
             )
         ).all()
+        
+        # Filter in Python
+        partners = []
+        for p in all_partners:
+            data = p.data or {}
+            if (data.get('category') != 'TOP' and 
+                data.get('active') == 'Yes' and 
+                data.get('verified') == 'Yes'):
+                partners.append(p)
         
         partner_list = []
         for partner in partners:
