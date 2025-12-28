@@ -758,3 +758,107 @@ async def get_translation_visual(
         "visual_preview": "\\n".join([f"{i:2}. {l['visual']}" for i, l in enumerate(visual_lines, 1)])
     }
 
+
+@router.post("/bots/{bot_id}/remove-duplicate-partners")
+async def remove_duplicate_partners(
+    bot_id: UUID,
+    dry_run: bool = Query(False, description="If true, only show duplicates without deleting"),
+    db: Session = Depends(get_db)
+):
+    """
+    Remove duplicate partners (keeps first occurrence of each bot_name).
+    
+    Args:
+        bot_id: Bot UUID
+        dry_run: If true, only show what would be deleted without actually deleting
+        db: Database session
+    
+    Returns:
+        Summary of duplicates found/removed
+    """
+    from sqlalchemy import and_
+    
+    # Get all partners for this bot
+    partners = db.query(BusinessData).filter(
+        and_(
+            BusinessData.bot_id == bot_id,
+            BusinessData.data_type == 'partner'
+        )
+    ).all()
+    
+    if not partners:
+        return {
+            "success": True,
+            "message": "No partners found",
+            "total": 0,
+            "duplicates": 0,
+            "kept": 0
+        }
+    
+    # Group by bot_name
+    seen = {}
+    kept = []
+    duplicates = []
+    
+    for partner in partners:
+        bot_name = partner.data.get('bot_name')
+        if not bot_name:
+            continue
+        
+        if bot_name not in seen:
+            seen[bot_name] = partner
+            kept.append({
+                "id": str(partner.id),
+                "bot_name": bot_name,
+                "category": partner.data.get('category'),
+                "active": partner.data.get('active')
+            })
+        else:
+            duplicates.append({
+                "id": str(partner.id),
+                "bot_name": bot_name,
+                "category": partner.data.get('category'),
+                "active": partner.data.get('active')
+            })
+    
+    if not duplicates:
+        return {
+            "success": True,
+            "message": "No duplicates found",
+            "total": len(partners),
+            "duplicates": 0,
+            "kept": kept
+        }
+    
+    # If dry run, just return what would be deleted
+    if dry_run:
+        return {
+            "success": True,
+            "message": f"Found {len(duplicates)} duplicates (dry run - not deleted)",
+            "total": len(partners),
+            "duplicates_count": len(duplicates),
+            "kept_count": len(kept),
+            "kept": kept,
+            "duplicates_to_remove": duplicates
+        }
+    
+    # Delete duplicates
+    deleted_count = 0
+    for dup in duplicates:
+        partner = db.query(BusinessData).filter(BusinessData.id == dup["id"]).first()
+        if partner:
+            db.delete(partner)
+            deleted_count += 1
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": f"Successfully removed {deleted_count} duplicate partners",
+        "total": len(partners),
+        "duplicates_removed": deleted_count,
+        "kept_count": len(kept),
+        "kept": kept,
+        "removed": duplicates
+    }
+
