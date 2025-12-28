@@ -853,12 +853,14 @@ async def run_migration_add_deleted_at(db: Session = Depends(get_db)):
     """
     Run migration to add deleted_at column to business_data table.
     """
+    from sqlalchemy import text
+    
     try:
         # Add column
-        db.execute("ALTER TABLE business_data ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE")
+        db.execute(text("ALTER TABLE business_data ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE"))
         
         # Add index
-        db.execute("CREATE INDEX IF NOT EXISTS idx_business_data_deleted_at ON business_data(deleted_at)")
+        db.execute(text("CREATE INDEX IF NOT EXISTS idx_business_data_deleted_at ON business_data(deleted_at)"))
         
         db.commit()
         
