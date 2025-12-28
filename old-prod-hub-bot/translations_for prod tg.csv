@@ -1,0 +1,231 @@
+language,message_key,text
+uk,info_main,"👋 Це HubAggregatorBot — агрегатор найвигідніших Telegram-міні-застосунків та ботів для заробітку зірок і TON.\n\nТут ти можеш:\n• знаходити перевірені партнерки\n• відкривати TOP-партнерів\n• відстежувати свій заробіток\n• підключити 7% офіційної партнерки Telegram\n\nПочни з команди /partners або відкрий /earnings, щоб побачити свій прогрес."
+uk,wallet_saved,✅ <b>Адресу збережено!</b>\nВи можете її використовувати для отримання нарахувань.
+uk,wallet_invalid_format,🧠 Якщо ви намагаєтесь ввести адресу TON-гаманця — перевірте формат. А якщо ні — скористайтесь командою /info.
+uk,wallet_not_found,"⚠️ <b>У вас ще не збережено адресу TON-гаманця</b>\n\n🧾 Як зберегти: відкрийте будь-який TON-гаманець, скопіюйте адресу і надішліть її сюди."
+uk,wallet_help,⚠️ <b>У вас ще не збережено адресу TON-гаманця</b>\n\n🧾 <b>Як зберегти адресу TON-гаманця:</b>\n\n1️⃣ Встановіть або відкрийте один із гаманців:\n\n• <a href="https://t.me/wallet">@wallet</a> — офіційний TON-гаманець у Telegram\n• <a href="https://tonkeeper.com">Tonkeeper</a> — iOS / Android\n• <a href="https://tonhub.com">Tonhub</a> — iOS / Android\n• <a href="https://t.me/tonkeeper">@tonkeeper</a> — гаманець у Telegram\n\n2️⃣ Скопіюйте адресу гаманця (виглядає приблизно так):\n<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\n\n3️⃣ Надішліть цю адресу сюди в чат 📩\n\n✅ Валідну адресу буде збережено автоматично\n❗️ Якщо щось не так — бот надішле підказку
+uk,wallet_info_empty,😐 Поки що в тебе немає збереженого TON-гаманця.
+uk,wallet_info_saved,👛 Твій TON-гаманець:\n<code>{{wallet}}</code>
+uk,wallet_info_earnings,💸 Нараховано: <b>{{amount}}</b> TON
+uk,wallet_buy_stars_hint,⭐ Хочеш більше зірок? Купи їх напряму в Telegram.
+uk,btn_buy_stars,⭐ Купити зірки
+uk,welcome,"👋 Привіт! Це HubAggregatorBot — твій гід по Telegram-ботах, які дають зірки за активність ⭐\n\n🎯 Тут ти можеш:\n• Запускати перевірені боти та отримувати зірки за дії\n• Запрошувати друзів і відкривати нові можливості\n• Відстежувати свій прогрес і прокачуватись\n\n💸 Зірки — це шлях до нових функцій, рівнів і навіть до TON-бонусів 😎\nЧим більше дій — тим більше відкривається\n\n🚀 Не зволікай — натисни /partners і почни заробляти зірки вже зараз!"
+uk,unlock_top_paid,💫 Відкрити TOP за {{buy_top_price}}⭐
+uk,top_unlocked,"💫 TOP доступ відкрито!\n\nТи успішно розблокував TOP. Тисни /top, щоб побачити найвигідніші боти."
+uk,buy_top_title,Відкрити доступ до TOP
+uk,buy_top_description,💫 Миттєвий доступ до розділу TOP
+uk,buy_top_label,TOP доступ
+uk,buy_top_price,1
+uk,no_wallet_referral,"⚠️ <b>У вас ще не додано TON-гаманець.</b>\n\nПроте ви вже можете ділитись своїм посиланням 👇\n[[referralLink]]\n\nДодайте гаманець через <b>/wallet</b>, щоб отримати винагороду за друзів 💰"
+uk,share_referral,🚀 Долучайся до HubAggregatorBot — отримуй зірки за активність!\nОсь твоє реферальне посилання:\n[[referralLink]]
+uk,share_button,🧡 Поділитись лінкою
+uk,earnings_title,"🔥 Earnings Center\nтвій прогрес, TOP та заробіток 7%"
+uk,earnings_no_income,😐 Поки що в тебе немає заробітку…
+uk,earnings_has_income,👛 Гаманець: {{wallet}}\n🌟 Зароблено: {{earned}} TON
+uk,earnings_block1_title,⭐ 1) Відкрий TOP — x3–x7 більше зірок
+uk,earnings_block1_line1,TOP відкриває найвигідніші міні-аппи:
+uk,earnings_block1_benefit1,• більше нагород
+uk,earnings_block1_benefit2,• швидший прогрес
+uk,earnings_block1_benefit3,• вищі виплати
+uk,earnings_block2_title,💸 2) Твої 7% від Telegram — офіційна партнерська програма
+uk,earnings_block2_how_it_works,"Коли люди заходять через твою лінку, запускають HubAggregatorBot і купують ⭐ — Telegram ділиться з тобою доходом (~7%)."
+uk,earnings_block2_examples,📌 Скільки може приносити один юзер:\n• 1 юзер → ~0.35–0.70€\n• 10 юзерів → ~3.5–7€\n• 100 юзерів → ~35–70€
+uk,earnings_enable_7_title,Як увімкнути 7% (1 раз назавжди):
+uk,earnings_enable_7_steps,1️⃣ Відкрий @HubAggregatorBot\n2️⃣ «Партнерська програма»\n3️⃣ «Під’єднатись»\n→ 7% активуються назавжди
+uk,earnings_7_instructions,💸 Як увімкнути 7% (1 раз назавжди):\n\n1️⃣ Відкрий профіль бота @HubAggregatorBot (натисни на назву бота зверху в чаті)\n2️⃣ Обери «Партнерська програма»\n3️⃣ Натисни «Під’єднатись»\n\nПісля цього:\n✔️ 7% діють назавжди\n✔️ Telegram покаже твою реферальну лінку\n✔️ Скопіюй її й надішли друзям — отримуватимеш 7% з їхніх витрат
+uk,earnings_block3_title,🚀 3) Що зробити прямо зараз
+uk,earnings_step1_locked,1️⃣ Додай ще {{needed}} друга(ів) → TOP відкриється
+uk,earnings_step1_open,1️⃣ TOP уже відкритий — запусти TOP-партнерів
+uk,earnings_step2,2️⃣ Активуй свої 7%
+uk,earnings_step3,"3️⃣ Кинь цю лінку в 1–2 «живі» чати або другу, якому це зайде — кожен юзер може приносити тобі € автоматично"
+uk,earnings_step4,4️⃣ Запускай TOP-партнерів
+uk,earnings_auto_stats,→ доходи і статистика з’являться автоматично
+uk,earnings_btn_unlock_top,💎 Відкрити TOP за {{buy_top_price}}⭐
+uk,earnings_btn_top_partners,⭐ TOP-партнери
+uk,earnings_btn_activate_7,💰 Активувати 7%
+uk,partners_btn_top_partners,⭐ TOP-партнери
+uk,partners_btn_earnings,💸 Заробіток
+en,info_main,👋 This is HubAggregatorBot — an aggregator of the most profitable Telegram mini apps and bots to earn Stars and TON.\n\nHere you can:\n• find vetted partner programs\n• unlock TOP partners\n• track your earnings\n• enable Telegram’s official 7% revenue share\n\nStart with /partners or open /earnings to see your progress.
+en,wallet_saved,✅ <b>Address saved!</b>\nYou can use it to receive payouts.
+en,wallet_invalid_format,"🧠 If you are trying to enter a TON wallet address — please check the format. If not, use the /info command."
+en,wallet_not_found,"⚠️ <b>You don't have a saved TON wallet address yet</b>\n\n🧾 How to save: open any TON wallet, copy your address and send it here."
+en,wallet_help,"⚠️ <b>You don't have a saved TON wallet address yet</b>\n\n🧾 <b>How to save your TON wallet address:</b>\n\n1️⃣ Install or open a wallet:\n\n• <a href=""https://t.me/wallet"">@wallet</a> — official TON wallet bot in Telegram\n• <a href=""https://tonkeeper.com"">Tonkeeper</a> — iOS / Android\n• <a href=""https://tonhub.com"">Tonhub</a> — iOS / Android\n• <a href=""https://t.me/tonkeeper"">@tonkeeper</a> — Telegram wallet\n\n2️⃣ Copy your wallet address (it looks like this):\n<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\n\n3️⃣ Send it here in chat 📩\n\n✅ The valid address will be saved automatically\n❗️ If something’s wrong, the bot will guide you"
+en,wallet_info_empty,😐 You don’t have a saved TON wallet yet.
+en,wallet_info_saved,👛 Your TON wallet:\n<code>{{wallet}}</code>
+en,wallet_info_earnings,💸 Earned: <b>{{amount}}</b> TON
+en,wallet_buy_stars_hint,⭐ Want more stars? Buy them directly in Telegram.
+en,btn_buy_stars,⭐ Buy Stars
+en,welcome,"👋 Hey! This is HubAggregatorBot — your guide to Telegram bots that give you Stars for activity ⭐\n\n🎯 Here you can:\n• Launch verified bots and earn Stars for your actions\n• Invite friends and unlock new opportunities\n• Track your progress and level up\n\n💸 Stars are your path to new features, levels and even TON bonuses 😎\nThe more you do — the more you unlock\n\n🚀 Don't wait — tap /partners and start earning Stars right now!"
+en,unlock_top_paid,💫 Unlock TOP for {{buy_top_price}}⭐
+en,top_unlocked,💫 TOP access unlocked!\n\nYou successfully unlocked TOP. Tap /top to see the most profitable bots.
+en,buy_top_title,Unlock TOP Access
+en,buy_top_description,💫 Instant access to the TOP section
+en,buy_top_label,TOP Access
+en,buy_top_price,1
+en,no_wallet_referral,⚠️ <b>You haven't added a TON wallet yet.</b>\n\nBut you can already share your personal link 👇\n[[referralLink]]\n\nAdd a wallet via <b>/wallet</b> to receive rewards for your friends 💰
+en,share_referral,🚀 Join HubAggregatorBot — earn Stars for your activity!\nHere is your referral link:\n[[referralLink]]
+en,share_button,🧡 Share the link
+en,earnings_title,"🔥 Earnings Center\nyour progress, TOP and 7% earnings"
+en,earnings_no_income,😐 You don't have any earnings yet…
+en,earnings_has_income,👛 Wallet: {{wallet}}\n🌟 Earned: {{earned}} TON
+en,earnings_block1_title,⭐ 1) Open TOP — x3–x7 more Stars
+en,earnings_block1_line1,TOP unlocks the most profitable mini apps:
+en,earnings_block1_benefit1,• more rewards
+en,earnings_block1_benefit2,• faster progress
+en,earnings_block1_benefit3,• higher payouts
+en,earnings_block2_title,💸 2) Your 7% from Telegram — official partner program
+en,earnings_block2_how_it_works,"When people join via your link, launch HubAggregatorBot and buy ⭐, Telegram shares ~7% of the revenue with you."
+en,earnings_block2_examples,📌 How much one user can bring:\n• 1 user → ~0.35–0.70€\n• 10 users → ~3.5–7€\n• 100 users → ~35–70€
+en,earnings_enable_7_title,"How to enable 7% (once, forever):"
+en,earnings_enable_7_steps,1️⃣ Open @HubAggregatorBot\n2️⃣ “Partner Program”\n3️⃣ “Join”\n→ 7% stay active forever
+en,earnings_7_instructions,"💸 How to enable 7% (once, forever):\n\n1️⃣ Open the bot profile @HubAggregatorBot (tap the bot name at the top of the chat)\n2️⃣ Tap “Partner Program”\n3️⃣ Tap “Join”\n\nAfter that:\n✔️ 7% stay active forever\n✔️ Telegram will show your personal referral link\n✔️ Copy it and send it to friends — you earn 7% from their Stars purchases"
+en,earnings_block3_title,🚀 3) What to do right now
+en,earnings_step1_locked,1️⃣ Invite {{needed}} more friend(s) → TOP will open
+en,earnings_step1_open,1️⃣ TOP is already open — start TOP partners
+en,earnings_step2,2️⃣ Activate your 7%
+en,earnings_step3,3️⃣ Drop this link into 1–2 active chats or to a friend who might like it — each user can bring you € automatically
+en,earnings_step4,4️⃣ Launch TOP partners
+en,earnings_auto_stats,→ earnings and stats will appear automatically
+en,earnings_btn_unlock_top,💎 Unlock TOP for {{buy_top_price}}⭐
+en,earnings_btn_top_partners,⭐ TOP partners
+en,earnings_btn_activate_7,💰 Activate 7%
+en,partners_btn_top_partners,⭐ TOP partners
+en,partners_btn_earnings,💸 Earnings
+ru,info_main,"👋 Это HubAggregatorBot — агрегатор самых выгодных Telegram-мини-приложений и ботов для заработка звёзд и TON.\n\nЗдесь ты можешь:\n• находить проверенные партнёрские программы\n• открывать TOP-партнёров\n• отслеживать свой заработок\n• подключить официальные 7% партнёрки Telegram\n\nНачни с команды /partners или открой /earnings, чтобы увидеть свой прогресс."
+ru,wallet_saved,✅ <b>Адрес сохранён!</b>\nВы можете использовать его для получения начислений.
+ru,wallet_invalid_format,🧠 Если вы пытаетесь ввести адрес TON-кошелька — проверьте формат. Если нет — воспользуйтесь командой /info.
+ru,wallet_not_found,"⚠️ <b>У вас ещё нет сохранённого адреса TON-кошелька</b>\n\n🧾 Как сохранить: откройте любой TON-кошелёк, скопируйте адрес и отправьте его сюда."
+ru,wallet_help,"⚠️ <b>У вас ещё нет сохранённого адреса TON-кошелька</b>\n\n🧾 <b>Как сохранить адрес TON-кошелька:</b>\n\n1️⃣ Установите или откройте один из кошельков:\n\n• <a href=""https://t.me/wallet"">@wallet</a> — официальный TON-кошелёк в Telegram\n• <a href=""https://tonkeeper.com"">Tonkeeper</a> — iOS / Android\n• <a href=""https://tonhub.com"">Tonhub</a> — iOS / Android\n• <a href=""https://t.me/tonkeeper"">@tonkeeper</a> — кошелёк внутри Telegram\n\n2️⃣ Скопируйте адрес кошелька (выглядит примерно так):\n<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\n\n3️⃣ Отправьте этот адрес сюда в чат 📩\n\n✅ Валидный адрес будет сохранён автоматически\n❗️ Если что-то не так — бот подскажет, что исправить"
+ru,wallet_info_empty,😐 У тебя пока нет сохранённого TON-кошелька.
+ru,wallet_info_saved,👛 Твой TON-кошелёк:\n<code>{{wallet}}</code>
+ru,wallet_info_earnings,💸 Начислено: <b>{{amount}}</b> TON
+ru,wallet_buy_stars_hint,⭐ Хочешь больше звёзд? Купи их напрямую в Telegram.
+ru,btn_buy_stars,⭐ Купить звёзды
+ru,welcome,"👋 Привет! Это HubAggregatorBot — твой гид по Telegram-ботам, которые дают звёзды за активность ⭐\n\n🎯 Здесь ты можешь:\n• запускать проверенные боты и получать звёзды за действия\n• приглашать друзей и открывать новые возможности\n• отслеживать свой прогресс и прокачиваться\n\n💸 Звёзды — это путь к новым функциям, уровням и даже TON-бонусам 😎\nЧем больше действий — тем больше открывается\n\n🚀 Не тяни — нажми /partners и начни зарабатывать звёзды уже сейчас!"
+ru,unlock_top_paid,💫 Открыть TOP за {{buy_top_price}}⭐
+ru,top_unlocked,"💫 Доступ к TOP открыт!\n\nТы успешно разблокировал TOP. Нажми /top, чтобы увидеть самые выгодные боты."
+ru,buy_top_title,Открыть доступ к TOP
+ru,buy_top_description,💫 Мгновенный доступ к разделу TOP
+ru,buy_top_label,Доступ к TOP
+ru,buy_top_price,1
+ru,no_wallet_referral,"⚠️ <b>У вас ещё не добавлен TON-кошелёк.</b>\n\nНо вы уже можете делиться своей ссылкой 👇\n[[referralLink]]\n\nДобавьте кошелёк через <b>/wallet</b>, чтобы получать вознаграждение за друзей 💰"
+ru,share_referral,🚀 Присоединяйся к HubAggregatorBot — получай звёзды за активность!\nВот твоя реферальная ссылка:\n[[referralLink]]
+ru,share_button,🧡 Поделиться ссылкой
+ru,earnings_title,"🔥 Earnings Center\nтвой прогресс, TOP и заработок 7%"
+ru,earnings_no_income,😐 У тебя пока нет заработка…
+ru,earnings_has_income,👛 Кошелёк: {{wallet}}\n🌟 Заработано: {{earned}} TON
+ru,earnings_block1_title,⭐ 1) Открой TOP — x3–x7 больше звёзд
+ru,earnings_block1_line1,TOP открывает самые выгодные мини-приложения:
+ru,earnings_block1_benefit1,• больше наград
+ru,earnings_block1_benefit2,• быстрее прогресс
+ru,earnings_block1_benefit3,• выше выплаты
+ru,earnings_block2_title,💸 2) Твои 7% от Telegram — официальная партнёрская программа
+ru,earnings_block2_how_it_works,"Когда люди заходят по твоей ссылке, запускают HubAggregatorBot и покупают ⭐ — Telegram делится с тобой ~7% дохода."
+ru,earnings_block2_examples,📌 Сколько может приносить один пользователь:\n• 1 пользователь → ~0.35–0.70€\n• 10 пользователей → ~3.5–7€\n• 100 пользователей → ~35–70€
+ru,earnings_enable_7_title,Как включить 7% (один раз и навсегда):
+ru,earnings_enable_7_steps,1️⃣ Открой @HubAggregatorBot\n2️⃣ «Партнёрская программа»\n3️⃣ «Присоединиться»\n→ 7% активируются навсегда
+ru,earnings_7_instructions,💸 Как включить 7% (один раз и навсегда):\n\n1️⃣ Открой профиль бота @HubAggregatorBot (нажми на название бота сверху в чате)\n2️⃣ Нажми «Партнёрская программа»\n3️⃣ Нажми «Присоединиться»\n\nПосле этого:\n✔️ 7% будут действовать всегда\n✔️ Telegram покажет твою реферальную ссылку\n✔️ Скопируй её и отправь друзьям — будешь получать 7% с их покупок звёзд
+ru,earnings_block3_title,🚀 3) Что сделать прямо сейчас
+ru,earnings_step1_locked,1️⃣ Пригласи ещё {{needed}} друга(ов) → TOP откроется
+ru,earnings_step1_open,1️⃣ TOP уже открыт — запусти TOP-партнёров
+ru,earnings_step2,2️⃣ Активируй свои 7%
+ru,earnings_step3,"3️⃣ Отправь эту ссылку в 1–2 «живых» чата или другу, которому это зайдёт — каждый пользователь может приносить тебе € автоматически"
+ru,earnings_step4,4️⃣ Запускай TOP-партнёров
+ru,earnings_auto_stats,→ доход и статистика появятся автоматически
+ru,earnings_btn_unlock_top,💎 Открыть TOP за {{buy_top_price}}⭐
+ru,earnings_btn_top_partners,⭐ TOP-партнёры
+ru,earnings_btn_activate_7,💰 Активировать 7%
+ru,partners_btn_top_partners,⭐ TOP-партнёры
+ru,partners_btn_earnings,💸 Заработок
+de,info_main,"👋 Das ist HubAggregatorBot — ein Aggregator der profitabelsten Telegram-Mini-Apps und Bots, um Stars und TON zu verdienen.\n\nHier kannst du:\n• geprüfte Partnerprogramme finden\n• TOP-Partner freischalten\n• deine Einnahmen verfolgen\n• den offiziellen 7%-Revenue-Share von Telegram aktivieren\n\nStarte mit /partners oder öffne /earnings, um deinen Fortschritt zu sehen."
+de,wallet_saved,✅ <b>Adresse gespeichert!</b>\nDu kannst sie für Auszahlungen verwenden.
+de,wallet_invalid_format,"🧠 Wenn du eine TON-Wallet-Adresse eingeben möchtest – überprüfe das Format. Wenn nicht, nutze den /info-Befehl."
+de,wallet_not_found,"⚠️ <b>Du hast noch keine TON-Wallet-Adresse gespeichert</b>\n\n🧾 So speicherst du sie: Öffne eine TON-Wallet, kopiere die Adresse und sende sie hier."
+de,wallet_help,"⚠️ <b>Du hast noch keine TON-Wallet-Adresse gespeichert</b>\n\n🧾 <b>So speicherst du deine TON-Wallet-Adresse:</b>\n\n1️⃣ Installiere oder öffne eine Wallet:\n\n• <a href=""https://t.me/wallet"">@wallet</a> — offizieller TON-Wallet-Bot in Telegram\n• <a href=""https://tonkeeper.com"">Tonkeeper</a> — iOS / Android\n• <a href=""https://tonhub.com"">Tonhub</a> — iOS / Android\n• <a href=""https://t.me/tonkeeper"">@tonkeeper</a> — Wallet direkt in Telegram\n\n2️⃣ Kopiere deine Wallet-Adresse (sieht ungefähr so aus):\n<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\n\n3️⃣ Sende diese Adresse hier in den Chat 📩\n\n✅ Eine gültige Adresse wird automatisch gespeichert\n❗️ Wenn etwas nicht stimmt, gibt dir der Bot Hinweise"
+de,wallet_info_empty,😐 Du hast noch keine TON-Wallet gespeichert.
+de,wallet_info_saved,👛 Deine TON-Wallet:\n<code>{{wallet}}</code>
+de,wallet_info_earnings,💸 Gutgeschrieben: <b>{{amount}}</b> TON
+de,wallet_buy_stars_hint,⭐ Du willst mehr Stars? Kauf sie direkt in Telegram.
+de,btn_buy_stars,⭐ Stars kaufen
+de,welcome,"👋 Hi! Das ist HubAggregatorBot – dein Guide zu Telegram-Bots, die dir Stars für Aktionen geben ⭐\n\n🎯 Hier kannst du:\n• geprüfte Bots starten und Stars für deine Aktionen verdienen\n• Freunde einladen und neue Möglichkeiten freischalten\n• deinen Fortschritt verfolgen und dein Level steigern\n\n💸 Stars sind dein Weg zu neuen Funktionen, Levels und sogar TON-Boni 😎\nJe mehr du tust, desto mehr wird freigeschaltet\n\n🚀 Warte nicht länger – tippe auf /partners und beginne jetzt, Stars zu verdienen!"
+de,unlock_top_paid,💫 TOP freischalten für {{buy_top_price}}⭐
+de,top_unlocked,"💫 TOP-Zugang freigeschaltet!\n\nDu hast TOP erfolgreich freigeschaltet. Tippe auf /top, um die profitabelsten Bots zu sehen."
+de,buy_top_title,TOP-Zugang freischalten
+de,buy_top_description,💫 Sofortiger Zugang zum TOP-Bereich
+de,buy_top_label,TOP-Zugang
+de,buy_top_price,1
+de,no_wallet_referral,"⚠️ <b>Du hast noch keine TON-Wallet hinzugefügt.</b>\n\nDu kannst deinen persönlichen Link aber schon teilen 👇\n[[referralLink]]\n\nFüge deine Wallet über <b>/wallet</b> hinzu, um Belohnungen für Freunde zu erhalten 💰"
+de,share_referral,🚀 Tritt HubAggregatorBot bei — sammle Stars für deine Aktivität!\nHier ist dein Empfehlungslink:\n[[referralLink]]
+de,share_button,🧡 Link teilen
+de,earnings_title,"🔥 Earnings Center\nDein Fortschritt, TOP und 7 % Einnahmen"
+de,earnings_no_income,😐 Du hast noch keine Einnahmen…
+de,earnings_has_income,👛 Wallet: {{wallet}}\n🌟 Verdient: {{earned}} TON
+de,earnings_block1_title,⭐ 1) Öffne TOP — x3–x7 mehr Stars
+de,earnings_block1_line1,TOP öffnet die profitabelsten Mini-Apps:
+de,earnings_block1_benefit1,• mehr Belohnungen
+de,earnings_block1_benefit2,• schnellerer Fortschritt
+de,earnings_block1_benefit3,• höhere Auszahlungen
+de,earnings_block2_title,💸 2) Deine 7 % von Telegram — offizielles Partnerprogramm
+de,earnings_block2_how_it_works,"Wenn Leute über deinen Link kommen, HubAggregatorBot starten und ⭐ kaufen, teilt Telegram ~7 % der Einnahmen mit dir."
+de,earnings_block2_examples,"📌 Wie viel ein User bringen kann:\n• 1 User → ~0,35–0,70€\n• 10 User → ~3,5–7€\n• 100 User → ~35–70€"
+de,earnings_enable_7_title,"So aktivierst du 7 % (einmal, für immer):"
+de,earnings_enable_7_steps,1️⃣ Öffne @HubAggregatorBot\n2️⃣ „Partnerprogramm“\n3️⃣ „Beitreten“\n→ 7 % bleiben dauerhaft aktiv
+de,earnings_7_instructions,"💸 So aktivierst du 7 % (einmal, für immer):\n\n1️⃣ Öffne das Bot-Profil @HubAggregatorBot (tippe oben im Chat auf den Bot-Namen)\n2️⃣ Tippe auf „Partnerprogramm“\n3️⃣ Tippe auf „Beitreten“\n\nDanach:\n✔️ Die 7 % bleiben dauerhaft aktiv\n✔️ Telegram zeigt dir deinen persönlichen Empfehlungslink\n✔️ Kopiere ihn und schicke ihn an Freunde – du erhältst 7 % von ihren Stars-Käufen"
+de,earnings_block3_title,🚀 3) Was du jetzt tun solltest
+de,earnings_step1_locked,1️⃣ Lade noch {{needed}} Freund(e) ein → TOP wird geöffnet
+de,earnings_step1_open,1️⃣ TOP ist schon geöffnet — starte die TOP-Partner
+de,earnings_step2,2️⃣ Aktiviere deine 7 %
+de,earnings_step3,"3️⃣ Teile diesen Link in 1–2 aktiven Chats oder mit einem Freund, den das interessieren könnte — jeder User kann dir automatisch € bringen"
+de,earnings_step4,4️⃣ Starte die TOP-Partner
+de,earnings_auto_stats,→ Einnahmen und Statistiken erscheinen automatisch
+de,earnings_btn_unlock_top,💎 TOP freischalten für {{buy_top_price}}⭐
+de,earnings_btn_top_partners,⭐ TOP-Partner
+de,earnings_btn_activate_7,💰 7 % aktivieren
+de,partners_btn_top_partners,⭐ TOP-Partner
+de,partners_btn_earnings,💸 Einnahmen
+es,info_main,👋 Este es HubAggregatorBot — un agregador de las mini apps y bots de Telegram más rentables para ganar Stars y TON.\n\nAquí puedes:\n• encontrar programas de afiliados verificados\n• desbloquear socios TOP\n• seguir tus ganancias\n• activar el 7 % oficial de reparto de ingresos de Telegram\n\nEmpieza con /partners o abre /earnings para ver tu progreso.
+es,wallet_saved,✅ <b>Dirección guardada.</b>\nPuedes usarla para recibir pagos.
+es,wallet_invalid_format,"🧠 Si estás intentando introducir una dirección de monedero TON, comprueba el formato. Si no, usa el comando /info."
+es,wallet_not_found,"⚠️ <b>Aún no tienes una dirección de monedero TON guardada</b>\n\n🧾 Cómo guardarla: abre cualquier monedero TON, copia la dirección y envíala aquí."
+es,wallet_help,"⚠️ <b>Aún no tienes una dirección de monedero TON guardada</b>\n\n🧾 <b>Cómo guardar la dirección de tu monedero TON:</b>\n\n1️⃣ Instala o abre un monedero:\n\n• <a href=""https://t.me/wallet"">@wallet</a> — monedero oficial de TON en Telegram\n• <a href=""https://tonkeeper.com"">Tonkeeper</a> — iOS / Android\n• <a href=""https://tonhub.com"">Tonhub</a> — iOS / Android\n• <a href=""https://t.me/tonkeeper"">@tonkeeper</a> — monedero dentro de Telegram\n\n2️⃣ Copia la dirección de tu monedero (se ve así):\n<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\n\n3️⃣ Envía esta dirección aquí en el chat 📩\n\n✅ Una dirección válida se guardará automáticamente\n❗️ Si algo va mal, el bot te indicará qué hacer"
+es,wallet_info_empty,😐 Todavía no tienes un monedero TON guardado.
+es,wallet_info_saved,👛 Tu monedero TON:\n<code>{{wallet}}</code>
+es,wallet_info_earnings,💸 Acumulado: <b>{{amount}}</b> TON
+es,wallet_buy_stars_hint,⭐ ¿Quieres más Stars? Cómpralas directamente en Telegram.
+es,btn_buy_stars,⭐ Comprar Stars
+es,welcome,"👋 ¡Hola! Soy HubAggregatorBot — tu guía de bots de Telegram que te dan Stars por tu actividad ⭐\n\n🎯 Aquí puedes:\n• lanzar bots verificados y ganar Stars por tus acciones\n• invitar a tus amigos y desbloquear nuevas oportunidades\n• seguir tu progreso y subir de nivel\n\n💸 Las Stars son el camino a nuevas funciones, niveles e incluso bonos en TON 😎\nCuantas más acciones hagas, más cosas se desbloquean\n\n🚀 No lo retrases — toca /partners y empieza a ganar Stars ahora mismo."
+es,unlock_top_paid,💫 Desbloquear TOP por {{buy_top_price}}⭐
+es,top_unlocked,💫 Acceso a TOP desbloqueado.\n\nHas desbloqueado TOP con éxito. Toca /top para ver los bots más rentables.
+es,buy_top_title,Desbloquear acceso TOP
+es,buy_top_description,💫 Acceso inmediato a la sección TOP
+es,buy_top_label,Acceso TOP
+es,buy_top_price,1
+es,no_wallet_referral,⚠️ <b>Todavía no has añadido un monedero TON.</b>\n\nPero ya puedes compartir tu enlace personal 👇\n[[referralLink]]\n\nAñade tu monedero con <b>/wallet</b> para recibir recompensas por tus amigos 💰
+es,share_referral,🚀 Únete a HubAggregatorBot — ¡gana Stars por tu actividad!\nAquí tienes tu enlace de referido:\n[[referralLink]]
+es,share_button,🧡 Compartir enlace
+es,earnings_title,"🔥 Earnings Center\ntu progreso, TOP y 7 % de ingresos"
+es,earnings_no_income,😐 Aún no tienes ingresos…
+es,earnings_has_income,👛 Monedero: {{wallet}}\n🌟 Ganado: {{earned}} TON
+es,earnings_block1_title,⭐ 1) Abre TOP — x3–x7 más Stars
+es,earnings_block1_line1,TOP desbloquea las mini apps más rentables:
+es,earnings_block1_benefit1,• más recompensas
+es,earnings_block1_benefit2,• progreso más rápido
+es,earnings_block1_benefit3,• pagos más altos
+es,earnings_block2_title,💸 2) Tus 7 % de Telegram — programa de afiliados oficial
+es,earnings_block2_how_it_works,"Cuando la gente entra con tu enlace, inicia HubAggregatorBot y compra ⭐, Telegram comparte contigo ~7 % de los ingresos."
+es,earnings_block2_examples,"📌 Cuánto puede aportar un usuario:\n• 1 usuario → ~0,35–0,70€\n• 10 usuarios → ~3,5–7€\n• 100 usuarios → ~35–70€"
+es,earnings_enable_7_title,Cómo activar el 7 % (una vez y para siempre):
+es,earnings_enable_7_steps,1️⃣ Abre @HubAggregatorBot\n2️⃣ «Programa de afiliados»\n3️⃣ «Unirse»\n→ El 7 % quedará activo para siempre
+es,earnings_7_instructions,💸 Cómo activar el 7 % (una vez y para siempre):\n\n1️⃣ Abre el perfil del bot @HubAggregatorBot (toca el nombre del bot arriba en el chat)\n2️⃣ Toca «Programa de afiliados»\n3️⃣ Toca «Unirse»\n\nDespués de eso:\n✔️ El 7 % queda activo para siempre\n✔️ Telegram te mostrará tu enlace de referido personal\n✔️ Cópialo y envíalo a tus amigos — ganarás un 7 % de sus compras de Stars
+es,earnings_block3_title,🚀 3) Qué hacer ahora mismo
+es,earnings_step1_locked,1️⃣ Invita a {{needed}} amigo(s) más → TOP se abrirá
+es,earnings_step1_open,1️⃣ TOP ya está abierto — lanza los socios TOP
+es,earnings_step2,2️⃣ Activa tu 7 %
+es,earnings_step3,3️⃣ Comparte este enlace en 1–2 chats activos o con un amigo al que pueda interesarle — cada usuario puede generarte € automáticamente
+es,earnings_step4,4️⃣ Lanza los socios TOP
+es,earnings_auto_stats,→ los ingresos y las estadísticas aparecerán automáticamente
+es,earnings_btn_unlock_top,💎 Desbloquear TOP por {{buy_top_price}}⭐
+es,earnings_btn_top_partners,⭐ Socios TOP
+es,earnings_btn_activate_7,💰 Activar 7 %
+es,partners_btn_top_partners,⭐ Socios TOP
+es,partners_btn_earnings,💸 Ganancias

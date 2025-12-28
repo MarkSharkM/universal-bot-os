@@ -1,0 +1,3554 @@
+{
+  "name": "PROD hub+mcp",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "e05009a6-b74a-4895-89d0-fca4c0ad6edd",
+      "name": "Global data",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -6176,
+        -1504
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "a2025331-2c2b-4df8-9e23-37035a5c808a",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              },
+              "leftValue": "={{ $('Trigger').item.json.message.text }}\n",
+              "rightValue": "/"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3a78395e-b55b-499b-a913-42c387039e89",
+      "name": "Command?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -3760,
+        -1872
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "360a2e5b-8736-488c-87dc-b5fcbd2b5102",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $('Trigger').item.json.message && (!$('Trigger').item.json.message.successful_payment) }}",
+                    "rightValue": "/"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "727fdd8d-ed98-4d64-b720-a10d78d73025",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $('Trigger').item.json.hasOwnProperty('callback_query') }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Callback"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "e014a230-519a-4028-98b3-33c10d408c85",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $('Trigger').item.json.hasOwnProperty('my_chat_member') }}",
+                    "rightValue": "System"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "System"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "b03aaa37-d57f-437c-acb2-de2068d3241a",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $('Trigger').item.json.hasOwnProperty('pre_checkout_query') || $('Trigger').item.json.message.hasOwnProperty('successful_payment') }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Payment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3699d6f1-0df8-417e-94e9-4340f7c6d4dc",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -4592,
+        -1616
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "0ae3453e-dbda-4884-b8cb-58cff18c442b",
+                    "leftValue": "={{ $('Trigger').item.json.message.text }}",
+                    "rightValue": "^\\/(?:start\\s+)?wallet\\b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "wallet"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "360a2e5b-8736-488c-87dc-b5fcbd2b5102",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "leftValue": "={{ $('Trigger').item.json.message.text }}",
+                    "rightValue": "^\\/(?:start\\s+)?top\\b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "top"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "546c81bf-2ee0-46b2-847b-1f92b84efaf3",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "leftValue": "={{ $('Trigger').item.json.message.text }}",
+                    "rightValue": "^\\/(?:start\\s+)?partners\\b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "partners"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "c0066ccb-61bb-4a89-b841-c4f7c4b1239b",
+                    "leftValue": "={{ $('Trigger').item.json.message.text }}",
+                    "rightValue": "^\\/(?:start\\s+)?share\\b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "share"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "abe720f7-c1a7-4a38-9c31-fe65a42c970e",
+                    "leftValue": "={{ $('Trigger').item.json.message.text }}",
+                    "rightValue": "^\\/(?:start\\s+)?earnings\\b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "earnings"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "d3c49935-e6e3-456e-b22d-cecf37038041",
+                    "leftValue": "={{ $('Trigger').item.json.message.text }}",
+                    "rightValue": "^\\/(?:start\\s+)?info\\b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "info"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "7dcf593b-b9c5-43ea-b9a2-65f1cdce3b03",
+                    "leftValue": "={{ $('Trigger').item.json.message.text }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "start"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "bd597a08-a2fe-4f4f-be62-d3efc19bda30",
+      "name": "Switch_Commands",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -3248,
+        -1824
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1841956048,
+          "mode": "list",
+          "cachedResultName": "Partners_Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1841956048"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Category",
+              "lookupValue": "=TOP"
+            },
+            {
+              "lookupColumn": "Active",
+              "lookupValue": "=Yes"
+            },
+            {
+              "lookupColumn": "Verified",
+              "lookupValue": "=Yes"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -2688,
+        -2032
+      ],
+      "id": "243d2db4-7c25-4ded-999e-bf895a9daf3a",
+      "name": "/top",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Format_TopBots_Message — MULTILANG via $node[...] (FIXED + buy_top_price, _tgr_ support)\n */\n\nconst TOP_NODE  = '/top';\nconst USER_NODE = 'read_user_wallet_for_top';\nconst REQUIRED_INVITES = 5;\n\n// --- helper: безпечне читання $node[\"Name\"].json ---\nfunction getNodeJson(name) {\n  try {\n    const node = $node[name];\n    if (!node) return {};\n    const j = node.json;\n    if (Array.isArray(j)) {\n      return j[0] || {};\n    }\n    return j || {};\n  } catch (e) {\n    return {};\n  }\n}\n\n// --- 0) Дані з інших нод ---\nconst topRows  = $items(TOP_NODE)  || [];\n\n// тут мінімальний фікс: безпечне читання USER_NODE\nlet userRows = [];\ntry {\n  userRows = $items(USER_NODE) || [];\n} catch (e) {\n  userRows = [];\n}\nconst userData = userRows[0]?.json || {};\n\n// Output Translator\nconst trItem   = getNodeJson('Translator');\n\n// Global data (якщо там щось є по мові)\nconst globalItem = getNodeJson('Global data');\n\n// Trigger (update з Telegram)\nconst trigItem = getNodeJson('Trigger');\n\n// --- 0.1) Кандидати мов з різних джерел ---\nconst translatorLang =\n  trItem.userLang ||\n  trItem.detectedLang ||\n  trItem.language ||\n  trItem.lang ||\n  '';\n\n// мова з Telegram update\nconst trigLang =\n  (trigItem.message && trigItem.message.from && trigItem.message.from.language_code) ||\n  (trigItem.callback_query && trigItem.callback_query.from && trigItem.callback_query.from.language_code) ||\n  (trigItem.from && trigItem.from.language_code) ||\n  '';\n\nconst globalLang =\n  globalItem.userLang ||\n  globalItem.detectedLang ||\n  globalItem.language ||\n  globalItem.lang ||\n  '';\n\nlet rawLangCode = translatorLang || trigLang || globalLang || 'en';\nrawLangCode = String(rawLangCode || 'en').trim();\n\nconst baseLang  = rawLangCode.split('-')[0].toLowerCase();\nconst supported = ['uk', 'en', 'ru', 'de', 'es'];\nconst lang      = supported.includes(baseLang) ? baseLang : 'en';\n\n// 🔥 ціна з Translator (buy_top_price)\nconst translations  = trItem?.translations || {};\nconst BUY_TOP_PRICE = Number(translations.buy_top_price || 1);\n\n// --- 0.2) Локалізація текстів ---\nconst shareTextByLang = {\n  uk:'🎉 Долучайся до HubAggregator — отримуй зірки за активність!',\n  en:'🎉 Join HubAggregator — earn Stars for your activity!',\n  ru:'🎉 Присоединяйся к HubAggregator — получай звёзды за активность!',\n  de:'🎉 Mach mit bei HubAggregator – sammle Stars für deine Aktivität!',\n  es:'🎉 Únete a HubAggregator: gana Stars por tu actividad!',\n};\n\nconst shareLabelByLang = {\n  uk:'🧡 Поділитись HubAggregator',\n  en:'🧡 Share HubAggregator',\n  ru:'🧡 Поделиться HubAggregator',\n  de:'🧡 HubAggregator teilen',\n  es:'🧡 Compartir HubAggregator',\n};\n\nconst unlockLabelByLang = {\n  uk:'💫 Відкрити TOP',\n  en:'💫 Unlock TOP',\n  ru:'💫 Открыть TOP',\n  de:'💫 TOP freischalten',\n  es:'💫 Desbloquear TOP',\n};\n\nconst lockedMsgByLang = {\n  uk:(l)=>`🎯 ТОП боти відкриваються після перших <b>${REQUIRED_INVITES} запрошень</b>.\n\n💬 Тобі залишилось запросити ще <b>${l}</b> друзів, щоб розблокувати найвигідніші партнерки!\n\n💫 Також ти можеш відкрити TOP миттєво за <b>${BUY_TOP_PRICE}⭐</b>.\n\n👇 Натисни, щоб поділитися посиланням:`.trim(),\n\n  en:(l)=>`🎯 TOP bots unlock after your first <b>${REQUIRED_INVITES} invites</b>.\n\n💬 You still need to invite <b>${l}</b> friends to unlock the most profitable partners!\n\n💫 You can also unlock TOP instantly for <b>${BUY_TOP_PRICE}⭐</b>.\n\n👇 Tap to share your link:`.trim(),\n\n  ru:(l)=>`🎯 ТОП-боты открываются после первых <b>${REQUIRED_INVITES} приглашений</b>.\n\n💬 Тебе осталось пригласить ещё <b>${l}</b> друзей, чтобы открыть самые выгодные партнёрки!\n\n💫 Также ты можешь открыть TOP мгновенно за <b>${BUY_TOP_PRICE}⭐</b>.\n\n👇 Нажми, чтобы поделиться ссылкой:`.trim(),\n\n  de:(l)=>`🎯 TOP-Bots werden nach deinen ersten <b>${REQUIRED_INVITES} Einladungen</b> freigeschaltet.\n\n💬 Du musst noch <b>${l}</b> Freunde einladen, um die profitabelsten Partner zu öffnen!\n\n💫 Du kannst TOP auch sofort für <b>${BUY_TOP_PRICE}⭐</b> freischalten.\n\n👇 Tippe, um deinen Link zu teilen:`.trim(),\n\n  es:(l)=>`🎯 Los bots TOP se desbloquean después de tus primeros <b>${REQUIRED_INVITES} invitados</b>.\n\n💬 Todavía necesitas invitar a <b>${l}</b> amigos para desbloquear los partners más rentables.\n\n💫 También puedes desbloquear TOP al instante por <b>${BUY_TOP_PRICE}⭐</b>.\n\n👇 Toca para compartir tu enlace:`.trim(),\n};\n\nconst topIntroByLang = {\n  uk:'🔥 ТОП партнери з найкращим потенціалом заробітку:',\n  en:'🔥 TOP partners with the best earning potential:',\n  ru:'🔥 ТОП партнёры с лучшим потенциалом заработка:',\n  de:'🔥 TOP-Partner mit dem besten Verdienstpotenzial:',\n  es:'🔥 Partners TOP con el mejor potencial de ganancias:',\n};\n\nconst bonusLabelByLang = {\n  uk:'Бонусна програма',\n  en:'Bonus program',\n  ru:'Бонусная программа',\n  de:'Bonusprogramm',\n  es:'Programa de bonificación',\n};\n\nconst openLabelByLang = {\n  uk:'Відкрити',\n  en:'Open',\n  ru:'Открыть',\n  de:'Öffnen',\n  es:'Abrir',\n};\n\nconst errorFetchByLang = {\n  uk:'⚠️ Не вдалося отримати список ботів. Спробуй пізніше.',\n  en:'⚠️ Failed to get the bots list. Please try again later.',\n  ru:'⚠️ Не удалось получить список ботов. Попробуй позже.',\n  de:'⚠️ Die Bot-Liste konnte nicht geladen werden. Bitte versuche es später erneut.',\n  es:'⚠️ No se pudo obtener la lista de bots. Inténtalo de nuevo más tarde.',\n};\n\nconst errorEmptyTopByLang = {\n  uk:'⚠️ Немає доступних ботів у категорії TOP.',\n  en:'⚠️ There are no available bots in the TOP category.',\n  ru:'⚠️ Нет доступных ботов в категории TOP.',\n  de:'⚠️ Es sind keine Bots in der Kategorie TOP verfügbar.',\n  es:'⚠️ No hay bots disponibles en la categoría TOP.',\n};\n\nconst emptyAfterTrimByLang = {\n  uk:'⚠️ Список ТОП порожній.',\n  en:'⚠️ The TOP list is empty.',\n  ru:'⚠️ Список ТОП пуст.',\n  de:'⚠️ Die TOP-Liste ist leer.',\n  es:'⚠️ La lista TOP está vacía.',\n};\n\n// fallback-и\nconst shareText   = shareTextByLang[lang]   || shareTextByLang.en;\nconst shareLabel  = shareLabelByLang[lang]  || shareLabelByLang.en;\nconst unlockLabel = unlockLabelByLang[lang] || unlockLabelByLang.en;\nconst topIntro    = topIntroByLang[lang]    || topIntroByLang.en;\nconst bonusLabel  = bonusLabelByLang[lang]  || bonusLabelByLang.en;\nconst openLabel   = openLabelByLang[lang]   || openLabelByLang.en;\n\n// --- helper: description (Description_xx) ---\nfunction getDescription(row, lc) {\n  const base = row['Description'] || '';\n  const key  = `Description_${lc}`;\n  return row[key] || base;\n}\n\n// --- share url ---\nconst buildHubShare = (tag) => {\n  const deep = `https://t.me/HubAggregatorBot?start=${encodeURIComponent(tag || 'share')}`;\n  return `https://t.me/share/url?url=${encodeURIComponent(deep)}&text=${encodeURIComponent(shareText)}`;\n};\n\n// --- нормалізація реферальних лінків ---\nconst personalizeReferral = (link, tag) => {\n  if (!link) return '';\n  let out = String(link);\n\n  // якщо вже є start=tgr_ або start=_tgr_ — лишаємо як є\n  if (/(\\?|&)start=(?:_?tgr_)/i.test(out)) return out;\n\n  if (tag) {\n    out = out\n      .replace('{TGR}', tag)\n      .replace('_tgr_', tag)\n      .replace(/(\\?|\\&)(start|payload)=share\\b/i, `$1$2=${encodeURIComponent(tag)}`);\n  }\n  if (!/(\\?|&)start=/i.test(out) && tag) {\n    out += (out.includes('?') ? '&' : '?') + `start=${encodeURIComponent(tag)}`;\n  }\n  return out;\n};\n\n// --- 1) Дані для TOP/юзера ---\nconst totalInvited       = parseInt(userData['Total Invited'] ?? 0, 10) || 0;\nconst topStatusFromDB    = (userData['TOP Status'] || '').toLowerCase();\nconst isTopUnlockedByPurchase = topStatusFromDB === 'open';\n\n// Основний userId з таблиці; якщо немає — беремо з Trigger\nlet userId  = String(userData['User Chat ID'] ?? '').trim();\nif (!userId) {\n  userId =\n    String(\n      trigItem.message?.from?.id ||\n      trigItem.callback_query?.from?.id ||\n      trigItem.callback_query?.message?.chat?.id ||\n      trigItem.from?.id ||\n      ''\n    ).trim();\n}\n\n// НОВИЙ префікс\nconst ref_tag = userId ? `_tgr_${userId}` : 'share';\n\n// --- 2) ТОП закритий? ---\nif (!isTopUnlockedByPurchase && totalInvited < REQUIRED_INVITES) {\n  const left     = REQUIRED_INVITES - totalInvited;\n  const lockedFn = lockedMsgByLang[lang] || lockedMsgByLang.en;\n\n  return [{\n    json: {\n      message:   lockedFn(left),\n      shareUrl:  buildHubShare(ref_tag),\n      shareLabel,\n      unlockLabel,\n      topStatus: 'locked',\n      langDebug: {\n        rawLangCode,\n        baseLang,\n        lang,\n        translatorLang,\n        trigLang,\n        globalLang,\n      },\n    }\n  }];\n}\n\n// --- 3) ТОП відкритий ---\nconst topSheet = topRows.map(i => i.json);\n\nif (!topSheet.length) {\n  return [{\n    json: {\n      message:  errorFetchByLang[lang] || errorFetchByLang.en,\n      shareUrl: buildHubShare(ref_tag),\n      shareLabel,\n      topStatus: 'open',\n      langDebug: {\n        rawLangCode,\n        baseLang,\n        lang,\n        translatorLang,\n        trigLang,\n        globalLang,\n      },\n    }\n  }];\n}\n\nlet topBots = topSheet.filter(b =>\n  String(b['Category'] ?? '').trim().toUpperCase() === 'TOP' &&\n  String(b['Active'] ?? 'true').toLowerCase() !== 'false'\n);\n\nif (!topBots.length) {\n  return [{\n    json: {\n      message:  errorEmptyTopByLang[lang] || errorEmptyTopByLang.en,\n      shareUrl: buildHubShare(ref_tag),\n      shareLabel,\n      topStatus: 'open',\n      langDebug: {\n        rawLangCode,\n        baseLang,\n        lang,\n        translatorLang,\n        trigLang,\n        globalLang,\n      },\n    }\n  }];\n}\n\n// sort by ROI Score\ntopBots.sort((a, b) => (parseFloat(b['ROI Score']) || 0) - (parseFloat(a['ROI Score']) || 0));\n\nconst LIMIT = 3900;\nlet body = '';\n\nfor (const bot of topBots) {\n  const name       = bot['Bot Name'] ?? 'Bot';\n  const desc       = getDescription(bot, lang);\n  const commission = bot['Commission (%)'] ?? 0;\n  let   link       = bot['Referral Link'] ?? '';\n\n  if (/t\\.me\\/HubAggregatorBot/i.test(link)) {\n    // якщо немає нашого start (_tgr_ або tgr_) — вставляємо; якщо start=share — замінюємо\n    if (!/(\\?|&)start=(?:_?tgr_)/i.test(link) && ref_tag) {\n      link = link.replace(/(\\?|\\&)start=share\\b/i, `$1start=${encodeURIComponent(ref_tag)}`);\n      if (!/(\\?|&)start=/i.test(link)) {\n        link += (link.includes('?') ? '&' : '?') + `start=${encodeURIComponent(ref_tag)}`;\n      }\n    }\n  } else {\n    link = personalizeReferral(link, ref_tag);\n  }\n\n  const block = `🤖 <b>${name}</b>\n${desc}\n🪙 ${bonusLabel}: ${commission}%\n👉 <a href=\"${link}\">${openLabel}</a>`;\n\n  const add = (body ? '\\n\\n' : '') + block;\n  if (body.length + add.length > LIMIT) break;\n  body += add;\n}\n\nlet message;\nif (!body) {\n  message = emptyAfterTrimByLang[lang] || emptyAfterTrimByLang.en;\n} else {\n  message = `${topIntro}\\n\\n${body}`;\n}\n\nreturn [{\n  json: {\n    message,\n    shareUrl:  buildHubShare(ref_tag),\n    shareLabel,\n    topStatus: 'open',\n    langDebug: {\n      rawLangCode,\n      baseLang,\n      lang,\n      translatorLang,\n      trigLang,\n      globalLang,\n    },\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2448,
+        -2016
+      ],
+      "id": "d558accb-771d-49e9-b722-2642c84c34d8",
+      "name": "Format_TopBots_Message"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1841956048,
+          "mode": "list",
+          "cachedResultName": "Partners_Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1841956048"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Active",
+              "lookupValue": "=Yes"
+            },
+            {
+              "lookupColumn": "Verified",
+              "lookupValue": "=Yes"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -2640,
+        -1840
+      ],
+      "id": "c90db021-c327-4317-8671-14918c3b1830",
+      "name": "/partners",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1️⃣ Мова з ноди \"Extract message data\" (єдина точка правди)\nconst ctx = $items('Extract message data')[0]?.json || {};\n\n// пріоритет: userLang → language → lang → 'uk'\nconst rawLangCode = ctx.userLang || ctx.language || ctx.lang || 'uk';\nconst baseLang = (rawLangCode || 'uk').split('-')[0].toLowerCase();\n\n// підтримувані мови\nconst supported = ['uk', 'en', 'ru', 'de', 'es'];\nconst lang = supported.includes(baseLang) ? baseLang : 'en';\n\n// 2️⃣ Локалізований інтро-текст\nconst introByLang = {\n  uk: '🤖 <b>Перевірені Telegram-боти, які нараховують зірки за дії</b>\\nОбирай будь-кого — запускай і прокачуйся! 💪',\n  en: '🤖 <b>Verified Telegram bots that give you Stars for actions</b>\\nPick any — launch and level up! 💪',\n  ru: '🤖 <b>Проверенные Telegram-боты, которые дают звёзды за активность</b>\\nВыбирай любого — запускай и прокачивайся! 💪',\n  de: '🤖 <b>Verifizierte Telegram-Bots, die dir Stars für Aktionen geben</b>\\nSuch dir einen aus – starte und level dich hoch! 💪',\n  es: '🤖 <b>Bots de Telegram verificados que te dan Stars por tus acciones</b>\\nElige cualquiera — ¡lánzalo y sube de nivel! 💪',\n};\n\nconst launchLabelByLang = {\n  uk: 'Запустити',\n  en: 'Launch',\n  ru: 'Запустить',\n  de: 'Starten',\n  es: 'Iniciar',\n};\n\nconst intro = introByLang[lang] || introByLang.en;\nconst launchLabel = launchLabelByLang[lang] || launchLabelByLang.en;\n\n// 3️⃣ Опис: Description_lang або базовий Description\nfunction getDescription(row, langCode) {\n  const base = row['Description'] || '';\n  const localizedKey = `Description_${langCode}`;\n  return row[localizedKey] || base;\n}\n\n// items вже відфільтровані нодою /partners (Active=Yes, Verified=Yes)\nconst rows = items;\n\n// 4️⃣ Формуємо список\nconst messages = rows.map((item, index) => {\n  const row = item.json;\n  const name = row['Bot Name'] || 'Bot';\n  const desc = getDescription(row, lang);\n  const link = row['Referral Link'] || '#';\n\n  const num = index + 1;\n  return `⭐ <b>${num}. ${name}</b>\\n${desc}\\n🔗 <a href=\"${link}\">${launchLabel}</a>`;\n});\n\n// 5️⃣ Якщо раптом немає жодного\nif (messages.length === 0) {\n  const emptyByLang = {\n    uk: 'Поки що немає доступних партнерів. Заглянь трохи пізніше 😉',\n    en: 'There are no available partners yet. Check back a bit later 😉',\n    ru: 'Пока нет доступных партнёров. Загляни позже 😉',\n    de: 'Es sind noch keine Partner verfügbar. Schau später noch mal vorbei 😉',\n    es: 'Todavía no hay partners disponibles. Vuelve un poco más tarde 😉',\n  };\n  const emptyMsg = emptyByLang[lang] || emptyByLang.en;\n\n  return [{\n    json: {\n      message: `${intro}\\n\\n${emptyMsg}`,\n      langDebug: {\n        rawLangCode,\n        lang,\n      },\n    },\n  }];\n}\n\n// 6️⃣ Фінальний текст\nconst body = messages.join('\\n\\n');\n\nreturn [{\n  json: {\n    message: `${intro}\\n\\n${body}`,\n    langDebug: {\n      rawLangCode,\n      lang,\n    },\n  },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2448,
+        -1840
+      ],
+      "id": "53423916-2404-4ec0-ba7a-5d00b1cf99c2",
+      "name": "format_partners_list"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').first().json.message.from.id }}",
+        "text": "={{ $json.message }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.share_button }}",
+                    "additionalFields": {
+                      "callback_data": "share_from_partners"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.partners_btn_top_partners }}",
+                    "additionalFields": {
+                      "callback_data": "/top"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.partners_btn_earnings }}",
+                    "additionalFields": {
+                      "callback_data": "/earnings"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "1b2c0b0f-8d69-4cc6-bab8-bbe28ff02345",
+      "name": "partners",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -2240,
+        -1840
+      ],
+      "webhookId": "a2156b9c-a4a7-4f88-b96c-166e6e36ece6",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ \n  $('Trigger').first().json.message?.from?.id\n  || $('Trigger').first().json.callback_query?.from?.id\n  || $('Trigger').first().json.callback_query?.message?.chat?.id\n}}\n",
+        "text": "={{ $json.message }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.shareLabel || '🧡 Поділитись HubAggregator' }}",
+                    "additionalFields": {
+                      "url": "={{ $json.shareUrl || '' }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "37517785-f508-4df3-8fd2-21655abe3538",
+      "name": "top",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -1984,
+        -2160
+      ],
+      "webhookId": "b1dfb074-d3aa-4aca-b419-cbd851b79b74",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1348161464,
+          "mode": "list",
+          "cachedResultName": "user_wallets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1348161464"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "User Chat ID",
+              "lookupValue": "={{ $('Trigger').first().json.message.from.id.toString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -2864,
+        -2256
+      ],
+      "id": "814382f5-7fda-48ef-b719-407f8c71c4af",
+      "name": "read_user_wallet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ !$json[\"Wallet Address\"] || $json[\"Wallet Address\"].trim() === \"\" }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "a2e153f8-b43d-41f0-93d1-9ad19d2fda8b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "exists"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "65045024-df40-4fea-b82a-e7e49c0e37bc",
+                    "leftValue": "={{ !$json[\"Wallet Address\"] || $json[\"Wallet Address\"].trim() === \"\" }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "not_exists"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2704,
+        -2256
+      ],
+      "id": "900ce193-c52d-46c2-9e39-d316e93474cf",
+      "name": "Switch_wallet_check"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Format_Wallet_Info\n * Вхід: рядок з таблиці user_wallets\n * Вихід: { WalletInfo: '...' } з урахуванням мови\n */\n\nconst row = $json;\nconst t = $node['Translator'].json; // наш перекладач\n\nconst wallet = row['Wallet Address'] || '';\nconst earned = row['Total Earned TON'] ?? 0;\n\nlet WalletInfo;\n\nif (!wallet) {\n  // немає гаманця\n  WalletInfo = t.wallet_info_empty || '😐 You don’t have a saved TON wallet yet.';\n} else {\n  // є гаманець — підставляємо шаблони з Translator\n  const savedTpl =\n    t.wallet_info_saved || '👛 Your TON wallet:\\n<code>{{wallet}}</code>';\n  const earnedTpl =\n    t.wallet_info_earnings || '💸 Earned: <b>{{amount}}</b> TON';\n\n  const part1 = savedTpl.replace('{{wallet}}', wallet);\n  const part2 = earnedTpl.replace('{{amount}}', earned);\n\n  WalletInfo = `${part1}\\n${part2}`;\n}\n\nreturn [\n  {\n    json: {\n      WalletInfo,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        -2384
+      ],
+      "id": "5a292a38-71a8-47aa-af66-dc17150d1303",
+      "name": "format_wallet_info"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Wallet_not_found → показує багатомовну інструкцію з гаманцем\n * Використовує ключ wallet_help із Translator\n */\n\nconst tr = $node[\"Translator\"].json || {};\n\nconst text =\n  tr.wallet_help ||        // детальна інструкція з лінками\n  tr.wallet_not_found ||   // коротка версія, якщо раптом нема\n  tr.wallet_info_empty ||  // ще один запасний варіант\n  \"⚠️ You don’t have a saved TON wallet yet.\\n\\n\" +\n  \"How to save: open any TON wallet, copy your address and send it here.\";\n\nreturn [\n  {\n    json: {\n      WalletInfo: text,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        -2208
+      ],
+      "id": "7fc412e2-9502-4540-aae4-54b40c9f6b73",
+      "name": "wallet_not_found"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').first().json.message.from.id }}",
+        "text": "={{ $json.WalletInfo }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.btn_buy_stars }}",
+                    "additionalFields": {
+                      "url": "tg://resolve?domain=wallet"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "c5ea71ce-3be2-43b5-9269-7c39bdcee702",
+      "name": "wallet_info",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -2288,
+        -2384
+      ],
+      "webhookId": "c17fdd95-ce63-4ed2-9e3e-4f901c8fe2b6",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').item.json.message?.chat?.id\n  || $('Trigger').item.json.callback_query?.from?.id\n  || $('Trigger').item.json.pre_checkout_query?.from?.id }}",
+        "text": "={{ $json.WalletInfo }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "ca3aabc8-3737-4936-9a5a-3ac49cc98bc1",
+      "name": "wallet_not_found1",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -2288,
+        -2208
+      ],
+      "webhookId": "89fe9d62-a859-401e-86c0-2c99fa1c2898",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ef0fcd52-5bca-47f8-bd7d-77b3520f29b4",
+              "leftValue": "={{ $('Code').first().json.regex_match }}",
+              "rightValue": "=true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2944,
+        -1136
+      ],
+      "id": "65792394-2d34-4f5a-a3b0-5f0fee597b2f",
+      "name": "is_valid_wallet_format"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1348161464,
+          "mode": "list",
+          "cachedResultName": "user_wallets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1348161464"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "User Chat ID": "={{ $('Trigger').first().json.message.chat.id }}",
+            "Username": "={{ $('Trigger').first().json.message.chat.username }}",
+            "Last Updated": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm:ss\") }}",
+            "Wallet Address": "={{ $(\"Code\").first().json.trimmed?.toString() || '' }}"
+          },
+          "matchingColumns": [
+            "User Chat ID"
+          ],
+          "schema": [
+            {
+              "id": "User Chat ID",
+              "displayName": "User Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Wallet Address",
+              "displayName": "Wallet Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Earned TON",
+              "displayName": "Total Earned TON",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Comment",
+              "displayName": "Comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Level",
+              "displayName": "Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Invited",
+              "displayName": "Total Invited",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Bonus Date",
+              "displayName": "Last Bonus Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Referred By",
+              "displayName": "Referred By",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Join Date",
+              "displayName": "First Join Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Language",
+              "displayName": "Language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Device",
+              "displayName": "Device",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Geo",
+              "displayName": "Geo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -2768,
+        -1280
+      ],
+      "id": "703ad50d-b6b6-4231-a705-0f8d2976cbe3",
+      "name": "create_wallet_entry",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').first().json.message.from.id }}",
+        "text": "={{ $node[\"Translator\"].json.wallet_saved }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.btn_buy_stars }}",
+                    "additionalFields": {
+                      "url": "tg://resolve?domain=wallet"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "e6c632a4-753f-4338-95f7-9044703bee2f",
+      "name": "create_wallet_entry1",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -2592,
+        -1280
+      ],
+      "webhookId": "8c8a37f0-f16f-4f90-b09c-678cd27f4ba5",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').first().json.message.from.id }}",
+        "text": "={{ $node[\"Translator\"].json.wallet_invalid_format }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "cb8cc213-9237-493d-ac6a-7573883a8845",
+      "name": "is_valid_wallet_format1",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -2608,
+        -1104
+      ],
+      "webhookId": "51e661a8-76bd-4379-98be-8f67139c377e",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  original: $('Trigger').first().json.message.text,\n  trimmed: $('Trigger').first().json.message.text.trim(),\n  length: $('Trigger').first().json.message.text.length,\n  trimmed_length: $('Trigger').first().json.message.text.trim().length,\n  regex_match: /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/.test($('Trigger').first().json.message.text.trim())\n}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3104,
+        -1136
+      ],
+      "id": "919002f6-e35b-406d-8b8e-50da7a9a0e6e",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').first().json.message.from.id }}",
+        "text": "={{ $node[\"Translator\"].json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "9d1a918a-dde7-4132-b432-d0dad671c3bd",
+      "name": "info",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -3024,
+        -1312
+      ],
+      "webhookId": "f79693b7-78ec-447e-a905-aa33715358f3",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').first().json.message.from.id }}",
+        "text": "={{ $node[\"Translator\"].json[\"text\"] }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "dcb46355-c360-447a-b029-8790f420321b",
+      "name": "start",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -3008,
+        -1456
+      ],
+      "webhookId": "340db778-44ce-4d46-acf2-1c29fe97dd29",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Оригінальний item (з Format_Log_Entry / Check_If_Referral)\nconst base = $json || {};\n\n// Telegram update з Trigger\nconst trig = $('Trigger').first().json || {};\n\n// Універсальний from (message / callback / payments / інше)\nconst from =\n  trig.message?.from ||\n  trig.callback_query?.from ||\n  trig.pre_checkout_query?.from ||\n  trig.successful_payment?.from ||\n  trig.my_chat_member?.from ||\n  trig.from ||\n  {};\n\n// ID юзера\nconst userId =\n  String(\n    from.id ||\n    base['User Chat ID'] ||\n    ''\n  );\n\n// username\nconst username =\n  from.username ||\n  base['Username'] ||\n  (userId ? `user${userId}` : 'anon');\n\n// мова\nconst userLang =\n  from.language_code ||\n  base['Language'] ||\n  'en';\n\n// реферальний тег для /share\nconst ref_tag = userId ? `_tgr_${userId}` : 'share';\n\n// імʼя бота\nconst botName = 'HubAggregatorBot';\n\n// посилання для start-параметра\nconst referralLink = `https://t.me/${botName}?start=${encodeURIComponent(ref_tag)}`;\n\nreturn [\n  {\n    json: {\n      // залишаємо всі поля, що прийшли з попередніх нод\n      ...base,\n\n      // додаємо службові поля\n      userId,\n      username,\n      userLang,\n      ref_tag,\n      referralLink,\n    },\n  },\n];\n"
+      },
+      "id": "71311da2-05fb-4752-b2a2-4727bdd53e54",
+      "name": "Extract_User_Info",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -2800,
+        -1696
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "lookup",
+        "sheetId": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+        "range": "user_wallets!A:O",
+        "lookupColumn": "User Chat ID",
+        "lookupValue": "={{ $('Extract_User_Info').first().json.userId.toString() }}",
+        "options": {
+          "continue": true,
+          "valueRenderMode": "UNFORMATTED_VALUE"
+        }
+      },
+      "id": "f52f18eb-d7c0-45cb-9fd6-d80babaace46",
+      "name": "Check_If_User_Exists",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        -2640,
+        -1664
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Trigger').first().json.message?.from?.id || $('Trigger').first().json.callback_query?.from?.id }}",
+        "text": "={{ $node[\"Translator\"].json.translations.share_referral.replace('[[referralLink]]', $node[\"Extract_User_Info\"].json.referralLink) }}\n",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.share_button }}\n",
+                    "additionalFields": {
+                      "url": "={{ 'https://t.me/share/url?url=' \n    + encodeURIComponent($node[\"Extract_User_Info\"].json.referralLink)\n    + '&text=' \n    + encodeURIComponent(\n         $node[\"Translator\"].json.translations.share_referral\n           .replace('[[referralLink]]', $node[\"Extract_User_Info\"].json.referralLink)\n      )\n}}\n"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "92ace0b9-f959-4194-adc9-6aace9935b9d",
+      "name": "Send_Referral",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -1936,
+        -1808
+      ],
+      "webhookId": "313ea717-77c0-47c9-909e-05cbbffd0fc6",
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7cca9adf-0a05-4b35-bf98-58884100589f",
+              "leftValue": "={{ $json[\"User Chat ID\"].toString() }}",
+              "rightValue": "={{ $('Extract_User_Info').first().json.userId.toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2384,
+        -1664
+      ],
+      "id": "0a644fe9-7541-4a15-ac80-384dfd22ef88",
+      "name": "Filter_User_By_ID"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Беремо оригінальний апдейт з Trigger\nconst trig = $node['Trigger'].json || {};\n\n// Універсально дістаємо from (для message і callback_query)\nconst from =\n  trig.callback_query?.from ||\n  trig.message?.from ||\n  trig.pre_checkout_query?.from ||\n  trig.successful_payment?.from ||\n  trig.from ||\n  {};\n\n// userId з кількох можливих місць, щоб точно не впасти\nconst userId = (\n  from.id ||\n  $json[\"User Chat ID\"] ||\n  $json[\"User ID\"] ||\n  0\n).toString();\n\n// username з Telegram або з логів\nconst username =\n  from.username ||\n  $json[\"Username\"] ||\n  'anon';\n\n// далі залишаємо як у тебе\nconst tgr = `_tgr_${userId}`;\nconst referralLink = `https://t.me/EarnHubBot?start=${tgr}`;\n\nreturn [\n  {\n    json: {\n      userId,\n      username,\n      tgr,\n      referralLink,\n      timestamp: new Date().toISOString()\n    }\n  }\n];\n"
+      },
+      "id": "18434eac-560b-46bd-8f80-bbc5256252ce",
+      "name": "Extract_Share_Referral_Info",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -2832,
+        -1536
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "lookup",
+        "sheetId": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+        "range": "user_wallets!A:O",
+        "lookupColumn": "User Chat ID",
+        "lookupValue": "={{ $('Extract_Share_Referral_Info').first().json.userId }}",
+        "options": {
+          "continue": true
+        }
+      },
+      "id": "de85ccc2-23e7-479e-8be1-5df8ab5b7690",
+      "name": "Read_Wallets_Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        -2640,
+        -1504
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Беремо поточний рядок із таблиці гаманців\nconst user = $json;\n\n// 🔠 Транслейтор (мови + тексти)\nconst tr = $node['Translator'].json || {};\nfunction t(key, vars = {}) {\n  const translations = tr.translations || {};\n  let s = translations[key] || key;\n  for (const k of Object.keys(vars)) {\n    s = s.replace(new RegExp(`{{${k}}}`, 'g'), String(vars[k]));\n  }\n  return s;\n}\n\n// Поточна мова (для коротких фраз типу \"друзів / friends\")\nconst lang = tr.detectedLang || 'en';\nconst langMap = {\n  uk: { friends: 'друзів', toTop: 'до TOP', refLabel: '🔗 Твоя реферальна лінка:' },\n  en: { friends: 'friends', toTop: 'to TOP', refLabel: '🔗 Your referral link:' },\n  ru: { friends: 'друзей', toTop: 'до TOP', refLabel: '🔗 Твоя реферальная ссылка:' },\n  de: { friends: 'Freunde', toTop: 'bis TOP', refLabel: '🔗 Dein Empfehlungslink:' },\n  es: { friends: 'amigos', toTop: 'hasta TOP', refLabel: '🔗 Tu enlace de referido:' },\n};\nconst LM = langMap[lang] || langMap.en;\n\n// 1) ID юзера (головне поле з таблиці)\nconst id =\n  user['User Chat ID'] ||\n  user.UserID ||\n  user.id ||\n  user.from_id ||\n  '0';\n\n// 2) Кількість інвайтів — з колонки \"Total Invited\"\nconst invites = Number(user['Total Invited'] ?? 0);\nconst REQUIRED_INVITES = 5;\nconst needed = Math.max(0, REQUIRED_INVITES - invites);\n\n// прогрес-бар 0–5 (кольоровий)\nconst totalSteps = REQUIRED_INVITES;\nconst filled = Math.min(invites, totalSteps);\n\nconst barFilled = '🟩'.repeat(filled);\nconst barEmpty = '⬜️'.repeat(totalSteps - filled);\nconst bar = barFilled + barEmpty;\n\n// 3) refTag — як у /share (якщо є tgr з ноди Extract_Share_Referral_Info)\nconst shareItem = $items('Extract_Share_Referral_Info', 0, 0)?.json || {};\nconst refTag = (shareItem.tgr || `user_${id}`).toString().trim();\n\n// 4) Реферальне посилання\nlet referralLink = `https://t.me/HubAggregatorBot?start=${refTag}`;\nreferralLink = referralLink.trim();\n\n// 5) Перевірка, чи є гаманець і заробіток\nconst hasWallet = !!user['Wallet Address'];\nconst hasEarned = user['Total Earned TON'] != null && user['Total Earned TON'] !== '';\n\nconst wallet = user['Wallet Address'] || '_';\nconst earned = user['Total Earned TON'] || '0';\n\n// динамічний крок 1 у блоці \"Що зробити зараз\"\nlet step1;\nif (needed > 0) {\n  step1 = t('earnings_step1_locked', { needed });\n} else {\n  step1 = t('earnings_step1_open');\n}\n\n// 🧾 Хедер (заголовок + стейт гаманця/заробітку)\nlet headerPart = '';\nif (hasWallet && hasEarned) {\n  headerPart =\n    `<b>${t('earnings_title')}</b>\\n\\n` +\n    t('earnings_has_income', { wallet, earned }) +\n    '\\n\\n';\n} else {\n  headerPart =\n    `<b>${t('earnings_title')}</b>\\n\\n` +\n    t('earnings_no_income') +\n    '\\n\\n';\n}\n\n// 🔗 Блок із реферальним лінком (короткий, але мультимовний)\nconst referralBlock =\n  `${LM.refLabel}\\n` +\n  `${referralLink}\\n`;\n\n// ⭐ Блок 1 — TOP\nconst block1 =\n`━━━━━━━━━━\n<b>${t('earnings_block1_title')}</b>\n\n👥 ${invites} / ${totalSteps} ${LM.friends}\n${bar}  +${needed} ${LM.toTop}\n(${t('earnings_btn_unlock_top')})\n\n${referralBlock}\n\n${t('earnings_block1_line1')}\n${t('earnings_block1_benefit1')}\n${t('earnings_block1_benefit2')}\n${t('earnings_block1_benefit3')}`;\n\n// 💸 Блок 2 — 7% від Telegram\nconst block2 =\n`━━━━━━━━━━\n<b>${t('earnings_block2_title')}</b>\n\n${t('earnings_block2_how_it_works')}\n\n${t('earnings_block2_examples')}\n\n<b>${t('earnings_enable_7_title')}</b>\n${t('earnings_enable_7_steps')}`;\n\n// 🚀 Блок 3 — Що зробити зараз\nconst block3 =\n`━━━━━━━━━━\n<b>${t('earnings_block3_title')}</b>\n\n${step1}\n${t('earnings_step2')}\n${t('earnings_step3')}\n${t('earnings_step4')}\n\n${t('earnings_auto_stats')}`;\n\nconst text = `${headerPart}${block1}\\n\\n${block2}\\n\\n${block3}`;\n\n// n8n вимагає МАСИВ елементів\nreturn [\n  {\n    json: {\n      text,\n      referralLink,\n      invites,\n      needed,\n      wallet,\n      earned,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2208,
+        -1456
+      ],
+      "id": "cfc2781c-f76f-4a18-8546-3737b9176757",
+      "name": "Build_Earnings_Message"
+    },
+    {
+      "parameters": {
+        "chatId": "={{\n  (() => {\n    const trig = $node[\"Trigger\"].json || {};\n\n    const from =\n      (trig.callback_query && trig.callback_query.from) ||\n      (trig.message && trig.message.from) ||\n      trig.from ||\n      {};\n\n    return (\n      from.id ||\n      $json[\"User Chat ID\"] ||\n      $json[\"User ID\"] ||\n      0\n    );\n  })()\n}}\n",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.share_button }}",
+                    "additionalFields": {
+                      "callback_data": "share_from_earnings"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.earnings_btn_unlock_top }}",
+                    "additionalFields": {
+                      "callback_data": "buy_top"
+                    }
+                  },
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.earnings_btn_top_partners }}",
+                    "additionalFields": {
+                      "callback_data": "=/top"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.earnings_btn_activate_7 }}",
+                    "additionalFields": {
+                      "callback_data": "activate_7"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "99aba8fe-4be2-439b-a5ba-d2ef93884e86",
+      "name": "Send_Earnings_Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -1984,
+        -1456
+      ],
+      "webhookId": "6037fce6-d20b-4807-85b3-89bac7d7d879",
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract message data (works for both message & callback_query)\n\nconst trig = $('Trigger').first().json || {};\n\n// message, який показується в чаті (може бути від бота)\nconst message =\n  trig.message ||\n  (trig.callback_query && trig.callback_query.message) ||\n  {};\n\n// справжній користувач (джерело мови, id, username)\nconst from =\n  (trig.callback_query && trig.callback_query.from) ||\n  message.from ||\n  trig.from ||\n  {};\n\nlet refParam = '';\n\n// /start <payload> – тільки з текстового message\nif (message.text && message.text.startsWith('/start')) {\n  const parts = message.text.split(' ');\n  refParam = parts[1] || '';\n}\n\n// сирий текст / команда:\n//  - для callback → callback_query.data (наприклад \"buy_top\" або \"/buy_top\")\n//  - для звичайного повідомлення → message.text\nconst rawText =\n  (trig.callback_query && (trig.callback_query.data || '').trim()) ||\n  (message.text || '').trim() ||\n  '';\n\nconst match = rawText.match(/^\\/?([a-zA-Zа-яА-Я0-9_]+)/);\nconst cmd = match ? match[1].toLowerCase() : null;\n\n// 🔑 мапа команд → ключів у Translator\nconst commandToKey = {\n  start: 'welcome',\n  // wallet: 'wallet',\n  // info: 'info',\n  // partners: 'partners',\n  // top: 'top',\n  // buy_top: 'buy_top',\n};\n\nconst msgKey = cmd ? (commandToKey[cmd] || cmd) : null;\n\nconst langCode = from.language_code || '';      // напр. \"en\", \"en-US\"\nconst shortLang = langCode.split('-')[0] || ''; // \"en\", \"uk\" тощо\n\nreturn [{\n  json: {\n    refParam,\n    userChatId: from.id || '',\n    username: from.username || '',\n    firstName: from.first_name || '',\n    lastName: from.last_name || '',\n    messageId: message.message_id || '',\n    messageText: rawText,\n    language: langCode,   // 🌐 повний код\n    userLang: shortLang,  // ✅ короткий код (en, uk, de, es, ru)\n    msgKey,\n    _msgKey: msgKey,\n    _originalText: rawText\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6000,
+        -1696
+      ],
+      "id": "370e3d82-7411-4ce6-b0a1-8f172490ff72",
+      "name": "Extract message data"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"Timestamp\": \"{{$now.toISO()}}\",\n  \"User Chat ID\": \"{{ $json.userChatId }}\",\n  \"Username\": \"{{ $json.username }}\",\n  \"First Name\": \"{{ $json.firstName }}\",\n  \"Last Name\": \"{{ $json.lastName }}\",\n  \"Message ID\": \"{{ $json.messageId }}\",\n  \"Message Text\": \"{{ $json.messageText }}\",\n  \"Original Link\": \"https://t.me/EarnHubAggregatorBot?start={{ $json.refParam }}\",\n  \"Short Link\": \"\",\n  \"Ref Parameter\": \"{{ $json.refParam }}\",\n  \"Clicks\": \"1\",\n  \"Partner Bot\": \"\",\n  \"Commission (%)\": \"\",\n  \"Earned TON\": \"0\",\n  \"Payout Status\": \"Unpaid\",\n  \"Payout Date\": \"\",\n  \"Referred By\": \"{{ $json.refParam }}\",\n  \"Referral Level\": \"{{ $json.refParam ? '1' : '0' }}\",\n  \"Smart Link\": \"\",\n  \"Click Type\": \"{{ $json.refParam ? 'Referral' : 'Organic' }}\",\n  \"Language\": \"{{ $json.language }}\",\n  \"Device\": \"\",\n  \"Geo\": \"\",\n  \"Month\": \"{{$now.toFormat('MMMM')}}\",\n  \"Status\": \"✅ Logged\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5744,
+        -1264
+      ],
+      "id": "dcfeeb1e-7ba3-4732-8053-715e5cfaf0bf",
+      "name": "Format_Log_Entry"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "bot_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm:ss\") }}",
+            "User Chat ID": "={{$json[\"User Chat ID\"]}}",
+            "Username": "={{$json[\"Username\"]}}",
+            "First Name": "={{$json[\"First Name\"]}}",
+            "Last Name": "={{$json[\"Last Name\"]}}",
+            "Message ID": "={{$json[\"Message ID\"]}}",
+            "Message Text": "={{$json[\"Message Text\"]}}",
+            "Original Link": "={{$json[\"Original Link\"]}}",
+            "Short Link": "={{$json[\"Short Link\"]}}",
+            "Ref Parameter": "={{ $json[\"Ref Parameter\"] || \"NO_REF\" }}\n",
+            "Clicks": "={{$json[\"Clicks\"]}}",
+            "Partner Bot": "={{$json[\"Partner Bot\"]}}",
+            "Commission (%)": "={{$json[\"Commission (%)\"]}}",
+            "Earned TON": "={{$json[\"Earned TON\"]}}",
+            "Payout Status": "={{$json[\"Payout Status\"]}}",
+            "Payout Date": "={{$json[\"Payout Date\"]}}",
+            "Referred By": "={{ $json[\"referredBy\"] || \"NO_REF\" }}\n",
+            "Referral Level": "={{$json[\"Referral Level\"]}}",
+            "Smart Link": "={{$json[\"Smart Link\"]}}",
+            "Click Type": "={{$json[\"Click Type\"]}}",
+            "Language": "={{$json[\"Language\"]}}",
+            "Device": "={{$json[\"Device\"]}}",
+            "Geo": "={{$json[\"Geo\"]}}",
+            "Month": "={{$json[\"Month\"]}}",
+            "Status": "={{$json[\"Status\"]}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "User Chat ID",
+              "displayName": "User Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message ID",
+              "displayName": "Message ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message Text",
+              "displayName": "Message Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Original Link",
+              "displayName": "Original Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Short Link",
+              "displayName": "Short Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ref Parameter",
+              "displayName": "Ref Parameter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Clicks",
+              "displayName": "Clicks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Partner Bot",
+              "displayName": "Partner Bot",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Commission (%)",
+              "displayName": "Commission (%)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Earned TON",
+              "displayName": "Earned TON",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payout Status",
+              "displayName": "Payout Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payout Date",
+              "displayName": "Payout Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Referred By",
+              "displayName": "Referred By",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Referral Level",
+              "displayName": "Referral Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Smart Link",
+              "displayName": "Smart Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Click Type",
+              "displayName": "Click Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Language",
+              "displayName": "Language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Device",
+              "displayName": "Device",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Geo",
+              "displayName": "Geo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Month",
+              "displayName": "Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -5504,
+        -1744
+      ],
+      "id": "7a40ef86-2461-40ee-a227-5eab1ea177f4",
+      "name": "Log to bot_log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1348161464,
+          "mode": "list",
+          "cachedResultName": "user_wallets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1348161464"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Total Invited": "={{$json[\"totalInvited\"]}}",
+            "User Chat ID": "={{ $json[\"inviterId\"] }}"
+          },
+          "matchingColumns": [
+            "User Chat ID"
+          ],
+          "schema": [
+            {
+              "id": "User Chat ID",
+              "displayName": "User Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Wallet Address",
+              "displayName": "Wallet Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Total Earned TON",
+              "displayName": "Total Earned TON",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Comment",
+              "displayName": "Comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Level",
+              "displayName": "Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Total Invited",
+              "displayName": "Total Invited",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Bonus Date",
+              "displayName": "Last Bonus Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Referred By",
+              "displayName": "Referred By",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "First Join Date",
+              "displayName": "First Join Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Language",
+              "displayName": "Language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Device",
+              "displayName": "Device",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Geo",
+              "displayName": "Geo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -4752,
+        -1776
+      ],
+      "id": "0bc2a439-581d-46b7-a3fc-8cf85954f702",
+      "name": "Update Total Invited",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Check_If_Referral — WebApp-safe\n * Реферал тільки коли payload = _tgr_<letters/digits[-]...> або legacy tgr_<...>\n */\n\nconst trigger = $('Trigger').first().json ?? {};\nconst msg = trigger.message ?? {};\n\n// 0) Кандидати payload\nconst qsStart    = String($json['Ref Parameter'] ?? '').trim();    // ?start=...\nconst webAppData = String(msg.web_app_data?.data ?? '').trim();    // web_app\nconst text       = String(msg.text ?? '').trim();                   // /start ...\n\n// 1) /start <payload>\nlet fromText = '';\nif (text) {\n  const m = /^\\/start\\s+([^\\s]+)\\s*$/i.exec(text);\n  if (m) fromText = m[1];\n}\n\n// 2) Валідатор _tgr_ або legacy tgr_\nconst TGR_RE = /^_?tgr_[a-z0-9-]+$/i;\n\n// 3) Резервовані команди (не реф)\nconst RESERVED = new Set([\n  'partners','top','wallet','earnings','share','info','help','start','settings'\n]);\n\n// 4) Перший валідний tgr; ігноруємо NO_REF/порожнє\nconst candidates = [qsStart, webAppData, fromText]\n  .map(v => String(v || '').trim())\n  .filter(v => v && v.toUpperCase() !== 'NO_REF');\n\nconst pickTgr = candidates.find(v => TGR_RE.test(v)) || '';\nconst lowerPick = pickTgr.toLowerCase();\nconst isValidReferral = !!pickTgr && !RESERVED.has(lowerPick);\n\nconst userChatId = $json['User Chat ID'];\nconst triggerData = $node['Format_Log_Entry']?.json || {};\n\n// 🔸 Спецвипадок: трафік із GPT Store — не вважаємо рефералом\nif (lowerPick === '_tgr_gptstore' || lowerPick === 'tgr_gptstore') {\n  return [{\n    json: {\n      ...triggerData,\n      isReferral: false,\n      inviterCode: 'NO_REF',\n      referredBy: 'NO_REF',\n      'Ref Parameter': 'NO_REF',\n      'Click Type': 'gptstore',       // 👈 маркуємо як gptstore\n      inviterId: userChatId,\n      totalInvited: 0\n    }\n  }];\n}\n\n// 🔹 Звичайний нереферальний трафік\nif (!isValidReferral) {\n  return [{\n    json: {\n      ...triggerData,\n      isReferral: false,\n      inviterCode: 'NO_REF',\n      referredBy: 'NO_REF',\n      'Ref Parameter': 'NO_REF',\n      'Click Type': 'Organic',        // 👈 ставимо Organic\n      inviterId: userChatId,\n      totalInvited: 0\n    }\n  }];\n}\n\n// 🟢 Валідний реферальний трафік\nreturn [{\n  json: {\n    ...triggerData,\n    isReferral: true,\n    inviterCode: pickTgr,\n    referredBy: pickTgr,\n    'Ref Parameter': pickTgr,\n    'Click Type': 'Referral',         // 👈 ставимо Referral\n    inviterId: userChatId,\n    totalInvited: 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5616,
+        -1472
+      ],
+      "id": "9b9f6529-3f54-41ce-a6ee-f1851ae249fb",
+      "name": "Check: Is Referral"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🟢 Беремо всі логи з попередньої ноди\nconst logs = $items(\"Get bot_log\").map(item => item.json);\n\n// 🟢 Дані з \"Check: Is Referral\"\nconst inviterData = $items(\"Check: Is Referral\")[0].json;\nconst inviterId = inviterData.inviterId || null;\nconst inviterCode = inviterData.inviterCode || null;\n\n// 🟢 Якщо нема інвайтера — виходимо\nif (!inviterId || !inviterCode) {\n  return [{\n    json: {\n      ...inviterData,\n      totalInvited: 0\n    },\n    pairedItem: { item: 0 }\n  }];\n}\n\n// 🟢 Фільтруємо лише валідні записи (реферальні, не пусті, не NO_REF)\nconst validReferrals = logs.filter(log =>\n  log[\"Ref Parameter\"] &&\n  String(log[\"Ref Parameter\"]).trim() !== \"\" &&\n  String(log[\"Ref Parameter\"]).trim().toUpperCase() !== \"NO_REF\"\n);\n\n// 🟢 Беремо унікальні значення Ref Parameter\nconst uniqueRefs = [...new Set(validReferrals.map(log => String(log[\"Ref Parameter\"]).trim()))];\n\n// 🟢 Підраховуємо кількість унікальних рефералів\nconst totalInvited = uniqueRefs.length;\n\n// 🟢 Повертаємо все для Switch (paired)\nreturn [{\n  json: {\n    ...inviterData,\n    inviterCode,\n    inviterId,\n    totalInvited\n  },\n  pairedItem: { item: 0 }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5008,
+        -1648
+      ],
+      "id": "be5d5723-efd3-48e4-ae76-edfc1153bfb7",
+      "name": "Count Referrals",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "967bc469-928d-4e60-983b-8cf91649b46a",
+              "leftValue": "={{ $json[\"Ref Parameter\"].trim().toUpperCase() != \"NO_REF\" }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -5408,
+        -1440
+      ],
+      "id": "4e3ebb27-c5b2-40ca-85c8-ff23ca8450f6",
+      "name": "IF (isReferral = true)"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "id": "d4f2dc06-7ac5-4c6f-97d5-38cdda5e7a6f",
+      "name": "Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -6304,
+        -1280
+      ],
+      "webhookId": "2bfa7dd9-c834-477f-ae6b-62deb1714965",
+      "typeVersion": 1.1,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "bot_log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "User Chat ID",
+              "lookupValue": "={{ $json[\"User Chat ID\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -5232,
+        -1632
+      ],
+      "id": "5fda5879-e8d9-4128-a542-061764eea1b2",
+      "name": "Get bot_log",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1348161464,
+          "mode": "list",
+          "cachedResultName": "user_wallets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1348161464"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "User Chat ID",
+              "lookupValue": "={{ String($json[\"User Chat ID\"] || \"\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -2912,
+        -1968
+      ],
+      "id": "c568ed31-b63f-4d53-b097-7897295b8f4e",
+      "name": "read_user_wallet_for_top",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Translator Node (HubAggregatorBot)\n * - locales: uk, en, ru, de, es\n * - getLang() → нормалізує Trigger.language_code + ручні оверрайди\n * - t(lang, key, vars) → підставляє {{placeholders}}\n * - msgKey/msgVars → out.text\n */\n\nconst locales = {\n  uk: {\n    info_main:\n      '👋 Це HubAggregatorBot — агрегатор найвигідніших Telegram-міні-застосунків та ботів для заробітку зірок і TON.\\n\\n' +\n      'Тут ти можеш:\\n' +\n      '• знаходити перевірені партнерки\\n' +\n      '• відкривати TOP-партнерів\\n' +\n      '• відстежувати свій заробіток\\n' +\n      '• підключити 7% офіційної партнерки Telegram\\n\\n' +\n      'Почни з команди /partners або відкрий /earnings, щоб побачити свій прогрес.',\n\n    wallet_saved: '✅ <b>Адресу збережено!</b>\\nВи можете її використовувати для отримання нарахувань.',\n    wallet_invalid_format:\n      '🧠 Якщо ви намагаєтесь ввести адресу TON-гаманця — перевірте формат. А якщо ні — скористайтесь командою /info.',\n    wallet_not_found:\n      '⚠️ <b>У вас ще не збережено адресу TON-гаманця</b>\\n\\n' +\n      '🧾 Як зберегти: відкрийте будь-який TON-гаманець, скопіюйте адресу і надішліть її сюди.',\n\n    // 🔹 Детальна інструкція з гаманцем (довга)\n    wallet_help:\n      '⚠️ <b>У вас ще не збережено адресу TON-гаманця</b>\\n\\n' +\n      '🧾 <b>Як зберегти адресу TON-гаманця:</b>\\n\\n' +\n      '1️⃣ Встановіть або відкрийте один із гаманців:\\n\\n' +\n      '• <a href=\"https://t.me/wallet\">@wallet</a> — офіційний TON-гаманець у Telegram\\n' +\n      '• <a href=\"https://tonkeeper.com\">Tonkeeper</a> — iOS / Android\\n' +\n      '• <a href=\"https://tonhub.com\">Tonhub</a> — iOS / Android\\n' +\n      '• <a href=\"https://t.me/tonkeeper\">@tonkeeper</a> — гаманець у Telegram\\n\\n' +\n      '2️⃣ Скопіюйте адресу гаманця (виглядає приблизно так):\\n' +\n      '<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\\n\\n' +\n      '3️⃣ Надішліть цю адресу сюди в чат 📩\\n\\n' +\n      '✅ Валідну адресу буде збережено автоматично\\n' +\n      '❗️ Якщо щось не так — бот надішле підказку',\n\n    // 🔹 Format_Wallet_Info\n    wallet_info_empty: '😐 Поки що в тебе немає збереженого TON-гаманця.',\n    wallet_info_saved: '👛 Твій TON-гаманець:\\n<code>{{wallet}}</code>',\n    wallet_info_earnings: '💸 Нараховано: <b>{{amount}}</b> TON',\n    wallet_buy_stars_hint: '⭐ Хочеш більше зірок? Купи їх напряму в Telegram.',\n    btn_buy_stars: '⭐ Купити зірки',\n\n    welcome:\n      '👋 Привіт! Це HubAggregatorBot — твій гід по Telegram-ботах, які дають зірки за активність ⭐\\n\\n' +\n      '🎯 Тут ти можеш:\\n' +\n      '• Запускати перевірені боти та отримувати зірки за дії\\n' +\n      '• Запрошувати друзів і відкривати нові можливості\\n' +\n      '• Відстежувати свій прогрес і прокачуватись\\n\\n' +\n      '💸 Зірки — це шлях до нових функцій, рівнів і навіть до TON-бонусів 😎\\n' +\n      'Чим більше дій — тим більше відкривається\\n\\n' +\n      '🚀 Не зволікай — натисни /partners і почни заробляти зірки вже зараз!',\n    unlock_top_paid: '💫 Відкрити TOP за {{buy_top_price}}⭐',\n    top_unlocked:\n      '💫 TOP доступ відкрито!\\n\\nТи успішно розблокував TOP. Тисни /top, щоб побачити найвигідніші боти.',\n    buy_top_title: 'Відкрити доступ до TOP',\n    buy_top_description: '💫 Миттєвий доступ до розділу TOP',\n    buy_top_label: 'TOP доступ',\n    buy_top_price: 1,\n    no_wallet_referral:\n      '⚠️ <b>У вас ще не додано TON-гаманець.</b>\\n\\n' +\n      'Проте ви вже можете ділитись своїм посиланням 👇\\n[[referralLink]]\\n\\n' +\n      'Додайте гаманець через <b>/wallet</b>, щоб отримати винагороду за друзів 💰',\n    share_referral:\n      '🚀 Долучайся до HubAggregatorBot — отримуй зірки за активність!\\nОсь твоє реферальне посилання:\\n[[referralLink]]',\n    share_button: '🧡 Поділитись лінкою',\n\n    // 🔥 Earnings Center (UA)\n    earnings_title: '🔥 Earnings Center\\nтвій прогрес, TOP та заробіток 7%',\n    earnings_no_income: '😐 Поки що в тебе немає заробітку…',\n    earnings_has_income: '👛 Гаманець: {{wallet}}\\n🌟 Зароблено: {{earned}} TON',\n\n    earnings_block1_title: '⭐ 1) Відкрий TOP — x3–x7 більше зірок',\n    earnings_block1_line1: 'TOP відкриває найвигідніші міні-аппи:',\n    earnings_block1_benefit1: '• більше нагород',\n    earnings_block1_benefit2: '• швидший прогрес',\n    earnings_block1_benefit3: '• вищі виплати',\n\n    earnings_block2_title: '💸 2) Твої 7% від Telegram — офіційна партнерська програма',\n    earnings_block2_how_it_works:\n      'Коли люди заходять через твою лінку, запускають HubAggregatorBot і купують ⭐ — Telegram ділиться з тобою доходом (~7%).',\n    earnings_block2_examples:\n      '📌 Скільки може приносити один юзер:\\n' +\n      '• 1 юзер → ~0.35–0.70€\\n' +\n      '• 10 юзерів → ~3.5–7€\\n' +\n      '• 100 юзерів → ~35–70€',\n\n    earnings_enable_7_title: 'Як увімкнути 7% (1 раз назавжди):',\n    earnings_enable_7_steps:\n      '1️⃣ Відкрий @HubAggregatorBot\\n' +\n      '2️⃣ «Партнерська програма»\\n' +\n      '3️⃣ «Під’єднатись»\\n' +\n      '→ 7% активуються назавжди',\n\n    // 🔹 НОВЕ: детальна інструкція для окремого екрану\n    earnings_7_instructions:\n      '💸 Як увімкнути 7% (1 раз назавжди):\\n\\n' +\n      '1️⃣ Відкрий профіль бота @HubAggregatorBot (натисни на назву бота зверху в чаті)\\n' +\n      '2️⃣ Обери «Партнерська програма»\\n' +\n      '3️⃣ Натисни «Під’єднатись»\\n\\n' +\n      'Після цього:\\n' +\n      '✔️ 7% діють назавжди\\n' +\n      '✔️ Telegram покаже твою реферальну лінку\\n' +\n      '✔️ Скопіюй її й надішли друзям — отримуватимеш 7% з їхніх витрат',\n\n    earnings_block3_title: '🚀 3) Що зробити прямо зараз',\n    earnings_step1_locked: '1️⃣ Додай ще {{needed}} друга(ів) → TOP відкриється',\n    earnings_step1_open: '1️⃣ TOP уже відкритий — запусти TOP-партнерів',\n    earnings_step2: '2️⃣ Активуй свої 7%',\n    earnings_step3:\n      '3️⃣ Кинь цю лінку в 1–2 «живі» чати або другу, якому це зайде — кожен юзер може приносити тобі € автоматично',\n    earnings_step4: '4️⃣ Запускай TOP-партнерів',\n    earnings_auto_stats: '→ доходи і статистика з’являться автоматично',\n\n    earnings_btn_unlock_top: '💎 Відкрити TOP за {{buy_top_price}}⭐',\n    earnings_btn_top_partners: '⭐ TOP-партнери',\n    earnings_btn_activate_7: '💰 Активувати 7%',\n    // 🔽 Кнопки для /partners\n    partners_btn_top_partners: '⭐ TOP-партнери',\n    partners_btn_earnings: '💸 Заробіток',\n  },\n\n  en: {\n    info_main:\n      '👋 This is HubAggregatorBot — an aggregator of the most profitable Telegram mini apps and bots to earn Stars and TON.\\n\\n' +\n      'Here you can:\\n' +\n      '• find vetted partner programs\\n' +\n      '• unlock TOP partners\\n' +\n      '• track your earnings\\n' +\n      '• enable Telegram’s official 7% revenue share\\n\\n' +\n      'Start with /partners or open /earnings to see your progress.',\n\n    wallet_saved: '✅ <b>Address saved!</b>\\nYou can use it to receive payouts.',\n    wallet_invalid_format:\n      '🧠 If you are trying to enter a TON wallet address — please check the format. If not, use the /info command.',\n    wallet_not_found:\n      '⚠️ <b>You don\\'t have a saved TON wallet address yet</b>\\n\\n' +\n      '🧾 How to save: open any TON wallet, copy your address and send it here.',\n    wallet_help:\n      '⚠️ <b>You don\\'t have a saved TON wallet address yet</b>\\n\\n' +\n      '🧾 <b>How to save your TON wallet address:</b>\\n\\n' +\n      '1️⃣ Install or open a wallet:\\n\\n' +\n      '• <a href=\"https://t.me/wallet\">@wallet</a> — official TON wallet bot in Telegram\\n' +\n      '• <a href=\"https://tonkeeper.com\">Tonkeeper</a> — iOS / Android\\n' +\n      '• <a href=\"https://tonhub.com\">Tonhub</a> — iOS / Android\\n' +\n      '• <a href=\"https://t.me/tonkeeper\">@tonkeeper</a> — Telegram wallet\\n\\n' +\n      '2️⃣ Copy your wallet address (it looks like this):\\n' +\n      '<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\\n\\n' +\n      '3️⃣ Send it here in chat 📩\\n\\n' +\n      '✅ The valid address will be saved automatically\\n' +\n      '❗️ If something’s wrong, the bot will guide you',\n\n    // 🔹 Format_Wallet_Info\n    wallet_info_empty: '😐 You don’t have a saved TON wallet yet.',\n    wallet_info_saved: '👛 Your TON wallet:\\n<code>{{wallet}}</code>',\n    wallet_info_earnings: '💸 Earned: <b>{{amount}}</b> TON',\n    wallet_buy_stars_hint: '⭐ Want more stars? Buy them directly in Telegram.',\n    btn_buy_stars: '⭐ Buy Stars',\n\n    welcome:\n      '👋 Hey! This is HubAggregatorBot — your guide to Telegram bots that give you Stars for activity ⭐\\n\\n' +\n      '🎯 Here you can:\\n' +\n      '• Launch verified bots and earn Stars for your actions\\n' +\n      '• Invite friends and unlock new opportunities\\n' +\n      '• Track your progress and level up\\n\\n' +\n      '💸 Stars are your path to new features, levels and even TON bonuses 😎\\n' +\n      'The more you do — the more you unlock\\n\\n' +\n      '🚀 Don\\'t wait — tap /partners and start earning Stars right now!',\n    unlock_top_paid: '💫 Unlock TOP for {{buy_top_price}}⭐',\n    top_unlocked:\n      '💫 TOP access unlocked!\\n\\nYou successfully unlocked TOP. Tap /top to see the most profitable bots.',\n    buy_top_title: 'Unlock TOP Access',\n    buy_top_description: '💫 Instant access to the TOP section',\n    buy_top_label: 'TOP Access',\n    buy_top_price: 1,\n    no_wallet_referral:\n      '⚠️ <b>You haven\\'t added a TON wallet yet.</b>\\n\\n' +\n      'But you can already share your personal link 👇\\n[[referralLink]]\\n\\n' +\n      'Add a wallet via <b>/wallet</b> to receive rewards for your friends 💰',\n    share_referral:\n      '🚀 Join HubAggregatorBot — earn Stars for your activity!\\nHere is your referral link:\\n[[referralLink]]',\n    share_button: '🧡 Share the link',\n\n    // 🔥 Earnings Center (EN)\n    earnings_title: '🔥 Earnings Center\\nyour progress, TOP and 7% earnings',\n    earnings_no_income: '😐 You don\\'t have any earnings yet…',\n    earnings_has_income: '👛 Wallet: {{wallet}}\\n🌟 Earned: {{earned}} TON',\n\n    earnings_block1_title: '⭐ 1) Open TOP — x3–x7 more Stars',\n    earnings_block1_line1: 'TOP unlocks the most profitable mini apps:',\n    earnings_block1_benefit1: '• more rewards',\n    earnings_block1_benefit2: '• faster progress',\n    earnings_block1_benefit3: '• higher payouts',\n\n    earnings_block2_title: '💸 2) Your 7% from Telegram — official partner program',\n    earnings_block2_how_it_works:\n      'When people join via your link, launch HubAggregatorBot and buy ⭐, Telegram shares ~7% of the revenue with you.',\n    earnings_block2_examples:\n      '📌 How much one user can bring:\\n' +\n      '• 1 user → ~0.35–0.70€\\n' +\n      '• 10 users → ~3.5–7€\\n' +\n      '• 100 users → ~35–70€',\n\n    earnings_enable_7_title: 'How to enable 7% (once, forever):',\n    earnings_enable_7_steps:\n      '1️⃣ Open @HubAggregatorBot\\n' +\n      '2️⃣ “Partner Program”\\n' +\n      '3️⃣ “Join”\\n' +\n      '→ 7% stay active forever',\n\n    // 🔹 NEW detailed instructions\n    earnings_7_instructions:\n      '💸 How to enable 7% (once, forever):\\n\\n' +\n      '1️⃣ Open the bot profile @HubAggregatorBot (tap the bot name at the top of the chat)\\n' +\n      '2️⃣ Tap “Partner Program”\\n' +\n      '3️⃣ Tap “Join”\\n\\n' +\n      'After that:\\n' +\n      '✔️ 7% stay active forever\\n' +\n      '✔️ Telegram will show your personal referral link\\n' +\n      '✔️ Copy it and send it to friends — you earn 7% from their Stars purchases',\n\n    earnings_block3_title: '🚀 3) What to do right now',\n    earnings_step1_locked: '1️⃣ Invite {{needed}} more friend(s) → TOP will open',\n    earnings_step1_open: '1️⃣ TOP is already open — start TOP partners',\n    earnings_step2: '2️⃣ Activate your 7%',\n    earnings_step3:\n      '3️⃣ Drop this link into 1–2 active chats or to a friend who might like it — each user can bring you € automatically',\n    earnings_step4: '4️⃣ Launch TOP partners',\n    earnings_auto_stats: '→ earnings and stats will appear automatically',\n\n    earnings_btn_unlock_top: '💎 Unlock TOP for {{buy_top_price}}⭐',\n    earnings_btn_top_partners: '⭐ TOP partners',\n    earnings_btn_activate_7: '💰 Activate 7%',\n    // 🔽 Buttons for /partners\n    partners_btn_top_partners: '⭐ TOP partners',\n    partners_btn_earnings: '💸 Earnings',\n  },\n\n  ru: {\n    info_main:\n      '👋 Это HubAggregatorBot — агрегатор самых выгодных Telegram-мини-приложений и ботов для заработка звёзд и TON.\\n\\n' +\n      'Здесь ты можешь:\\n' +\n      '• находить проверенные партнёрские программы\\n' +\n      '• открывать TOP-партнёров\\n' +\n      '• отслеживать свой заработок\\n' +\n      '• подключить официальные 7% партнёрки Telegram\\n\\n' +\n      'Начни с команды /partners или открой /earnings, чтобы увидеть свой прогресс.',\n\n    wallet_saved: '✅ <b>Адрес сохранён!</b>\\nВы можете использовать его для получения начислений.',\n    wallet_invalid_format:\n      '🧠 Если вы пытаетесь ввести адрес TON-кошелька — проверьте формат. Если нет — воспользуйтесь командой /info.',\n    wallet_not_found:\n      '⚠️ <b>У вас ещё нет сохранённого адреса TON-кошелька</b>\\n\\n' +\n      '🧾 Как сохранить: откройте любой TON-кошелёк, скопируйте адрес и отправьте его сюда.',\n    wallet_help:\n      '⚠️ <b>У вас ещё нет сохранённого адреса TON-кошелька</b>\\n\\n' +\n      '🧾 <b>Как сохранить адрес TON-кошелька:</b>\\n\\n' +\n      '1️⃣ Установите или откройте один из кошельков:\\n\\n' +\n      '• <a href=\"https://t.me/wallet\">@wallet</a> — официальный TON-кошелёк в Telegram\\n' +\n      '• <a href=\"https://tonkeeper.com\">Tonkeeper</a> — iOS / Android\\n' +\n      '• <a href=\"https://tonhub.com\">Tonhub</a> — iOS / Android\\n' +\n      '• <a href=\"https://t.me/tonkeeper\">@tonkeeper</a> — кошелёк внутри Telegram\\n\\n' +\n      '2️⃣ Скопируйте адрес кошелька (выглядит примерно так):\\n' +\n      '<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\\n\\n' +\n      '3️⃣ Отправьте этот адрес сюда в чат 📩\\n\\n' +\n      '✅ Валидный адрес будет сохранён автоматически\\n' +\n      '❗️ Если что-то не так — бот подскажет, что исправить',\n\n    // 🔹 Format_Wallet_Info\n    wallet_info_empty: '😐 У тебя пока нет сохранённого TON-кошелька.',\n    wallet_info_saved: '👛 Твой TON-кошелёк:\\n<code>{{wallet}}</code>',\n    wallet_info_earnings: '💸 Начислено: <b>{{amount}}</b> TON',\n    wallet_buy_stars_hint: '⭐ Хочешь больше звёзд? Купи их напрямую в Telegram.',\n    btn_buy_stars: '⭐ Купить звёзды',\n\n    welcome:\n      '👋 Привет! Это HubAggregatorBot — твой гид по Telegram-ботам, которые дают звёзды за активность ⭐\\n\\n' +\n      '🎯 Здесь ты можешь:\\n' +\n      '• запускать проверенные боты и получать звёзды за действия\\n' +\n      '• приглашать друзей и открывать новые возможности\\n' +\n      '• отслеживать свой прогресс и прокачиваться\\n\\n' +\n      '💸 Звёзды — это путь к новым функциям, уровням и даже TON-бонусам 😎\\n' +\n      'Чем больше действий — тем больше открывается\\n\\n' +\n      '🚀 Не тяни — нажми /partners и начни зарабатывать звёзды уже сейчас!',\n    unlock_top_paid: '💫 Открыть TOP за {{buy_top_price}}⭐',\n    top_unlocked:\n      '💫 Доступ к TOP открыт!\\n\\nТы успешно разблокировал TOP. Нажми /top, чтобы увидеть самые выгодные боты.',\n    buy_top_title: 'Открыть доступ к TOP',\n    buy_top_description: '💫 Мгновенный доступ к разделу TOP',\n    buy_top_label: 'Доступ к TOP',\n    buy_top_price: 1,\n    no_wallet_referral:\n      '⚠️ <b>У вас ещё не добавлен TON-кошелёк.</b>\\n\\n' +\n      'Но вы уже можете делиться своей ссылкой 👇\\n[[referralLink]]\\n\\n' +\n      'Добавьте кошелёк через <b>/wallet</b>, чтобы получать вознаграждение за друзей 💰',\n    share_referral:\n      '🚀 Присоединяйся к HubAggregatorBot — получай звёзды за активность!\\nВот твоя реферальная ссылка:\\n[[referralLink]]',\n    share_button: '🧡 Поделиться ссылкой',\n\n    // 🔥 Earnings Center (RU)\n    earnings_title: '🔥 Earnings Center\\nтвой прогресс, TOP и заработок 7%',\n    earnings_no_income: '😐 У тебя пока нет заработка…',\n    earnings_has_income: '👛 Кошелёк: {{wallet}}\\n🌟 Заработано: {{earned}} TON',\n\n    earnings_block1_title: '⭐ 1) Открой TOP — x3–x7 больше звёзд',\n    earnings_block1_line1: 'TOP открывает самые выгодные мини-приложения:',\n    earnings_block1_benefit1: '• больше наград',\n    earnings_block1_benefit2: '• быстрее прогресс',\n    earnings_block1_benefit3: '• выше выплаты',\n\n    earnings_block2_title: '💸 2) Твои 7% от Telegram — официальная партнёрская программа',\n    earnings_block2_how_it_works:\n      'Когда люди заходят по твоей ссылке, запускают HubAggregatorBot и покупают ⭐ — Telegram делится с тобой ~7% дохода.',\n    earnings_block2_examples:\n      '📌 Сколько может приносить один пользователь:\\n' +\n      '• 1 пользователь → ~0.35–0.70€\\n' +\n      '• 10 пользователей → ~3.5–7€\\n' +\n      '• 100 пользователей → ~35–70€',\n\n    earnings_enable_7_title: 'Как включить 7% (один раз и навсегда):',\n    earnings_enable_7_steps:\n      '1️⃣ Открой @HubAggregatorBot\\n' +\n      '2️⃣ «Партнёрская программа»\\n' +\n      '3️⃣ «Присоединиться»\\n' +\n      '→ 7% активируются навсегда',\n\n    // 🔹 НОВОЕ: детальная инструкция\n    earnings_7_instructions:\n      '💸 Как включить 7% (один раз и навсегда):\\n\\n' +\n      '1️⃣ Открой профиль бота @HubAggregatorBot (нажми на название бота сверху в чате)\\n' +\n      '2️⃣ Нажми «Партнёрская программа»\\n' +\n      '3️⃣ Нажми «Присоединиться»\\n\\n' +\n      'После этого:\\n' +\n      '✔️ 7% будут действовать всегда\\n' +\n      '✔️ Telegram покажет твою реферальную ссылку\\n' +\n      '✔️ Скопируй её и отправь друзьям — будешь получать 7% с их покупок звёзд',\n\n    earnings_block3_title: '🚀 3) Что сделать прямо сейчас',\n    earnings_step1_locked: '1️⃣ Пригласи ещё {{needed}} друга(ов) → TOP откроется',\n    earnings_step1_open: '1️⃣ TOP уже открыт — запусти TOP-партнёров',\n    earnings_step2: '2️⃣ Активируй свои 7%',\n    earnings_step3:\n      '3️⃣ Отправь эту ссылку в 1–2 «живых» чата или другу, которому это зайдёт — каждый пользователь может приносить тебе € автоматически',\n    earnings_step4: '4️⃣ Запускай TOP-партнёров',\n    earnings_auto_stats: '→ доход и статистика появятся автоматически',\n\n    earnings_btn_unlock_top: '💎 Открыть TOP за {{buy_top_price}}⭐',\n    earnings_btn_top_partners: '⭐ TOP-партнёры',\n    earnings_btn_activate_7: '💰 Активировать 7%',\n    // 🔽 Кнопки для /partners\n    partners_btn_top_partners: '⭐ TOP-партнёры',\n    partners_btn_earnings: '💸 Заработок',\n  },\n\n  de: {\n    info_main:\n      '👋 Das ist HubAggregatorBot — ein Aggregator der profitabelsten Telegram-Mini-Apps und Bots, um Stars und TON zu verdienen.\\n\\n' +\n      'Hier kannst du:\\n' +\n      '• geprüfte Partnerprogramme finden\\n' +\n      '• TOP-Partner freischalten\\n' +\n      '• deine Einnahmen verfolgen\\n' +\n      '• den offiziellen 7%-Revenue-Share von Telegram aktivieren\\n\\n' +\n      'Starte mit /partners oder öffne /earnings, um deinen Fortschritt zu sehen.',\n\n    wallet_saved: '✅ <b>Adresse gespeichert!</b>\\nDu kannst sie für Auszahlungen verwenden.',\n    wallet_invalid_format:\n      '🧠 Wenn du eine TON-Wallet-Adresse eingeben möchtest – überprüfe das Format. Wenn nicht, nutze den /info-Befehl.',\n    wallet_not_found:\n      '⚠️ <b>Du hast noch keine TON-Wallet-Adresse gespeichert</b>\\n\\n' +\n      '🧾 So speicherst du sie: Öffne eine TON-Wallet, kopiere die Adresse und sende sie hier.',\n    wallet_help:\n      '⚠️ <b>Du hast noch keine TON-Wallet-Adresse gespeichert</b>\\n\\n' +\n      '🧾 <b>So speicherst du deine TON-Wallet-Adresse:</b>\\n\\n' +\n      '1️⃣ Installiere oder öffne eine Wallet:\\n\\n' +\n      '• <a href=\"https://t.me/wallet\">@wallet</a> — offizieller TON-Wallet-Bot in Telegram\\n' +\n      '• <a href=\"https://tonkeeper.com\">Tonkeeper</a> — iOS / Android\\n' +\n      '• <a href=\"https://tonhub.com\">Tonhub</a> — iOS / Android\\n' +\n      '• <a href=\"https://t.me/tonkeeper\">@tonkeeper</a> — Wallet direkt in Telegram\\n\\n' +\n      '2️⃣ Kopiere deine Wallet-Adresse (sieht ungefähr so aus):\\n' +\n      '<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\\n\\n' +\n      '3️⃣ Sende diese Adresse hier in den Chat 📩\\n\\n' +\n      '✅ Eine gültige Adresse wird automatisch gespeichert\\n' +\n      '❗️ Wenn etwas nicht stimmt, gibt dir der Bot Hinweise',\n\n    // 🔹 Format_Wallet_Info\n    wallet_info_empty: '😐 Du hast noch keine TON-Wallet gespeichert.',\n    wallet_info_saved: '👛 Deine TON-Wallet:\\n<code>{{wallet}}</code>',\n    wallet_info_earnings: '💸 Gutgeschrieben: <b>{{amount}}</b> TON',\n    wallet_buy_stars_hint: '⭐ Du willst mehr Stars? Kauf sie direkt in Telegram.',\n    btn_buy_stars: '⭐ Stars kaufen',\n\n    welcome:\n      '👋 Hi! Das ist HubAggregatorBot – dein Guide zu Telegram-Bots, die dir Stars für Aktionen geben ⭐\\n\\n' +\n      '🎯 Hier kannst du:\\n' +\n      '• geprüfte Bots starten und Stars für deine Aktionen verdienen\\n' +\n      '• Freunde einladen und neue Möglichkeiten freischalten\\n' +\n      '• deinen Fortschritt verfolgen und dein Level steigern\\n\\n' +\n      '💸 Stars sind dein Weg zu neuen Funktionen, Levels und sogar TON-Boni 😎\\n' +\n      'Je mehr du tust, desto mehr wird freigeschaltet\\n\\n' +\n      '🚀 Warte nicht länger – tippe auf /partners und beginne jetzt, Stars zu verdienen!',\n    unlock_top_paid: '💫 TOP freischalten für {{buy_top_price}}⭐',\n    top_unlocked:\n      '💫 TOP-Zugang freigeschaltet!\\n\\nDu hast TOP erfolgreich freigeschaltet. Tippe auf /top, um die profitabelsten Bots zu sehen.',\n    buy_top_title: 'TOP-Zugang freischalten',\n    buy_top_description: '💫 Sofortiger Zugang zum TOP-Bereich',\n    buy_top_label: 'TOP-Zugang',\n    buy_top_price: 1,\n    no_wallet_referral:\n      '⚠️ <b>Du hast noch keine TON-Wallet hinzugefügt.</b>\\n\\n' +\n      'Du kannst deinen persönlichen Link aber schon teilen 👇\\n[[referralLink]]\\n\\n' +\n      'Füge deine Wallet über <b>/wallet</b> hinzu, um Belohnungen für Freunde zu erhalten 💰',\n    share_referral:\n      '🚀 Tritt HubAggregatorBot bei — sammle Stars für deine Aktivität!\\nHier ist dein Empfehlungslink:\\n[[referralLink]]',\n    share_button: '🧡 Link teilen',\n\n    // 🔥 Earnings Center (DE)\n    earnings_title: '🔥 Earnings Center\\nDein Fortschritt, TOP und 7 % Einnahmen',\n    earnings_no_income: '😐 Du hast noch keine Einnahmen…',\n    earnings_has_income: '👛 Wallet: {{wallet}}\\n🌟 Verdient: {{earned}} TON',\n\n    earnings_block1_title: '⭐ 1) Öffne TOP — x3–x7 mehr Stars',\n    earnings_block1_line1: 'TOP öffnet die profitabelsten Mini-Apps:',\n    earnings_block1_benefit1: '• mehr Belohnungen',\n    earnings_block1_benefit2: '• schnellerer Fortschritt',\n    earnings_block1_benefit3: '• höhere Auszahlungen',\n\n    earnings_block2_title: '💸 2) Deine 7 % von Telegram — offizielles Partnerprogramm',\n    earnings_block2_how_it_works:\n      'Wenn Leute über deinen Link kommen, HubAggregatorBot starten und ⭐ kaufen, teilt Telegram ~7 % der Einnahmen mit dir.',\n    earnings_block2_examples:\n      '📌 Wie viel ein User bringen kann:\\n' +\n      '• 1 User → ~0,35–0,70€\\n' +\n      '• 10 User → ~3,5–7€\\n' +\n      '• 100 User → ~35–70€',\n\n    earnings_enable_7_title: 'So aktivierst du 7 % (einmal, für immer):',\n    earnings_enable_7_steps:\n      '1️⃣ Öffne @HubAggregatorBot\\n' +\n      '2️⃣ „Partnerprogramm“\\n' +\n      '3️⃣ „Beitreten“\\n' +\n      '→ 7 % bleiben dauerhaft aktiv',\n\n    // 🔹 NEU: detaillierte Anleitung\n    earnings_7_instructions:\n      '💸 So aktivierst du 7 % (einmal, für immer):\\n\\n' +\n      '1️⃣ Öffne das Bot-Profil @HubAggregatorBot (tippe oben im Chat auf den Bot-Namen)\\n' +\n      '2️⃣ Tippe auf „Partnerprogramm“\\n' +\n      '3️⃣ Tippe auf „Beitreten“\\n\\n' +\n      'Danach:\\n' +\n      '✔️ Die 7 % bleiben dauerhaft aktiv\\n' +\n      '✔️ Telegram zeigt dir deinen persönlichen Empfehlungslink\\n' +\n      '✔️ Kopiere ihn und schicke ihn an Freunde – du erhältst 7 % von ihren Stars-Käufen',\n\n    earnings_block3_title: '🚀 3) Was du jetzt tun solltest',\n    earnings_step1_locked: '1️⃣ Lade noch {{needed}} Freund(e) ein → TOP wird geöffnet',\n    earnings_step1_open: '1️⃣ TOP ist schon geöffnet — starte die TOP-Partner',\n    earnings_step2: '2️⃣ Aktiviere deine 7 %',\n    earnings_step3:\n      '3️⃣ Teile diesen Link in 1–2 aktiven Chats oder mit einem Freund, den das interessieren könnte — jeder User kann dir automatisch € bringen',\n    earnings_step4: '4️⃣ Starte die TOP-Partner',\n    earnings_auto_stats: '→ Einnahmen und Statistiken erscheinen automatisch',\n\n    earnings_btn_unlock_top: '💎 TOP freischalten für {{buy_top_price}}⭐',\n    earnings_btn_top_partners: '⭐ TOP-Partner',\n    earnings_btn_activate_7: '💰 7 % aktivieren',\n    // 🔽 Buttons for /partners\n    partners_btn_top_partners: '⭐ TOP-Partner',\n    partners_btn_earnings: '💸 Einnahmen',\n  },\n\n  es: {\n    info_main:\n      '👋 Este es HubAggregatorBot — un agregador de las mini apps y bots de Telegram más rentables para ganar Stars y TON.\\n\\n' +\n      'Aquí puedes:\\n' +\n      '• encontrar programas de afiliados verificados\\n' +\n      '• desbloquear socios TOP\\n' +\n      '• seguir tus ganancias\\n' +\n      '• activar el 7 % oficial de reparto de ingresos de Telegram\\n\\n' +\n      'Empieza con /partners o abre /earnings para ver tu progreso.',\n\n    wallet_saved: '✅ <b>Dirección guardada.</b>\\nPuedes usarla para recibir pagos.',\n    wallet_invalid_format:\n      '🧠 Si estás intentando introducir una dirección de monedero TON, comprueba el formato. Si no, usa el comando /info.',\n    wallet_not_found:\n      '⚠️ <b>Aún no tienes una dirección de monedero TON guardada</b>\\n\\n' +\n      '🧾 Cómo guardarla: abre cualquier monedero TON, copia la dirección y envíala aquí.',\n    wallet_help:\n      '⚠️ <b>Aún no tienes una dirección de monedero TON guardada</b>\\n\\n' +\n      '🧾 <b>Cómo guardar la dirección de tu monedero TON:</b>\\n\\n' +\n      '1️⃣ Instala o abre un monedero:\\n\\n' +\n      '• <a href=\"https://t.me/wallet\">@wallet</a> — monedero oficial de TON en Telegram\\n' +\n      '• <a href=\"https://tonkeeper.com\">Tonkeeper</a> — iOS / Android\\n' +\n      '• <a href=\"https://tonhub.com\">Tonhub</a> — iOS / Android\\n' +\n      '• <a href=\"https://t.me/tonkeeper\">@tonkeeper</a> — monedero dentro de Telegram\\n\\n' +\n      '2️⃣ Copia la dirección de tu monedero (se ve así):\\n' +\n      '<code>EQCwz3GkW9hkGkB3Dxvkdsi8IzUxxxxxxxxxxxxxxxxxxxxxxx</code>\\n\\n' +\n      '3️⃣ Envía esta dirección aquí en el chat 📩\\n\\n' +\n      '✅ Una dirección válida se guardará automáticamente\\n' +\n      '❗️ Si algo va mal, el bot te indicará qué hacer',\n\n    // 🔹 Format_Wallet_Info\n    wallet_info_empty: '😐 Todavía no tienes un monedero TON guardado.',\n    wallet_info_saved: '👛 Tu monedero TON:\\n<code>{{wallet}}</code>',\n    wallet_info_earnings: '💸 Acumulado: <b>{{amount}}</b> TON',\n    wallet_buy_stars_hint: '⭐ ¿Quieres más Stars? Cómpralas directamente en Telegram.',\n    btn_buy_stars: '⭐ Comprar Stars',\n\n    welcome:\n      '👋 ¡Hola! Soy HubAggregatorBot — tu guía de bots de Telegram que te dan Stars por tu actividad ⭐\\n\\n' +\n      '🎯 Aquí puedes:\\n' +\n      '• lanzar bots verificados y ganar Stars por tus acciones\\n' +\n      '• invitar a tus amigos y desbloquear nuevas oportunidades\\n' +\n      '• seguir tu progreso y subir de nivel\\n\\n' +\n      '💸 Las Stars son el camino a nuevas funciones, niveles e incluso bonos en TON 😎\\n' +\n      'Cuantas más acciones hagas, más cosas se desbloquean\\n\\n' +\n      '🚀 No lo retrases — toca /partners y empieza a ganar Stars ahora mismo.',\n    unlock_top_paid: '💫 Desbloquear TOP por {{buy_top_price}}⭐',\n    top_unlocked:\n      '💫 Acceso a TOP desbloqueado.\\n\\nHas desbloqueado TOP con éxito. Toca /top para ver los bots más rentables.',\n    buy_top_title: 'Desbloquear acceso TOP',\n    buy_top_description: '💫 Acceso inmediato a la sección TOP',\n    buy_top_label: 'Acceso TOP',\n    buy_top_price: 1,\n    no_wallet_referral:\n      '⚠️ <b>Todavía no has añadido un monedero TON.</b>\\n\\n' +\n      'Pero ya puedes compartir tu enlace personal 👇\\n[[referralLink]]\\n\\n' +\n      'Añade tu monedero con <b>/wallet</b> para recibir recompensas por tus amigos 💰',\n    share_referral:\n      '🚀 Únete a HubAggregatorBot — ¡gana Stars por tu actividad!\\nAquí tienes tu enlace de referido:\\n[[referralLink]]',\n    share_button: '🧡 Compartir enlace',\n\n    // 🔥 Earnings Center (ES)\n    earnings_title: '🔥 Earnings Center\\ntu progreso, TOP y 7 % de ingresos',\n    earnings_no_income: '😐 Aún no tienes ingresos…',\n    earnings_has_income: '👛 Monedero: {{wallet}}\\n🌟 Ganado: {{earned}} TON',\n\n    earnings_block1_title: '⭐ 1) Abre TOP — x3–x7 más Stars',\n    earnings_block1_line1: 'TOP desbloquea las mini apps más rentables:',\n    earnings_block1_benefit1: '• más recompensas',\n    earnings_block1_benefit2: '• progreso más rápido',\n    earnings_block1_benefit3: '• pagos más altos',\n\n    earnings_block2_title: '💸 2) Tus 7 % de Telegram — programa de afiliados oficial',\n    earnings_block2_how_it_works:\n      'Cuando la gente entra con tu enlace, inicia HubAggregatorBot y compra ⭐, Telegram comparte contigo ~7 % de los ingresos.',\n    earnings_block2_examples:\n      '📌 Cuánto puede aportar un usuario:\\n' +\n      '• 1 usuario → ~0,35–0,70€\\n' +\n      '• 10 usuarios → ~3,5–7€\\n' +\n      '• 100 usuarios → ~35–70€',\n\n    earnings_enable_7_title: 'Cómo activar el 7 % (una vez y para siempre):',\n    earnings_enable_7_steps:\n      '1️⃣ Abre @HubAggregatorBot\\n' +\n      '2️⃣ «Programa de afiliados»\\n' +\n      '3️⃣ «Unirse»\\n' +\n      '→ El 7 % quedará activo para siempre',\n\n    // 🔹 NUEVO: instrucción detallada\n    earnings_7_instructions:\n      '💸 Cómo activar el 7 % (una vez y para siempre):\\n\\n' +\n      '1️⃣ Abre el perfil del bot @HubAggregatorBot (toca el nombre del bot arriba en el chat)\\n' +\n      '2️⃣ Toca «Programa de afiliados»\\n' +\n      '3️⃣ Toca «Unirse»\\n\\n' +\n      'Después de eso:\\n' +\n      '✔️ El 7 % queda activo para siempre\\n' +\n      '✔️ Telegram te mostrará tu enlace de referido personal\\n' +\n      '✔️ Cópialo y envíalo a tus amigos — ganarás un 7 % de sus compras de Stars',\n\n    earnings_block3_title: '🚀 3) Qué hacer ahora mismo',\n    earnings_step1_locked: '1️⃣ Invita a {{needed}} amigo(s) más → TOP se abrirá',\n    earnings_step1_open: '1️⃣ TOP ya está abierto — lanza los socios TOP',\n    earnings_step2: '2️⃣ Activa tu 7 %',\n    earnings_step3:\n      '3️⃣ Comparte este enlace en 1–2 chats activos o con un amigo al que pueda interesarle — cada usuario puede generarte € automáticamente',\n    earnings_step4: '4️⃣ Lanza los socios TOP',\n    earnings_auto_stats: '→ los ingresos y las estadísticas aparecerán automáticamente',\n\n    earnings_btn_unlock_top: '💎 Desbloquear TOP por {{buy_top_price}}⭐',\n    earnings_btn_top_partners: '⭐ Socios TOP',\n    earnings_btn_activate_7: '💰 Activar 7 %',\n    // 🔽 Botones para /partners\n    partners_btn_top_partners: '⭐ Socios TOP',\n    partners_btn_earnings: '💸 Ganancias',\n  },\n};\n\nconst FALLBACK_LANG = 'uk';\n\n/**\n * Нормальний детектор мови:\n * 1) Trigger.from.language_code (uk, en, ru-RU, es-ES…)\n * 2) d.userLang / d.Language (якщо задаєш вручну з іншої ноди)\n * 3) fallback → 'uk'\n */\nfunction getLang(d) {\n  let raw = '';\n\n  // 1) Telegram Trigger\n  try {\n    const trig = $('Trigger').first().json || {};\n    const from =\n      trig.callback_query?.from ||\n      trig.message?.from ||\n      trig.pre_checkout_query?.from ||\n      trig.successful_payment?.from ||\n      trig.from ||\n      {};\n    raw = from.language_code || '';\n  } catch (e) {\n    raw = '';\n  }\n\n  // 2) Ручні/контекстні оверрайди з поточного item\n  raw = d.userLang || d.UserLang || d.language || d.Language || raw || '';\n\n  // 3) Нормалізація до 2-літерного коду\n  const code2 = String(raw).toLowerCase().split('-')[0];\n\n  const map = {\n    ua: 'uk',\n    uk: 'uk',\n    ru: 'ru',\n    en: 'en',\n    de: 'de',\n    es: 'es',\n  };\n\n  return map[code2] || FALLBACK_LANG;\n}\n\n/**\n * t(lang, key, vars)\n * - шукає ключ у обраній мові\n * - якщо нема → en → fallback\n * - підставляє {{placeholders}}\n */\nfunction t(lang, key, vars = {}) {\n  const locale =\n    locales[lang] ||\n    locales.en ||\n    locales[FALLBACK_LANG] ||\n    {};\n\n  const s =\n    (locale && locale[key]) ||\n    (locales.en && locales.en[key]) ||\n    (locales[FALLBACK_LANG] && locales[FALLBACK_LANG][key]) ||\n    key;\n\n  const mergedVars = {\n    buy_top_price: locale.buy_top_price ?? 1,\n    ...vars,\n  };\n\n  return Object.keys(mergedVars).reduce((acc, k) => {\n    return acc.replace(new RegExp(`{{${k}}}`, 'g'), String(mergedVars[k]));\n  }, String(s));\n}\n\n// 🟢 Основна логіка ноди\nreturn items.map(item => {\n  const d = item.json || {};\n  const lang = getLang(d);\n\n  // msgKey/msgVars → який саме текст брати як .text\n  let key = d.msgKey || d._msgKey || null;\n  const vars = d.msgVars || {};\n\n  // якщо key не заданий, але текст = /info — мапимо\n  if (!key) {\n    const mt = d.messageText || d._originalText || '';\n    if (mt === '/info') key = 'info_main';\n  }\n\n  // нормалізація командного формату (/info → info_main)\n  if (key === '/info' || key === 'info') key = 'info_main';\n\n  // якщо все ще починається зі слеша → зрізаємо\n  if (key && typeof key === 'string' && key.startsWith('/')) {\n    key = key.slice(1);\n  }\n\n  // Беремо набір ключів з української як бази (всі однакові)\n  const baseKeys = Object.keys(locales.uk || {});\n  const translations = {};\n\n  baseKeys.forEach(k => {\n    translations[k] = t(lang, k, vars);\n  });\n\n  const originalText = d.messageText || d._originalText || '';\n\n  const out = {\n    ...d,\n    detectedLang: lang,\n    ...translations,\n    translations,\n    _originalText: originalText,\n  };\n\n  out.text = key\n    ? translations[key] || originalText || ''\n    : originalText || '';\n\n  return { json: out };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5856,
+        -1504
+      ],
+      "id": "e0b08113-2dbc-434a-9eb1-2c486db9ba33",
+      "name": "Translator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "37386de9-e479-4772-be10-1924167f03c2",
+              "leftValue": "={{ $json.topStatus || '' }}",
+              "rightValue": "open",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2240,
+        -2016
+      ],
+      "id": "366e5e4e-9486-4443-a428-4b1deaa19612",
+      "name": "IF — TOP Locked?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ \n  $('Trigger').first().json.message?.from?.id\n  || $('Trigger').first().json.callback_query?.from?.id\n  || $('Trigger').first().json.callback_query?.message?.chat?.id\n}}",
+        "text": "={{ $json.message }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.shareLabel || '🧡 Поділитись HubAggregator' }}",
+                    "additionalFields": {
+                      "url": "={{ $json.shareUrl || '' }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.unlock_top_paid }}",
+                    "additionalFields": {
+                      "callback_data": "/buy_top"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "36e93a64-809e-4d24-8ff1-c652568cd5b3",
+      "name": "top locked",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -1984,
+        -2000
+      ],
+      "webhookId": "b1dfb074-d3aa-4aca-b419-cbd851b79b74",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot7670421730:AAElfoI0ScKhrGgXjC9YJ7Bw400vdg0jmXM/sendInvoice",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $node[\"Trigger\"].json.callback_query.from.id }}\n"
+            },
+            {
+              "name": "title",
+              "value": "={{ $node[\"Translator\"].json.translations.buy_top_title }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $node[\"Translator\"].json.translations.buy_top_description }}"
+            },
+            {
+              "name": "payload",
+              "value": "buy_top"
+            },
+            {
+              "name": "currency",
+              "value": "XTR"
+            },
+            {
+              "name": "prices",
+              "value": "={{ JSON.stringify([\n  {\n    label: $node[\"Translator\"].json.translations.buy_top_label,\n    amount: Number($node[\"Translator\"].json.translations.buy_top_price || 1)\n  }\n]) }}\n"
+            },
+            {
+              "name": "start_parameter",
+              "value": "buy_top"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4112,
+        -1680
+      ],
+      "id": "bea3808d-1aca-434f-a09b-fe09bd646c6b",
+      "name": "buy_top"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json[\"Message Text\"] || $json.data || \"\" }}",
+                    "rightValue": "buy_top",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "id": "5dc13385-d401-4f06-8691-cbb22a0e8b16"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "buy_top"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8ee08fb9-7b9c-4826-a41f-aacb6f9c7f77",
+                    "leftValue": "={{ $json[\"Message Text\"] || $json.data || \"\" }}\n",
+                    "rightValue": "/top",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "top"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2301764e-a453-4fa4-aff4-f0e487378656",
+                    "leftValue": "=={{ $json[\"Message Text\"] || $json.data || '' }}\n",
+                    "rightValue": "share_from_.*",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "share"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d769ebb1-7916-40f9-934d-b77a2af1fa7f",
+                    "leftValue": "=={{ $json[\"Message Text\"] || $json.data || '' }}\n",
+                    "rightValue": "/earnings",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "earnings"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "725c7485-6054-4813-97ff-8d4e9981ba07",
+                    "leftValue": "=={{ $json[\"Message Text\"] || $json.data || '' }}\n",
+                    "rightValue": "activate_7",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "activate_7"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -4288,
+        -1392
+      ],
+      "id": "f31ad71e-cde6-4fd4-8ba1-3af2d26228b8",
+      "name": "Switch_CallbackAction"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Trigger').item.json.hasOwnProperty('pre_checkout_query') }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5dc13385-d401-4f06-8691-cbb22a0e8b16"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "pre_checkout"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "10be622b-83e7-4553-8a45-a4da115e02c0",
+                    "leftValue": "={{ $('Trigger').item.json.message && $('Trigger').item.json.message.hasOwnProperty('successful_payment') }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PaymentSuccess"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -4480,
+        -896
+      ],
+      "id": "031a44fc-b51b-40d2-b352-2b1cbd429c4d",
+      "name": "Switch_PaymentType"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot7670421730:AAElfoI0ScKhrGgXjC9YJ7Bw400vdg0jmXM/answerPreCheckoutQuery",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "pre_checkout_query_id",
+              "value": "={{ $('Trigger').item.json.pre_checkout_query.id }}"
+            },
+            {
+              "name": "ok",
+              "value": "={{ true }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4192,
+        -752
+      ],
+      "id": "a7475fbd-5f41-4751-9c5b-73b112b73008",
+      "name": "answer_pre_checkout"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1348161464,
+          "mode": "list",
+          "cachedResultName": "user_wallets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1348161464"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "User Chat ID": "={{ \n  $('Trigger').item.json.message?.chat?.id ||\n  $('Trigger').item.json.callback_query?.from?.id ||\n  $('Trigger').item.json.pre_checkout_query?.from?.id ||\n  '' \n}}",
+            "Username": "={{ \n  $('Trigger').item.json.message?.from?.username ||\n  $('Trigger').item.json.callback_query?.from?.username ||\n  $('Trigger').item.json.pre_checkout_query?.from?.username ||\n  '' \n}}",
+            "Language": "={{ \n  $('Trigger').item.json.message?.from?.language_code ||\n  $('Trigger').item.json.callback_query?.from?.language_code ||\n  $('Trigger').item.json.pre_checkout_query?.from?.language_code ||\n  '' \n}}",
+            "Status": "active",
+            "TOP Status": "open",
+            "Last Updated": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm:ss\") }}"
+          },
+          "matchingColumns": [
+            "User Chat ID"
+          ],
+          "schema": [
+            {
+              "id": "User Chat ID",
+              "displayName": "User Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Wallet Address",
+              "displayName": "Wallet Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Earned TON",
+              "displayName": "Total Earned TON",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Comment",
+              "displayName": "Comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Level",
+              "displayName": "Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Total Invited",
+              "displayName": "Total Invited",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Bonus Date",
+              "displayName": "Last Bonus Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Referred By",
+              "displayName": "Referred By",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "First Join Date",
+              "displayName": "First Join Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Language",
+              "displayName": "Language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Device",
+              "displayName": "Device",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Geo",
+              "displayName": "Geo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "TOP Status",
+              "displayName": "TOP Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -3936,
+        -752
+      ],
+      "id": "f2f3f493-8ba2-4377-aa1b-bcad510315b0",
+      "name": "Upsert_TOP_user",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot7670421730:AAElfoI0ScKhrGgXjC9YJ7Bw400vdg0jmXM/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ \n  $node[\"Trigger\"].json.message?.chat?.id ||\n  $node[\"Trigger\"].json.callback_query?.from?.id ||\n  $node[\"Trigger\"].json.pre_checkout_query?.from?.id ||\n  $node[\"Trigger\"].json.successful_payment?.from?.id\n}}\n"
+            },
+            {
+              "name": "text",
+              "value": "={{ $node[\"Translator\"].json.translations.top_unlocked }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "HTML"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3728,
+        -752
+      ],
+      "id": "e58ec4ef-0011-4f54-9df2-df0ac76d64c9",
+      "name": "send_top_unlocked"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE",
+          "mode": "list",
+          "cachedResultName": "Earnbot_Referrals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1348161464,
+          "mode": "list",
+          "cachedResultName": "user_wallets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBFFKaUf8Hy46gTnIDfVohaw_GNv2D4mskLqaK6B2AE/edit#gid=1348161464"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "User Chat ID": "={{ \n  $('Trigger').item.json.message?.chat?.id ||\n  $('Trigger').item.json.callback_query?.from?.id ||\n  $('Trigger').item.json.pre_checkout_query?.from?.id ||\n  '' \n}}",
+            "Username": "={{ \n  $('Trigger').item.json.message?.from?.username ||\n  $('Trigger').item.json.callback_query?.from?.username ||\n  $('Trigger').item.json.pre_checkout_query?.from?.username ||\n  '' \n}}",
+            "Language": "={{ \n  $('Trigger').item.json.message?.from?.language_code ||\n  $('Trigger').item.json.callback_query?.from?.language_code ||\n  $('Trigger').item.json.pre_checkout_query?.from?.language_code ||\n  '' \n}}",
+            "Status": "active",
+            "TOP Status": "locked",
+            "Last Updated": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm:ss\") }}"
+          },
+          "matchingColumns": [
+            "User Chat ID"
+          ],
+          "schema": [
+            {
+              "id": "User Chat ID",
+              "displayName": "User Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Wallet Address",
+              "displayName": "Wallet Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Earned TON",
+              "displayName": "Total Earned TON",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Comment",
+              "displayName": "Comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Level",
+              "displayName": "Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Total Invited",
+              "displayName": "Total Invited",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Bonus Date",
+              "displayName": "Last Bonus Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Referred By",
+              "displayName": "Referred By",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "First Join Date",
+              "displayName": "First Join Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Language",
+              "displayName": "Language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Device",
+              "displayName": "Device",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Geo",
+              "displayName": "Geo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "TOP Status",
+              "displayName": "TOP Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -2128,
+        -1648
+      ],
+      "id": "4230d223-5fa9-4109-883f-0f364964ee56",
+      "name": "Upsert_TOP_user1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Qcg4BHsvBsEDeP1q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{\n  (() => {\n    const trig = $node[\"Trigger\"].json || {};\n\n    const from =\n      (trig.callback_query && trig.callback_query.from) ||\n      (trig.message && trig.message.from) ||\n      trig.from ||\n      {};\n\n    return (\n      from.id ||\n      $json[\"User Chat ID\"] ||\n      $json[\"User ID\"] ||\n      0\n    );\n  })()\n}}\n",
+        "text": "={{ $node[\"Translator\"].json.translations.earnings_7_instructions }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.earnings_btn_unlock_top }}",
+                    "additionalFields": {
+                      "callback_data": "buy_top"
+                    }
+                  },
+                  {
+                    "text": "={{ $node[\"Translator\"].json.translations.earnings_btn_top_partners }}",
+                    "additionalFields": {
+                      "callback_data": "=/top"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "973632f2-a7ec-4c7b-a78e-76f3295b544f",
+      "name": "Send_7Percent_Instructions",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -3792,
+        -1200
+      ],
+      "webhookId": "6037fce6-d20b-4807-85b3-89bac7d7d879",
+      "credentials": {
+        "telegramApi": {
+          "id": "9K2fMmccHbWjB9A0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -6656,
+        -1264
+      ],
+      "id": "935f637d-69f7-4f0a-af14-41b349e8923d",
+      "name": "for mcp",
+      "webhookId": "c99a2b6e-cf97-4d18-a1ac-59e05714bc78"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Global data": {
+      "main": [
+        [
+          {
+            "node": "Extract message data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Command?": {
+      "main": [
+        [
+          {
+            "node": "Switch_Commands",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Command?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch_CallbackAction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Switch_PaymentType",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch_Commands": {
+      "main": [
+        [
+          {
+            "node": "read_user_wallet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "read_user_wallet_for_top",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "/partners",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract_User_Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract_Share_Referral_Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/top": {
+      "main": [
+        [
+          {
+            "node": "Format_TopBots_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format_TopBots_Message": {
+      "main": [
+        [
+          {
+            "node": "IF — TOP Locked?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/partners": {
+      "main": [
+        [
+          {
+            "node": "format_partners_list",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format_partners_list": {
+      "main": [
+        [
+          {
+            "node": "partners",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read_user_wallet": {
+      "main": [
+        [
+          {
+            "node": "Switch_wallet_check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch_wallet_check": {
+      "main": [
+        [
+          {
+            "node": "format_wallet_info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "wallet_not_found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format_wallet_info": {
+      "main": [
+        [
+          {
+            "node": "wallet_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wallet_not_found": {
+      "main": [
+        [
+          {
+            "node": "wallet_not_found1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is_valid_wallet_format": {
+      "main": [
+        [
+          {
+            "node": "create_wallet_entry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "is_valid_wallet_format1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_wallet_entry": {
+      "main": [
+        [
+          {
+            "node": "create_wallet_entry1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "is_valid_wallet_format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_User_Info": {
+      "main": [
+        [
+          {
+            "node": "Check_If_User_Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check_If_User_Exists": {
+      "main": [
+        [
+          {
+            "node": "Filter_User_By_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter_User_By_ID": {
+      "main": [
+        [
+          {
+            "node": "Send_Referral",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert_TOP_user1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_Share_Referral_Info": {
+      "main": [
+        [
+          {
+            "node": "Read_Wallets_Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read_Wallets_Sheet": {
+      "main": [
+        [
+          {
+            "node": "Build_Earnings_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build_Earnings_Message": {
+      "main": [
+        [
+          {
+            "node": "Send_Earnings_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract message data": {
+      "main": [
+        [
+          {
+            "node": "Translator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format_Log_Entry": {
+      "main": [
+        [
+          {
+            "node": "Check: Is Referral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to bot_log": {
+      "main": [
+        [
+          {
+            "node": "IF (isReferral = true)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Total Invited": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Is Referral": {
+      "main": [
+        [
+          {
+            "node": "Log to bot_log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Referrals": {
+      "main": [
+        [
+          {
+            "node": "Update Total Invited",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF (isReferral = true)": {
+      "main": [
+        [
+          {
+            "node": "Get bot_log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Global data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get bot_log": {
+      "main": [
+        [
+          {
+            "node": "Count Referrals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read_user_wallet_for_top": {
+      "main": [
+        [
+          {
+            "node": "/top",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Translator": {
+      "main": [
+        [
+          {
+            "node": "Format_Log_Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — TOP Locked?": {
+      "main": [
+        [
+          {
+            "node": "top",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "top locked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch_CallbackAction": {
+      "main": [
+        [
+          {
+            "node": "buy_top",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "read_user_wallet_for_top",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract_User_Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract_Share_Referral_Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send_7Percent_Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch_PaymentType": {
+      "main": [
+        [
+          {
+            "node": "answer_pre_checkout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "answer_pre_checkout": {
+      "main": [
+        [
+          {
+            "node": "Upsert_TOP_user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert_TOP_user": {
+      "main": [
+        [
+          {
+            "node": "send_top_unlocked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert_TOP_user1": {
+      "main": [
+        [
+          {
+            "node": "Send_Referral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "for mcp": {
+      "main": [
+        [
+          {
+            "node": "Global data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "versionId": "73a7e4b2-ddc0-4ac0-80b3-cd8839e0d06d",
+  "meta": {
+    "instanceId": "931b26cb279e80caa2e7d4b2ae2787a3a6b381807217e6d84502fea7728dc188"
+  },
+  "id": "ZgMEqr0NUyRo1ZoZ",
+  "tags": []
+}

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Bot OS - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2563eb;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: white;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        button:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Universal Bot OS - Admin Panel</h1>
+            <p>Multi-tenant bot management platform</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('bots')">Bots</button>
+            <button class="tab" onclick="showTab('partners')">Partners</button>
+            <button class="tab" onclick="showTab('ai')">AI Config</button>
+            <button class="tab" onclick="showTab('stats')">Statistics</button>
+        </div>
+        
+        <!-- Bots Tab -->
+        <div id="bots" class="tab-content active">
+            <h2>Bot Management</h2>
+            <div id="bots-message"></div>
+            
+            <button onclick="showCreateBotForm()" style="margin-bottom: 20px;">+ Create Bot</button>
+            
+            <div id="create-bot-form" style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>Create New Bot</h3>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="bot-name" placeholder="Bot Name">
+                </div>
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="bot-platform">
+                        <option value="telegram">Telegram</option>
+                        <option value="web">Web</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Token</label>
+                    <input type="text" id="bot-token" placeholder="Bot Token">
+                </div>
+                <div class="form-group">
+                    <label>Default Language</label>
+                    <select id="bot-lang">
+                        <option value="uk">Ukrainian</option>
+                        <option value="en">English</option>
+                        <option value="ru">Russian</option>
+                    </select>
+                </div>
+                <button onclick="createBot()">Create</button>
+                <button onclick="hideCreateBotForm()" style="background: #666; margin-left: 10px;">Cancel</button>
+            </div>
+            
+            <table id="bots-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Platform</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="bots-tbody"></tbody>
+            </table>
+        </div>
+        
+        <!-- Partners Tab -->
+        <div id="partners" class="tab-content">
+            <h2>Partners Management</h2>
+            <div id="partners-message"></div>
+            
+            <div class="form-group">
+                <label>Select Bot</label>
+                <select id="partners-bot-select" onchange="loadPartners()"></select>
+            </div>
+            
+            <button onclick="showCreatePartnerForm()" style="margin-bottom: 20px;">+ Add Partner</button>
+            
+            <div id="create-partner-form" style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>Add New Partner</h3>
+                <div class="form-group">
+                    <label>Bot Name</label>
+                    <input type="text" id="partner-name" placeholder="Partner Bot Name">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="partner-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Referral Link</label>
+                    <input type="text" id="partner-link" placeholder="https://t.me/bot?start={TGR}">
+                </div>
+                <div class="form-group">
+                    <label>Commission (%)</label>
+                    <input type="number" id="partner-commission" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="partner-category">
+                        <option value="NEW">NEW</option>
+                        <option value="TOP">TOP</option>
+                    </select>
+                </div>
+                <button onclick="createPartner()">Add Partner</button>
+                <button onclick="hideCreatePartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
+            </div>
+            
+            <table id="partners-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Commission</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="partners-tbody"></tbody>
+            </table>
+        </div>
+        
+        <!-- AI Config Tab -->
+        <div id="ai" class="tab-content">
+            <h2>AI Configuration</h2>
+            <div id="ai-message"></div>
+            
+            <div class="form-group">
+                <label>Select Bot</label>
+                <select id="ai-bot-select" onchange="loadAIConfig()"></select>
+            </div>
+            
+            <div id="ai-config-form" style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Provider</label>
+                    <select id="ai-provider">
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Model</label>
+                    <input type="text" id="ai-model" placeholder="gpt-4o-mini">
+                </div>
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="password" id="ai-api-key" placeholder="sk-...">
+                </div>
+                <div class="form-group">
+                    <label>Temperature</label>
+                    <input type="number" id="ai-temperature" step="0.1" min="0" max="2" value="0.7">
+                </div>
+                <div class="form-group">
+                    <label>System Prompt</label>
+                    <textarea id="ai-prompt" rows="5"></textarea>
+                </div>
+                <button onclick="saveAIConfig()">Save Configuration</button>
+            </div>
+        </div>
+        
+        <!-- Statistics Tab -->
+        <div id="stats" class="tab-content">
+            <h2>Bot Statistics</h2>
+            <div id="stats-message"></div>
+            
+            <div class="form-group">
+                <label>Select Bot</label>
+                <select id="stats-bot-select" onchange="loadStats()"></select>
+            </div>
+            
+            <div id="stats-content"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin + '/api/v1/admin';
+        
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'bots') loadBots();
+            if (tabName === 'partners') loadBotsForSelect('partners-bot-select', loadPartners);
+            if (tabName === 'ai') loadBotsForSelect('ai-bot-select', loadAIConfig);
+            if (tabName === 'stats') loadBotsForSelect('stats-bot-select', loadStats);
+        }
+        
+        // Bots
+        async function loadBots() {
+            try {
+                const res = await fetch(`${API_BASE}/bots`);
+                const bots = await res.json();
+                const tbody = document.getElementById('bots-tbody');
+                tbody.innerHTML = bots.map(bot => `
+                    <tr>
+                        <td>${bot.name}</td>
+                        <td>${bot.platform_type}</td>
+                        <td>${bot.is_active ? '✅ Active' : '❌ Inactive'}</td>
+                        <td>
+                            <button onclick="viewBotStats('${bot.id}')">Stats</button>
+                            <button class="btn-danger" onclick="deleteBot('${bot.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                showMessage('bots-message', 'Error loading bots: ' + error.message, 'error');
+            }
+        }
+        
+        function showCreateBotForm() {
+            document.getElementById('create-bot-form').style.display = 'block';
+        }
+        
+        function hideCreateBotForm() {
+            document.getElementById('create-bot-form').style.display = 'none';
+        }
+        
+        async function createBot() {
+            const data = {
+                name: document.getElementById('bot-name').value,
+                platform_type: document.getElementById('bot-platform').value,
+                token: document.getElementById('bot-token').value,
+                default_lang: document.getElementById('bot-lang').value,
+                config: {}
+            };
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    showMessage('bots-message', 'Bot created successfully!', 'success');
+                    hideCreateBotForm();
+                    loadBots();
+                } else {
+                    showMessage('bots-message', 'Error creating bot', 'error');
+                }
+            } catch (error) {
+                showMessage('bots-message', 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteBot(botId) {
+            if (!confirm('Are you sure?')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}`, {method: 'DELETE'});
+                if (res.ok) {
+                    showMessage('bots-message', 'Bot deleted', 'success');
+                    loadBots();
+                }
+            } catch (error) {
+                showMessage('bots-message', 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Partners
+        async function loadBotsForSelect(selectId, callback) {
+            try {
+                const res = await fetch(`${API_BASE}/bots`);
+                const bots = await res.json();
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Select Bot</option>' + 
+                    bots.map(bot => `<option value="${bot.id}">${bot.name}</option>`).join('');
+                if (callback) callback();
+            } catch (error) {
+                console.error('Error loading bots:', error);
+            }
+        }
+        
+        async function loadPartners() {
+            const botId = document.getElementById('partners-bot-select').value;
+            if (!botId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners`);
+                const partners = await res.json();
+                const tbody = document.getElementById('partners-tbody');
+                tbody.innerHTML = partners.map(p => `
+                    <tr>
+                        <td>${p.bot_name}</td>
+                        <td>${p.category}</td>
+                        <td>${p.commission}%</td>
+                        <td>${p.active === 'Yes' ? '✅' : '❌'}</td>
+                        <td>
+                            <button class="btn-danger" onclick="deletePartner('${botId}', '${p.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                showMessage('partners-message', 'Error loading partners: ' + error.message, 'error');
+            }
+        }
+        
+        function showCreatePartnerForm() {
+            document.getElementById('create-partner-form').style.display = 'block';
+        }
+        
+        function hideCreatePartnerForm() {
+            document.getElementById('create-partner-form').style.display = 'none';
+        }
+        
+        async function createPartner() {
+            const botId = document.getElementById('partners-bot-select').value;
+            if (!botId) {
+                showMessage('partners-message', 'Please select a bot first', 'error');
+                return;
+            }
+            
+            const data = {
+                bot_name: document.getElementById('partner-name').value,
+                description: document.getElementById('partner-description').value,
+                referral_link: document.getElementById('partner-link').value,
+                commission: parseFloat(document.getElementById('partner-commission').value),
+                category: document.getElementById('partner-category').value,
+                active: 'Yes',
+                verified: 'Yes',
+                roi_score: 0
+            };
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    showMessage('partners-message', 'Partner added successfully!', 'success');
+                    hideCreatePartnerForm();
+                    loadPartners();
+                } else {
+                    showMessage('partners-message', 'Error adding partner', 'error');
+                }
+            } catch (error) {
+                showMessage('partners-message', 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function deletePartner(botId, partnerId) {
+            if (!confirm('Are you sure?')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}`, {method: 'DELETE'});
+                if (res.ok) {
+                    showMessage('partners-message', 'Partner deleted', 'success');
+                    loadPartners();
+                }
+            } catch (error) {
+                showMessage('partners-message', 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        // AI Config
+        async function loadAIConfig() {
+            const botId = document.getElementById('ai-bot-select').value;
+            if (!botId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/ai-config`);
+                const config = await res.json();
+                
+                document.getElementById('ai-provider').value = config.provider || 'openai';
+                document.getElementById('ai-model').value = config.model || 'gpt-4o-mini';
+                document.getElementById('ai-temperature').value = config.temperature || 0.7;
+                document.getElementById('ai-prompt').value = config.system_prompt || '';
+            } catch (error) {
+                showMessage('ai-message', 'Error loading config: ' + error.message, 'error');
+            }
+        }
+        
+        async function saveAIConfig() {
+            const botId = document.getElementById('ai-bot-select').value;
+            if (!botId) {
+                showMessage('ai-message', 'Please select a bot first', 'error');
+                return;
+            }
+            
+            const data = {
+                provider: document.getElementById('ai-provider').value,
+                model: document.getElementById('ai-model').value,
+                api_key: document.getElementById('ai-api-key').value,
+                temperature: parseFloat(document.getElementById('ai-temperature').value),
+                system_prompt: document.getElementById('ai-prompt').value
+            };
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/ai-config`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    showMessage('ai-message', 'AI config saved!', 'success');
+                } else {
+                    showMessage('ai-message', 'Error saving config', 'error');
+                }
+            } catch (error) {
+                showMessage('ai-message', 'Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Statistics
+        async function loadStats() {
+            const botId = document.getElementById('stats-bot-select').value;
+            if (!botId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${botId}/stats`);
+                const stats = await res.json();
+                
+                document.getElementById('stats-content').innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.users.total}</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.users.active}</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.partners.total}</div>
+                            <div class="stat-label">Total Partners</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.partners.active}</div>
+                            <div class="stat-label">Active Partners</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.total_balance.toFixed(2)}</div>
+                            <div class="stat-label">Total Balance</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                showMessage('stats-message', 'Error loading stats: ' + error.message, 'error');
+            }
+        }
+        
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => el.innerHTML = '', 5000);
+        }
+        
+        // Load on page load
+        loadBots();
+    </script>
+</body>
+</html>
+

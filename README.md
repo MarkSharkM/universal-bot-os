@@ -1,0 +1,87 @@
+# 🤖 Universal Bot OS
+
+**Масштабована AI-френдлі мультитенентна платформа для керування 100+ ботами**
+
+## 🎯 Особливості
+
+- **Omnichannel Architecture** - Підтримка Telegram, Web, WhatsApp через адаптери
+- **Multi-Tenancy** - Одна БД для всіх ботів з ізоляцією даних
+- **i18n** - Підтримка 5+ мов (uk, en, ru, pl, de)
+- **AI-Friendly** - Модульна структура для легкого розширення
+- **Scalable** - Готовність до 100+ ботів на Railway
+
+## 🏗️ Архітектура
+
+```
+app/
+├── api/          # API endpoints (webhooks, mini-apps, SEO, admin)
+├── core/         # Infrastructure (config, database, security)
+├── models/       # SQLAlchemy models
+├── schemas/      # Pydantic schemas (API validation)
+├── services/     # Business logic (чиста логіка, витягнута з n8n)
+├── adapters/     # Platform adapters (Telegram, Web, etc.)
+└── utils/        # Utilities
+```
+
+## 🚀 Швидкий старт
+
+### Локальна розробка
+
+```bash
+# 1. Клонувати репозиторій
+git clone <repo>
+cd universal-bot-os
+
+# 2. Створити .env файл
+cp .env.example .env
+# Заповнити DATABASE_URL, SECRET_KEY, тощо
+
+# 3. Запустити через Docker Compose
+docker-compose up -d
+
+# 4. Запустити міграції (коли будуть готові)
+# alembic upgrade head
+```
+
+### Railway Deployment
+
+```bash
+# 1. Логін
+railway login
+
+# 2. Створити проект
+railway init
+
+# 3. Додати PostgreSQL та Redis
+railway add postgresql
+railway add redis
+
+# 4. Встановити змінні
+railway variables set SECRET_KEY=your-secret-key
+railway variables set OPENAI_API_KEY=sk-...
+
+# 5. Деплой
+railway up
+```
+
+## 📋 TODO План
+
+Див. `UNIVERSAL_BOT_OS.md` для детального плану (17 задач, 6 фаз).
+
+## 📚 Документація
+
+- `UNIVERSAL_BOT_OS.md` - Детальна архітектура та план
+- `app/models/` - SQL схема
+- `app/adapters/base.py` - Omnichannel інтерфейс
+
+## 🔑 Ключові принципи
+
+1. **Omnichannel** - Додавання нової платформи = новий adapter, без змін у services/
+2. **Multi-Tenancy** - Кожен запит має `bot_id`, ізоляція на рівні БД
+3. **i18n** - Всі рядки в `translations`, мова користувача в `users.language_code`
+4. **AI-Friendly** - Модульний код з документацією для легкого розширення
+
+---
+
+**Готовий до міграції з n8n!** 🚀
+
