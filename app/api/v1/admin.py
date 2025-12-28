@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.models.bot import Bot
 from app.models.business_data import BusinessData
 from app.models.user import User
+from app.models.translation import Translation
 from app.schemas.bot import BotCreate, BotUpdate, BotResponse
 from app.services.ai_service import AIService
 from app.services.translation_service import TranslationService
@@ -653,4 +654,48 @@ async def test_command(
             "command": parsed_command,
             "input": command
         }
+
+
+@router.put("/translations/{key}/{lang}")
+async def update_translation(
+    key: str,
+    lang: str,
+    text: str = Query(..., description="New translation text"),
+    db: Session = Depends(get_db)
+):
+    """
+    Quick update translation directly in database.
+    No deployment needed - instant fix!
+    
+    Args:
+        key: Translation key (e.g., 'welcome')
+        lang: Language code (e.g., 'uk', 'en')
+        text: New translation text
+        db: Database session
+    
+    Returns:
+        Updated translation
+    """
+    # Find or create translation
+    translation = db.query(Translation).filter(
+        Translation.key == key,
+        Translation.lang == lang
+    ).first()
+    
+    if translation:
+        translation.text = text
+    else:
+        translation = Translation(key=key, lang=lang, text=text)
+        db.add(translation)
+    
+    db.commit()
+    db.refresh(translation)
+    
+    return {
+        "success": True,
+        "key": key,
+        "lang": lang,
+        "text": translation.text,
+        "message": "Translation updated successfully"
+    }
 
