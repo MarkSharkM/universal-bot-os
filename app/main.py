@@ -120,6 +120,70 @@ async def liveness():
     return {"status": "alive"}
 
 
+# Admin UI endpoint (register early to avoid conflicts)
+from fastapi.responses import HTMLResponse
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_ui():
+    """Serve admin UI"""
+    import pathlib
+    
+    logger.info("🔍 /admin endpoint called!")
+    
+    # Визначаємо базовий шлях
+    current_file = pathlib.Path(__file__)  # app/main.py
+    app_dir = current_file.parent  # app/
+    project_root = app_dir.parent  # /app (в Docker) або universal-bot-os/ (локально)
+    
+    # Шлях до admin.html
+    admin_path = app_dir / "static" / "admin.html"
+    
+    # Логування для дебагу
+    logger.info(f"Looking for admin.html at: {admin_path}")
+    logger.info(f"Current file: {current_file}")
+    logger.info(f"App dir: {app_dir}")
+    logger.info(f"Project root: {project_root}")
+    logger.info(f"Working dir: {pathlib.Path.cwd()}")
+    
+    if admin_path.exists():
+        try:
+            html_content = admin_path.read_text(encoding='utf-8')
+            logger.info(f"✅ Admin UI loaded successfully from: {admin_path}")
+            return HTMLResponse(content=html_content)
+        except Exception as e:
+            logger.error(f"❌ Error reading admin.html: {e}", exc_info=True)
+            return HTMLResponse(
+                content=f"<h1>Error loading admin UI</h1><p>{str(e)}</p>",
+                status_code=500
+            )
+    else:
+        # Дебаг інформація
+        debug_info = f"""
+        <html>
+        <head><title>Admin UI not found</title></head>
+        <body style="font-family: monospace; padding: 20px;">
+        <h1>Admin UI not found</h1>
+        <p><strong>Expected path:</strong> {admin_path}</p>
+        <p><strong>Current file:</strong> {current_file}</p>
+        <p><strong>App dir:</strong> {app_dir}</p>
+        <p><strong>Project root:</strong> {project_root}</p>
+        <p><strong>Working dir:</strong> {pathlib.Path.cwd()}</p>
+        <hr>
+        <p><strong>Files in app_dir:</strong></p>
+        <ul>
+        {''.join(f'<li>{f.name}</li>' for f in app_dir.iterdir() if f.is_file())}
+        </ul>
+        <p><strong>Directories in app_dir:</strong></p>
+        <ul>
+        {''.join(f'<li>{d.name}/</li>' for d in app_dir.iterdir() if d.is_dir())}
+        </ul>
+        </body>
+        </html>
+        """
+        logger.error(f"❌ Admin UI not found at: {admin_path}")
+        return HTMLResponse(content=debug_info, status_code=404)
+
+
 # Request logging middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -185,66 +249,4 @@ app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
 # Admin router
 from app.api.v1 import admin
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
-
-# Static files (Admin UI)
-from fastapi.responses import HTMLResponse
-import os
-
-@app.get("/admin", response_class=HTMLResponse)
-async def admin_ui():
-    """Serve admin UI"""
-    import pathlib
-    
-    # Визначаємо базовий шлях
-    current_file = pathlib.Path(__file__)  # app/main.py
-    app_dir = current_file.parent  # app/
-    project_root = app_dir.parent  # /app (в Docker) або universal-bot-os/ (локально)
-    
-    # Шлях до admin.html
-    admin_path = app_dir / "static" / "admin.html"
-    
-    # Логування для дебагу
-    logger.info(f"Looking for admin.html at: {admin_path}")
-    logger.info(f"Current file: {current_file}")
-    logger.info(f"App dir: {app_dir}")
-    logger.info(f"Project root: {project_root}")
-    logger.info(f"Working dir: {pathlib.Path.cwd()}")
-    
-    if admin_path.exists():
-        try:
-            html_content = admin_path.read_text(encoding='utf-8')
-            logger.info(f"✅ Admin UI loaded successfully from: {admin_path}")
-            return HTMLResponse(content=html_content)
-        except Exception as e:
-            logger.error(f"❌ Error reading admin.html: {e}", exc_info=True)
-            return HTMLResponse(
-                content=f"<h1>Error loading admin UI</h1><p>{str(e)}</p>",
-                status_code=500
-            )
-    else:
-        # Дебаг інформація
-        debug_info = f"""
-        <html>
-        <head><title>Admin UI not found</title></head>
-        <body style="font-family: monospace; padding: 20px;">
-        <h1>Admin UI not found</h1>
-        <p><strong>Expected path:</strong> {admin_path}</p>
-        <p><strong>Current file:</strong> {current_file}</p>
-        <p><strong>App dir:</strong> {app_dir}</p>
-        <p><strong>Project root:</strong> {project_root}</p>
-        <p><strong>Working dir:</strong> {pathlib.Path.cwd()}</p>
-        <hr>
-        <p><strong>Files in app_dir:</strong></p>
-        <ul>
-        {''.join(f'<li>{f.name}</li>' for f in app_dir.iterdir() if f.is_file())}
-        </ul>
-        <p><strong>Directories in app_dir:</strong></p>
-        <ul>
-        {''.join(f'<li>{d.name}/</li>' for d in app_dir.iterdir() if d.is_dir())}
-        </ul>
-        </body>
-        </html>
-        """
-        logger.error(f"❌ Admin UI not found at: {admin_path}")
-        return HTMLResponse(content=debug_info, status_code=404)
 
