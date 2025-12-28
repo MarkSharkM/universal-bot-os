@@ -144,16 +144,18 @@ class UserService:
     
     def get_wallet(self, user_id: UUID) -> Optional[str]:
         """Get user's wallet address"""
-        wallet_data = self.db.query(BusinessData).filter(
+        # Query all wallets, filter in Python to avoid JSONB query issues
+        all_wallets = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'wallet',
-                BusinessData.data['user_id'].astext == str(user_id)
+                BusinessData.data_type == 'wallet'
             )
-        ).order_by(BusinessData.created_at.desc()).first()
+        ).order_by(BusinessData.created_at.desc()).all()
         
-        if wallet_data:
-            return wallet_data.data.get('wallet_address')
+        # Find wallet for this user
+        for wallet_data in all_wallets:
+            if (wallet_data.data or {}).get('user_id') == str(user_id):
+                return wallet_data.data.get('wallet_address')
         
         # Fallback to user custom_data
         user = self.db.query(User).filter(

@@ -187,15 +187,21 @@ class ReferralService:
         if not inviter:
             return 0
         
-        # Get all referral logs for this inviter
-        referral_logs = self.db.query(BusinessData).filter(
+        # Get all referral logs, filter in Python to avoid JSONB query issues
+        all_logs = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'log',
-                BusinessData.data['inviter_external_id'].astext == inviter.external_id,
-                BusinessData.data['is_referral'].astext == 'true'
+                BusinessData.data_type == 'log'
             )
         ).all()
+        
+        # Filter in Python
+        referral_logs = []
+        for log in all_logs:
+            data = log.data or {}
+            if (data.get('inviter_external_id') == inviter.external_id and
+                data.get('is_referral') == 'true'):
+                referral_logs.append(log)
         
         # Get unique referred users
         unique_refs = set()
