@@ -848,6 +848,33 @@ async def get_translation_visual(
     }
 
 
+@router.post("/run-migration-add-deleted-at")
+async def run_migration_add_deleted_at(db: Session = Depends(get_db)):
+    """
+    Run migration to add deleted_at column to business_data table.
+    """
+    try:
+        # Add column
+        db.execute("ALTER TABLE business_data ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE")
+        
+        # Add index
+        db.execute("CREATE INDEX IF NOT EXISTS idx_business_data_deleted_at ON business_data(deleted_at)")
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Migration completed successfully: added deleted_at column and index"
+        }
+    except Exception as e:
+        db.rollback()
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Migration failed"
+        }
+
+
 @router.post("/bots/{bot_id}/import-correct-partners")
 async def import_correct_partners(
     bot_id: UUID,
