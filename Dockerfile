@@ -20,5 +20,5 @@ EXPOSE 8000
 
 # Run application
 # Railway автоматично встановлює PORT через змінну оточення
-CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+CMD python -c "import os; port = os.getenv('PORT', '8000'); import subprocess; subprocess.run(['uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', port])"
 

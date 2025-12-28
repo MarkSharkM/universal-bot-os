@@ -197,25 +197,31 @@ async def admin_ui():
     # Шлях до admin.html - спробуємо різні варіанти
     current_file = pathlib.Path(__file__)
     current_dir = current_file.parent
+    working_dir = pathlib.Path.cwd()
     
-    # Варіанти шляхів
+    # Варіанти шляхів (в порядку пріоритету)
     paths_to_try = [
-        current_dir / "static" / "admin.html",  # app/static/admin.html
-        pathlib.Path("/app/app/static/admin.html"),  # В Docker
-        pathlib.Path("app/static/admin.html"),  # Відносно робочої директорії
+        current_dir / "static" / "admin.html",  # app/static/admin.html (локально)
+        pathlib.Path("/app/app/static/admin.html"),  # В Docker (WORKDIR /app)
+        working_dir / "app" / "static" / "admin.html",  # Відносно робочої директорії
+        pathlib.Path("/app/static/admin.html"),  # Альтернативний Docker шлях
     ]
     
     for static_path in paths_to_try:
         if static_path.exists():
             try:
                 html_content = static_path.read_text(encoding='utf-8')
+                logger.info(f"Admin UI loaded from: {static_path}")
                 return HTMLResponse(content=html_content)
             except Exception as e:
-                logger.error(f"Error reading admin.html: {e}")
+                logger.error(f"Error reading admin.html from {static_path}: {e}")
                 continue
     
     # Якщо не знайдено - повернути помилку з дебаг інформацією
     debug_info = f"""
+    <html>
+    <head><title>Admin UI not found</title></head>
+    <body>
     <h1>Admin UI not found</h1>
     <p>Tried paths:</p>
     <ul>
@@ -223,7 +229,11 @@ async def admin_ui():
     </ul>
     <p>Current file: {current_file}</p>
     <p>Current dir: {current_dir}</p>
-    <p>Working dir: {pathlib.Path.cwd()}</p>
+    <p>Working dir: {working_dir}</p>
+    <p>Files in current_dir: {list(current_dir.iterdir()) if current_dir.exists() else 'N/A'}</p>
+    </body>
+    </html>
     """
+    logger.error(f"Admin UI not found. Tried: {paths_to_try}")
     return HTMLResponse(content=debug_info, status_code=404)
 
