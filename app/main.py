@@ -120,6 +120,14 @@ async def liveness():
     return {"status": "alive"}
 
 
+# Test endpoint to verify routing works
+@app.get("/test-admin")
+async def test_admin():
+    """Test endpoint to verify HTML responses work"""
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content="<h1>Test Admin Route Works!</h1><p>If you see this, routing is working.</p>")
+
+
 # Admin UI endpoint (register early to avoid conflicts)
 from fastapi.responses import HTMLResponse
 
