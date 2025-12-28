@@ -848,6 +848,119 @@ async def get_translation_visual(
     }
 
 
+@router.post("/bots/{bot_id}/import-correct-partners")
+async def import_correct_partners(
+    bot_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Import correct partners data (EasyGiftDropbot, RandGiftBot, TheStarsBank with proper settings).
+    
+    Args:
+        bot_id: Bot UUID
+        db: Database session
+    
+    Returns:
+        Import summary
+    """
+    from sqlalchemy import and_
+    
+    # Correct partners data
+    partners_data = [
+        {
+            "bot_name": "EasyGiftDropbot",
+            "description": "🎁 Подарунки за активність",
+            "description_en": "🎁 Gifts for activity",
+            "description_ru": "🎁 Подарки за активность",
+            "description_de": "🎁 Geschenke für Aktivität",
+            "description_es": "🎁 Regalos por actividad",
+            "referral_link": "https://t.me/EasyGiftDropbot?start=_tgr_WhrUYB40ZWFi",
+            "commission": 20.0,
+            "category": "TOP",
+            "active": "Yes",
+            "verified": "Yes",
+            "roi_score": 1.9,
+            "duration": "30",
+        },
+        {
+            "bot_name": "RandGiftBot",
+            "description": "🎁 Випадкові подарунки",
+            "description_en": "🎁 Random gifts",
+            "description_ru": "🎁 Случайные подарки",
+            "description_de": "🎁 Zufällige Geschenke",
+            "description_es": "🎁 Regalos aleatorios",
+            "referral_link": "https://t.me/randgift_bot?start=_tgr_dkf6mDQ3Y2M6",
+            "commission": 1.0,
+            "category": "NEW",
+            "active": "Yes",
+            "verified": "Yes",
+            "roi_score": 0.0,
+            "duration": "9999",
+        },
+        {
+            "bot_name": "TheStarsBank",
+            "description": "🏦 Заробіток на транзакціях 🏛️",
+            "description_en": "🏛️ Earnings from transactions 🏦",
+            "description_ru": "🏛️ Заработок на транзакциях 🏦",
+            "description_de": "🏛️ Einnahmen aus Transaktionen 🏦",
+            "description_es": "🏛️ Ganancias por transacciones 🏦",
+            "referral_link": "https://t.me/m5bank_bot?start=_tgr_JUV1QD8zMDUy",
+            "commission": 30.0,
+            "category": "TOP",
+            "active": "Yes",
+            "verified": "Yes",
+            "roi_score": 7.2,
+            "duration": "365",
+        }
+    ]
+    
+    updated = []
+    created = []
+    
+    for partner_data in partners_data:
+        bot_name = partner_data["bot_name"]
+        
+        # Find existing partner (not deleted)
+        existing = db.query(BusinessData).filter(
+            and_(
+                BusinessData.bot_id == bot_id,
+                BusinessData.data_type == 'partner',
+                BusinessData.deleted_at.is_(None)
+            )
+        ).all()
+        
+        # Check if partner with this name exists
+        existing_partner = None
+        for p in existing:
+            if p.data.get('bot_name') == bot_name:
+                existing_partner = p
+                break
+        
+        if existing_partner:
+            # Update existing
+            existing_partner.data = partner_data
+            updated.append(bot_name)
+        else:
+            # Create new
+            new_partner = BusinessData(
+                bot_id=bot_id,
+                data_type='partner',
+                data=partner_data
+            )
+            db.add(new_partner)
+            created.append(bot_name)
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": f"Imported {len(created)} new, updated {len(updated)} existing partners",
+        "created": created,
+        "updated": updated,
+        "total": len(partners_data)
+    }
+
+
 @router.post("/bots/{bot_id}/remove-duplicate-partners")
 async def remove_duplicate_partners(
     bot_id: UUID,
