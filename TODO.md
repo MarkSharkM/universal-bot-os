@@ -97,5 +97,9 @@
 - ✅ Всі сервіси працюють з `bot_id` для ізоляції
 - ✅ API endpoints готові для Telegram, Mini Apps, SEO
 - ✅ i18n через TranslationService (5 мов)
-- ⏳ Наступне: AI інтеграція та міграція даних
+- ✅ AI інтеграція та міграція даних готові
+- ✅ Railway deployment працює
+- ✅ Бот налаштовано і webhook активний
+
+**Наступні кроки:** Див. `NEXT_STEPS.md`
 
