@@ -20,7 +20,7 @@ class Message(Base):
     bot_id = Column(UUID(as_uuid=True), ForeignKey("bots.id"), nullable=False)
     role = Column(String(20), nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
-    metadata = Column(JSON, nullable=False, default=dict)  # message_id, reply_to, etc.
+    custom_data = Column(JSON, nullable=False, default=dict)  # message_id, reply_to, etc.
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
     # Relationships

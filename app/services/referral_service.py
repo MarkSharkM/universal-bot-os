@@ -229,10 +229,10 @@ class ReferralService:
         
         total_invited = self.count_referrals(user_id)
         
-        if not user.metadata:
-            user.metadata = {}
+        if not user.custom_data:
+            user.custom_data = {}
         
-        user.metadata['total_invited'] = total_invited
+        user.custom_data['total_invited'] = total_invited
         self.db.commit()
         self.db.refresh(user)
         
@@ -250,8 +250,8 @@ class ReferralService:
         if not user:
             return 0
         
-        if user.metadata:
-            return user.metadata.get('total_invited', 0)
+        if user.custom_data:
+            return user.custom_data.get('total_invited', 0)
         
         return 0
     
@@ -283,8 +283,8 @@ class ReferralService:
             )
         ).first()
         
-        if top_status and top_status.metadata:
-            if top_status.metadata.get('top_status') == 'open':
+        if top_status and top_status.custom_data:
+            if top_status.custom_data.get('top_status') == 'open':
                 return True, 0
         
         # Check invites

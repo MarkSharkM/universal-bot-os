@@ -21,7 +21,7 @@ class User(Base):
     bot_id = Column(UUID(as_uuid=True), ForeignKey("bots.id"), nullable=False)
     language_code = Column(String(10), nullable=False, default="uk")  # uk, en, ru, pl, de
     balance = Column(Numeric(10, 2), default=0.0, nullable=False)
-    metadata = Column(JSON, nullable=False, default=dict)  # Custom fields per bot
+    custom_data = Column(JSON, nullable=False, default=dict)  # Custom fields per bot
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

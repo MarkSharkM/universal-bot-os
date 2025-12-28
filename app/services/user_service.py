@@ -58,7 +58,7 @@ class UserService:
                 external_id=str(external_id),
                 platform=platform,
                 language_code=language_code or 'uk',
-                metadata={
+                custom_data={
                     'username': username,
                     'first_name': first_name,
                     'last_name': last_name,
@@ -68,16 +68,16 @@ class UserService:
             self.db.commit()
             self.db.refresh(user)
         else:
-            # Update metadata if provided
+            # Update custom_data if provided
             if username or first_name or last_name:
-                if not user.metadata:
-                    user.metadata = {}
+                if not user.custom_data:
+                    user.custom_data = {}
                 if username:
-                    user.metadata['username'] = username
+                    user.custom_data['username'] = username
                 if first_name:
-                    user.metadata['first_name'] = first_name
+                    user.custom_data['first_name'] = first_name
                 if last_name:
-                    user.metadata['last_name'] = last_name
+                    user.custom_data['last_name'] = last_name
                 if language_code:
                     user.language_code = language_code
                 self.db.commit()
@@ -132,10 +132,10 @@ class UserService:
         )
         self.db.add(wallet_data)
         
-        # Also store in user metadata for quick access
-        if not user.metadata:
-            user.metadata = {}
-        user.metadata['wallet_address'] = wallet_address
+        # Also store in user custom_data for quick access
+        if not user.custom_data:
+            user.custom_data = {}
+        user.custom_data['wallet_address'] = wallet_address
         
         self.db.commit()
         self.db.refresh(user)
@@ -155,7 +155,7 @@ class UserService:
         if wallet_data:
             return wallet_data.data.get('wallet_address')
         
-        # Fallback to user metadata
+        # Fallback to user custom_data
         user = self.db.query(User).filter(
             and_(
                 User.id == user_id,
@@ -163,8 +163,8 @@ class UserService:
             )
         ).first()
         
-        if user and user.metadata:
-            return user.metadata.get('wallet_address')
+        if user and user.custom_data:
+            return user.custom_data.get('wallet_address')
         
         return None
     
@@ -184,10 +184,10 @@ class UserService:
         if not user:
             raise ValueError(f"User {user_id} not found")
         
-        if not user.metadata:
-            user.metadata = {}
+        if not user.custom_data:
+            user.custom_data = {}
         
-        user.metadata['top_status'] = status
+        user.custom_data['top_status'] = status
         self.db.commit()
         self.db.refresh(user)
         
@@ -199,7 +199,7 @@ class UserService:
         if not user:
             return 'locked'
         
-        return user.metadata.get('top_status', 'locked') if user.metadata else 'locked'
+        return user.custom_data.get('top_status', 'locked') if user.custom_data else 'locked'
     
     def get_user_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by UUID"""
