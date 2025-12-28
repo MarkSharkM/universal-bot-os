@@ -187,17 +187,23 @@ from app.api.v1 import admin
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 
 # Static files (Admin UI)
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 import os
 
-@app.get("/admin")
+@app.get("/admin", response_class=HTMLResponse)
 async def admin_ui():
     """Serve admin UI"""
     # Шлях до admin.html відносно app/main.py
     static_path = os.path.join(os.path.dirname(__file__), "static", "admin.html")
+    
     if os.path.exists(static_path):
-        return FileResponse(static_path, media_type="text/html")
+        with open(static_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
     else:
-        # Fallback - повернути HTML напряму
-        return {"error": "Admin UI not found", "path": static_path}
+        # Fallback - повернути помилку
+        return HTMLResponse(
+            content=f"<h1>Admin UI not found</h1><p>Path: {static_path}</p>",
+            status_code=404
+        )
 
