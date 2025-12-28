@@ -75,10 +75,17 @@ async def shutdown():
 @app.get("/")
 async def root():
     """Root endpoint"""
+    logger.info("🔍 Root endpoint / called!")
     return {
         "message": "Universal Bot OS API",
         "version": "0.1.0",
-        "status": "running"
+        "status": "running",
+        "endpoints": {
+            "/admin": "Admin UI",
+            "/test-admin": "Test Admin Route",
+            "/health": "Health check",
+            "/api/v1/admin/bots": "Admin API - List bots"
+        }
     }
 
 
@@ -198,8 +205,9 @@ async def log_requests(request: Request, call_next):
     """Log all requests"""
     start_time = time.time()
     
-    # Log request
-    logger.info(f"{request.method} {request.url.path} - {request.client.host if request.client else 'unknown'}")
+    # Log request with full URL
+    full_url = str(request.url)
+    logger.info(f"🌐 {request.method} {request.url.path} - Full URL: {full_url} - Client: {request.client.host if request.client else 'unknown'}")
     
     try:
         response = await call_next(request)
