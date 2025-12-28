@@ -193,17 +193,23 @@ import os
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_ui():
     """Serve admin UI"""
+    import pathlib
     # Шлях до admin.html відносно app/main.py
-    static_path = os.path.join(os.path.dirname(__file__), "static", "admin.html")
+    current_dir = pathlib.Path(__file__).parent
+    static_path = current_dir / "static" / "admin.html"
     
-    if os.path.exists(static_path):
-        with open(static_path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
+    if static_path.exists():
+        html_content = static_path.read_text(encoding='utf-8')
         return HTMLResponse(content=html_content)
     else:
-        # Fallback - повернути помилку
+        # Fallback - повернути помилку з інформацією для дебагу
         return HTMLResponse(
-            content=f"<h1>Admin UI not found</h1><p>Path: {static_path}</p>",
+            content=f"""
+            <h1>Admin UI not found</h1>
+            <p>Path: {static_path}</p>
+            <p>Current dir: {current_dir}</p>
+            <p>Files in static: {list((current_dir / 'static').glob('*')) if (current_dir / 'static').exists() else 'static dir not found'}</p>
+            """,
             status_code=404
         )
 
