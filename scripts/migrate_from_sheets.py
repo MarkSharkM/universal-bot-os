@@ -58,6 +58,11 @@ def parse_decimal(value: Optional[str]) -> Decimal:
         return Decimal('0.0')
 
 
+def decimal_to_float(value: Decimal) -> float:
+    """Convert Decimal to float for JSON serialization"""
+    return float(value)
+
+
 def migrate_user_wallets(
     db: Session,
     bot_id: str,
