@@ -261,16 +261,30 @@ class CommandService:
         
         # Build message
         intro = self.translation_service.get_translation('partners_intro', lang)
-        if not intro:
-            intro = "🤖 <b>Verified Telegram bots that give you Stars for actions</b>\nPick any — launch and level up! 💪"
+        if not intro or intro == 'partners_intro':  # Fallback if translation not found
+            intro_map = {
+                'uk': "🤖 <b>Перевірені Telegram-боти, які дають зірки за активність</b>\nОбери будь-який — запускай та прокачуйся! 💪",
+                'en': "🤖 <b>Verified Telegram bots that give you Stars for actions</b>\nPick any — launch and level up! 💪",
+                'ru': "🤖 <b>Проверенные Telegram-боты, которые дают звезды за активность</b>\nВыбери любой — запускай и прокачивайся! 💪",
+            }
+            intro = intro_map.get(lang, intro_map['en'])
         
         if not partners:
             empty_msg = self.translation_service.get_translation('partners_empty', lang)
+            if not empty_msg or empty_msg == 'partners_empty':
+                empty_msg = "Поки що немає доступних партнерів." if lang == 'uk' else "No partners available yet."
             message = f"{intro}\n\n{empty_msg}"
         else:
             partner_lines = []
             for i, partner in enumerate(partners, 1):
-                launch_label = self.translation_service.get_translation('launch_label', lang) or 'Launch'
+                launch_label = self.translation_service.get_translation('launch_label', lang)
+                if not launch_label or launch_label == 'launch_label':  # Fallback if translation not found
+                    launch_label_map = {
+                        'uk': 'Запустити',
+                        'en': 'Launch',
+                        'ru': 'Запустить',
+                    }
+                    launch_label = launch_label_map.get(lang, 'Launch')
                 line = f"⭐ <b>{i}. {partner['bot_name']}</b>\n{partner['description']}\n🔗 <a href=\"{partner['referral_link']}\">{launch_label}</a>"
                 partner_lines.append(line)
             
