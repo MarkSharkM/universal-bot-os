@@ -194,22 +194,36 @@ import os
 async def admin_ui():
     """Serve admin UI"""
     import pathlib
-    # Шлях до admin.html відносно app/main.py
-    current_dir = pathlib.Path(__file__).parent
-    static_path = current_dir / "static" / "admin.html"
+    # Шлях до admin.html - спробуємо різні варіанти
+    current_file = pathlib.Path(__file__)
+    current_dir = current_file.parent
     
-    if static_path.exists():
-        html_content = static_path.read_text(encoding='utf-8')
-        return HTMLResponse(content=html_content)
-    else:
-        # Fallback - повернути помилку з інформацією для дебагу
-        return HTMLResponse(
-            content=f"""
-            <h1>Admin UI not found</h1>
-            <p>Path: {static_path}</p>
-            <p>Current dir: {current_dir}</p>
-            <p>Files in static: {list((current_dir / 'static').glob('*')) if (current_dir / 'static').exists() else 'static dir not found'}</p>
-            """,
-            status_code=404
-        )
+    # Варіанти шляхів
+    paths_to_try = [
+        current_dir / "static" / "admin.html",  # app/static/admin.html
+        pathlib.Path("/app/app/static/admin.html"),  # В Docker
+        pathlib.Path("app/static/admin.html"),  # Відносно робочої директорії
+    ]
+    
+    for static_path in paths_to_try:
+        if static_path.exists():
+            try:
+                html_content = static_path.read_text(encoding='utf-8')
+                return HTMLResponse(content=html_content)
+            except Exception as e:
+                logger.error(f"Error reading admin.html: {e}")
+                continue
+    
+    # Якщо не знайдено - повернути помилку з дебаг інформацією
+    debug_info = f"""
+    <h1>Admin UI not found</h1>
+    <p>Tried paths:</p>
+    <ul>
+    {''.join(f'<li>{p} - exists: {p.exists()}</li>' for p in paths_to_try)}
+    </ul>
+    <p>Current file: {current_file}</p>
+    <p>Current dir: {current_dir}</p>
+    <p>Working dir: {pathlib.Path.cwd()}</p>
+    """
+    return HTMLResponse(content=debug_info, status_code=404)
 
