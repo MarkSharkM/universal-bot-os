@@ -462,3 +462,82 @@ async def update_ai_config(
         "has_system_prompt": bool(updated_config.get('system_prompt')),
     }
 
+
+@router.post("/bots/{bot_id}/import-data")
+async def import_bot_data(
+    bot_id: UUID,
+    import_type: str = Query(..., description="Type: translations, users, partners, logs, all"),
+    db: Session = Depends(get_db)
+):
+    """
+    Import data for a bot from CSV files.
+    
+    Args:
+        bot_id: Bot UUID
+        import_type: Type of data to import (translations, users, partners, logs, all)
+        db: Database session
+    
+    Returns:
+        Import results
+    """
+    from pathlib import Path
+    
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    base_path = Path(__file__).parent.parent.parent.parent / "old-prod-hub-bot"
+    results = {}
+    
+    try:
+        # Import translations
+        if import_type in ("translations", "all"):
+            translations_path = base_path / "translations_for prod tg.csv"
+            if translations_path.exists():
+                from scripts.import_translations import import_translations
+                import_translations(str(translations_path))
+                results["translations"] = "✅ Imported"
+            else:
+                results["translations"] = "⚠️ File not found"
+        
+        # Import users
+        if import_type in ("users", "all"):
+            users_path = base_path / "Earnbot_Referrals - user_wallets.csv"
+            if users_path.exists():
+                from scripts.migrate_from_sheets import migrate_user_wallets
+                count = migrate_user_wallets(db, str(bot_id), str(users_path))
+                results["users"] = f"✅ Imported {count} users"
+            else:
+                results["users"] = "⚠️ File not found"
+        
+        # Import partners
+        if import_type in ("partners", "all"):
+            partners_path = base_path / "Earnbot_Referrals - Partners_Settings.csv"
+            if partners_path.exists():
+                from scripts.migrate_from_sheets import migrate_partners_settings
+                count = migrate_partners_settings(db, str(bot_id), str(partners_path))
+                results["partners"] = f"✅ Imported {count} partners"
+            else:
+                results["partners"] = "⚠️ File not found"
+        
+        # Import logs
+        if import_type in ("logs", "all"):
+            logs_path = base_path / "Earnbot_Referrals - bot_log.csv"
+            if logs_path.exists():
+                from scripts.migrate_from_sheets import migrate_bot_log
+                count = migrate_bot_log(db, str(bot_id), str(logs_path))
+                results["logs"] = f"✅ Imported {count} log entries"
+            else:
+                results["logs"] = "⚠️ File not found"
+        
+        return {
+            "bot_id": str(bot_id),
+            "bot_name": bot.name,
+            "import_type": import_type,
+            "results": results,
+            "status": "success"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Import error: {str(e)}")
+
