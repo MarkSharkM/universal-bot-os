@@ -405,7 +405,7 @@ async def delete_partner(
     
     if hard_delete:
         # Permanent deletion
-        db.delete(partner)
+    db.delete(partner)
         message = "Partner permanently deleted"
     else:
         # Soft delete
@@ -1092,4 +1092,85 @@ async def remove_duplicate_partners(
         "kept": kept,
         "removed": duplicates
     }
+
+
+@router.get("/bots/{bot_id}/users")
+async def list_bot_users(
+    bot_id: UUID,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db)
+):
+    """
+    List users for a specific bot.
+    
+    Args:
+        bot_id: Bot UUID
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        db: Database session
+    
+    Returns:
+        List of users
+    """
+    users = db.query(User).filter(
+        User.bot_id == bot_id
+    ).offset(skip).limit(limit).all()
+    
+    return [
+        {
+            "id": str(u.id),
+            "external_id": u.external_id,
+            "platform": u.platform,
+            "language_code": u.language_code,
+            "balance": float(u.balance),
+            "is_active": u.is_active,
+            "custom_data": u.custom_data,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+            "updated_at": u.updated_at.isoformat() if u.updated_at else None
+        }
+        for u in users
+    ]
+
+
+@router.get("/translations")
+async def list_translations(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    key: Optional[str] = None,
+    lang: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    List translations with optional filtering.
+    
+    Args:
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        key: Filter by translation key
+        lang: Filter by language
+        db: Database session
+    
+    Returns:
+        List of translations
+    """
+    query = db.query(Translation)
+    
+    if key:
+        query = query.filter(Translation.key == key)
+    if lang:
+        query = query.filter(Translation.lang == lang)
+    
+    translations = query.offset(skip).limit(limit).all()
+    
+    return [
+        {
+            "id": str(t.id),
+            "key": t.key,
+            "lang": t.lang,
+            "text": t.text,
+            "created_at": t.created_at.isoformat() if t.created_at else None
+        }
+        for t in translations
+    ]
 

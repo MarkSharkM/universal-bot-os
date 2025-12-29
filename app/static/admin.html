@@ -188,13 +188,24 @@
 <body>
     <div class="container">
         <header>
-            <h1>🤖 Universal Bot OS - Admin Panel</h1>
-            <p>Multi-tenant bot management platform</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>🤖 Universal Bot OS - Admin Panel</h1>
+                    <p>Multi-tenant bot management platform</p>
+                </div>
+                <div style="min-width: 300px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Selected Bot:</label>
+                    <select id="global-bot-select" onchange="onGlobalBotChange()" style="width: 100%; padding: 10px; border: 2px solid #2563eb; border-radius: 4px; font-size: 14px; font-weight: 500;">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+            </div>
         </header>
         
         <div class="tabs">
             <button class="tab active" onclick="showTab('bots')">Bots</button>
             <button class="tab" onclick="showTab('partners')">Partners</button>
+            <button class="tab" onclick="showTab('database')">🗄️ Database</button>
             <button class="tab" onclick="showTab('ai')">AI Config</button>
             <button class="tab" onclick="showTab('stats')">Statistics</button>
         </div>
@@ -385,6 +396,96 @@
             </div>
         </div>
         
+        <!-- Database Tab -->
+        <div id="database" class="tab-content">
+            <h2>🗄️ Database Viewer</h2>
+            <div id="database-message"></div>
+            
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2563eb;">
+                <strong>Selected Bot:</strong> <span id="database-bot-name">-</span>
+                <br>
+                <small>Viewing data for selected bot. First 10 rows shown, click "Show More" to load additional rows.</small>
+            </div>
+            
+            <!-- Users Table -->
+            <div style="margin-bottom: 30px;">
+                <h3>👥 Users</h3>
+                <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: #f9fafb;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">ID</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">External ID</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Platform</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Language</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Balance</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Active</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="database-users-tbody">
+                            <tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
+                        </tbody>
+                    </table>
+                    <div id="database-users-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
+                        <button onclick="loadMoreUsers()" style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show More (10 more)</button>
+                        <button onclick="loadAllUsers()" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load All</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Business Data (Partners) Table -->
+            <div style="margin-bottom: 30px;">
+                <h3>🤝 Partners (business_data)</h3>
+                <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: #f9fafb;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">ID</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Bot Name</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Category</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Active</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Commission</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Deleted At</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="database-partners-tbody">
+                            <tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view partners</td></tr>
+                        </tbody>
+                    </table>
+                    <div id="database-partners-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
+                        <button onclick="loadMorePartners()" style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show More (10 more)</button>
+                        <button onclick="loadAllPartners()" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load All</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Translations Table -->
+            <div style="margin-bottom: 30px;">
+                <h3>🌐 Translations</h3>
+                <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: #f9fafb;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Key</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Language</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Text Preview</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="database-translations-tbody">
+                            <tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Loading translations...</td></tr>
+                        </tbody>
+                    </table>
+                    <div id="database-translations-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
+                        <button onclick="loadMoreTranslations()" style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show More (10 more)</button>
+                        <button onclick="loadAllTranslations()" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- AI Config Tab -->
         <div id="ai" class="tab-content">
             <h2>AI Configuration</h2>
@@ -440,6 +541,52 @@
     <script>
         const API_BASE = window.location.origin + '/api/v1/admin';
         
+        // Global bot selector
+        let currentBotId = null;
+        let currentBotName = null;
+        
+        async function loadGlobalBotSelector() {
+            try {
+                const res = await fetch(`${API_BASE}/bots`);
+                const bots = await res.json();
+                const select = document.getElementById('global-bot-select');
+                select.innerHTML = '<option value="">Select Bot</option>' + 
+                    bots.map(bot => `<option value="${bot.id}">${bot.name}</option>`).join('');
+                
+                // Auto-select first bot if exists
+                if (bots.length > 0) {
+                    select.value = bots[0].id;
+                    onGlobalBotChange();
+                }
+            } catch (error) {
+                console.error('Error loading bots:', error);
+            }
+        }
+        
+        function onGlobalBotChange() {
+            const select = document.getElementById('global-bot-select');
+            currentBotId = select.value;
+            const selectedOption = select.options[select.selectedIndex];
+            currentBotName = selectedOption ? selectedOption.text : '-';
+            document.getElementById('database-bot-name').textContent = currentBotName;
+            
+            // Update all bot selects in other tabs
+            ['partners-bot-select', 'ai-bot-select', 'stats-bot-select'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = currentBotId;
+            });
+            
+            // Reload current tab if it needs bot data
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab) {
+                const tabId = activeTab.id;
+                if (tabId === 'database') loadDatabaseData();
+                if (tabId === 'partners' && currentBotId) loadPartners();
+                if (tabId === 'ai' && currentBotId) loadAIConfig();
+                if (tabId === 'stats' && currentBotId) loadStats();
+            }
+        }
+        
         // Tab switching
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -448,9 +595,31 @@
             document.getElementById(tabName).classList.add('active');
             
             if (tabName === 'bots') loadBots();
-            if (tabName === 'partners') loadBotsForSelect('partners-bot-select', loadPartners);
-            if (tabName === 'ai') loadBotsForSelect('ai-bot-select', loadAIConfig);
-            if (tabName === 'stats') loadBotsForSelect('stats-bot-select', loadStats);
+            if (tabName === 'partners') {
+                loadBotsForSelect('partners-bot-select', () => {
+                    if (currentBotId) {
+                        document.getElementById('partners-bot-select').value = currentBotId;
+                        loadPartners();
+                    }
+                });
+            }
+            if (tabName === 'database') loadDatabaseData();
+            if (tabName === 'ai') {
+                loadBotsForSelect('ai-bot-select', () => {
+                    if (currentBotId) {
+                        document.getElementById('ai-bot-select').value = currentBotId;
+                        loadAIConfig();
+                    }
+                });
+            }
+            if (tabName === 'stats') {
+                loadBotsForSelect('stats-bot-select', () => {
+                    if (currentBotId) {
+                        document.getElementById('stats-bot-select').value = currentBotId;
+                        loadStats();
+                    }
+                });
+            }
         }
         
         // Show stats tab for specific bot
@@ -880,7 +1049,178 @@
             setTimeout(() => el.innerHTML = '', 5000);
         }
         
+        // Database Viewer Functions
+        let usersOffset = 0;
+        let partnersOffset = 0;
+        let translationsOffset = 0;
+        const ROWS_PER_PAGE = 10;
+        
+        async function loadDatabaseData() {
+            if (!currentBotId) {
+                document.getElementById('database-users-tbody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">Please select a bot from header</td></tr>';
+                return;
+            }
+            
+            usersOffset = 0;
+            partnersOffset = 0;
+            translationsOffset = 0;
+            
+            await Promise.all([
+                loadUsers(0, true),
+                loadPartnersData(0, true),
+                loadTranslationsData(0, true)
+            ]);
+        }
+        
+        async function loadUsers(offset = 0, reset = false) {
+            if (!currentBotId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=${offset}&limit=${ROWS_PER_PAGE}`);
+                const users = await res.json();
+                const tbody = document.getElementById('database-users-tbody');
+                
+                if (reset) {
+                    tbody.innerHTML = '';
+                    usersOffset = 0;
+                }
+                
+                if (users.length === 0 && reset) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">No users found</td></tr>';
+                    document.getElementById('database-users-more').style.display = 'none';
+                    return;
+                }
+                
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${user.id.substring(0, 8)}...</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${user.external_id}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${user.platform}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${user.language_code}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${user.balance || 0}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${user.is_active ? '✅' : '❌'}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${new Date(user.created_at).toLocaleDateString()}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                usersOffset += users.length;
+                document.getElementById('database-users-more').style.display = users.length === ROWS_PER_PAGE ? 'block' : 'none';
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('database-users-tbody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #ef4444;">Error loading users</td></tr>';
+            }
+        }
+        
+        async function loadPartnersData(offset = 0, reset = false) {
+            if (!currentBotId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/partners`);
+                const partners = await res.json();
+                const tbody = document.getElementById('database-partners-tbody');
+                
+                if (reset) {
+                    tbody.innerHTML = '';
+                    partnersOffset = 0;
+                }
+                
+                const visiblePartners = partners.slice(offset, offset + ROWS_PER_PAGE);
+                
+                if (visiblePartners.length === 0 && reset) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">No partners found</td></tr>';
+                    document.getElementById('database-partners-more').style.display = 'none';
+                    return;
+                }
+                
+                visiblePartners.forEach(partner => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${partner.id.substring(0, 8)}...</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>${partner.bot_name}</strong></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><span style="background: ${partner.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${partner.category}</span></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${partner.active === 'Yes' ? '✅' : '❌'}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${partner.commission}%</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${partner.deleted_at ? new Date(partner.deleted_at).toLocaleDateString() : '-'}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">-</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                partnersOffset += visiblePartners.length;
+                document.getElementById('database-partners-more').style.display = partnersOffset < partners.length ? 'block' : 'none';
+            } catch (error) {
+                console.error('Error loading partners:', error);
+                document.getElementById('database-partners-tbody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #ef4444;">Error loading partners</td></tr>';
+            }
+        }
+        
+        async function loadTranslationsData(offset = 0, reset = false) {
+            try {
+                const res = await fetch(`${API_BASE}/translations?skip=${offset}&limit=${ROWS_PER_PAGE}`);
+                const translations = await res.json();
+                const tbody = document.getElementById('database-translations-tbody');
+                
+                if (reset) {
+                    tbody.innerHTML = '';
+                    translationsOffset = 0;
+                }
+                
+                if (translations.length === 0 && reset) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">No translations found</td></tr>';
+                    document.getElementById('database-translations-more').style.display = 'none';
+                    return;
+                }
+                
+                translations.forEach(trans => {
+                    const row = document.createElement('tr');
+                    const preview = trans.text.length > 50 ? trans.text.substring(0, 50) + '...' : trans.text;
+                    row.innerHTML = `
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><code>${trans.key}</code></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${trans.lang}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px;">${preview}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${new Date(trans.created_at).toLocaleDateString()}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                translationsOffset += translations.length;
+                document.getElementById('database-translations-more').style.display = translations.length === ROWS_PER_PAGE ? 'block' : 'none';
+            } catch (error) {
+                console.error('Error loading translations:', error);
+                document.getElementById('database-translations-tbody').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #ef4444;">Error loading translations</td></tr>';
+            }
+        }
+        
+        function loadMoreUsers() {
+            loadUsers(usersOffset, false);
+        }
+        
+        function loadAllUsers() {
+            loadUsers(0, true);
+            // Load all by setting large limit
+            loadUsers(0, false);
+        }
+        
+        function loadMorePartners() {
+            loadPartnersData(partnersOffset, false);
+        }
+        
+        function loadAllPartners() {
+            loadPartnersData(0, true);
+        }
+        
+        function loadMoreTranslations() {
+            loadTranslationsData(translationsOffset, false);
+        }
+        
+        function loadAllTranslations() {
+            loadTranslationsData(0, true);
+        }
+        
         // Load on page load
+        loadGlobalBotSelector();
         loadBots();
     </script>
 </body>
