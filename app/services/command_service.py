@@ -199,13 +199,21 @@ class CommandService:
                 buy_top_price = 1
             
             # Use translation key for locked message (with needed parameter)
-            # This should match the format from production: earnings_step1_locked with {{needed}}
-            # The translation already includes all needed text, no need to add share_referral
+            # Use top_locked_message for /top command (full message with share prompt)
+            # earnings_step1_locked is shorter and used in /earnings
             message = self.translation_service.get_translation(
-                'earnings_step1_locked',
+                'top_locked_message',
                 lang,
                 {'needed': invites_needed}
             )
+            
+            # Fallback to earnings_step1_locked if top_locked_message not found
+            if not message or message == 'top_locked_message':
+                message = self.translation_service.get_translation(
+                    'earnings_step1_locked',
+                    lang,
+                    {'needed': invites_needed}
+                )
             
             # Get share text for button URL only (not in message)
             share_text = self.translation_service.get_translation('share_referral', lang, {
