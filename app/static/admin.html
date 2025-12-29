@@ -608,9 +608,10 @@
             loadUsersForMessages();
             
             // Clear messages table when bot changes
-            document.getElementById('messages-user-select').value = '';
-            document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">Select a user to view messages</td></tr>';
-            });
+            const messagesSelect = document.getElementById('messages-user-select');
+            const messagesTbody = document.getElementById('database-messages-tbody');
+            if (messagesSelect) messagesSelect.value = '';
+            if (messagesTbody) messagesTbody.innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">Select a user to view messages</td></tr>';
             
             // Reload current tab if it needs bot data
             const activeTab = document.querySelector('.tab-content.active');
