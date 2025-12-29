@@ -249,7 +249,16 @@ class CommandService:
         )
         
         if not message:
-            message = self.translation_service.get_translation('errorEmptyTopByLang', lang)
+            # Fallback if translation not found
+            error_msg = self.translation_service.get_translation('errorEmptyTopByLang', lang)
+            if not error_msg or error_msg == 'errorEmptyTopByLang':
+                error_msg_map = {
+                    'uk': 'Поки що немає TOP-партнерів.',
+                    'en': 'No TOP partners available yet.',
+                    'ru': 'Пока нет TOP-партнёров.',
+                }
+                error_msg = error_msg_map.get(lang, error_msg_map['en'])
+            message = error_msg
         
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),

@@ -85,6 +85,95 @@ class TelegramAdapter(BaseAdapter):
         finally:
             db.close()
     
+    async def send_invoice(
+        self,
+        bot_id: UUID,
+        user_external_id: str,
+        title: str,
+        description: str,
+        payload: str,
+        currency: str = "XTR",
+        prices: list,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Send invoice via Telegram Bot API.
+        
+        Args:
+            bot_id: Bot UUID
+            user_external_id: Telegram chat_id
+            title: Invoice title
+            description: Invoice description
+            payload: Unique payload for payment
+            currency: Currency code (XTR for Stars)
+            prices: List of price objects [{"label": "...", "amount": 100}]
+            **kwargs: provider_data, photo, etc.
+        """
+        db = SessionLocal()
+        try:
+            bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if not bot:
+                raise ValueError(f"Bot {bot_id} not found")
+            
+            token = bot.token
+            url = f"{self.BASE_URL}{token}/sendInvoice"
+            
+            payload_data = {
+                "chat_id": user_external_id,
+                "title": title,
+                "description": description,
+                "payload": payload,
+                "currency": currency,
+                "prices": prices,
+                **kwargs
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload_data)
+                response.raise_for_status()
+                return response.json()
+        finally:
+            db.close()
+    
+    async def answer_pre_checkout_query(
+        self,
+        bot_id: UUID,
+        pre_checkout_query_id: str,
+        ok: bool = True,
+        error_message: str = None
+    ) -> Dict[str, Any]:
+        """
+        Answer pre-checkout query (approve or reject payment).
+        
+        Args:
+            bot_id: Bot UUID
+            pre_checkout_query_id: Pre-checkout query ID
+            ok: True to approve, False to reject
+            error_message: Error message if rejecting
+        """
+        db = SessionLocal()
+        try:
+            bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if not bot:
+                raise ValueError(f"Bot {bot_id} not found")
+            
+            token = bot.token
+            url = f"{self.BASE_URL}{token}/answerPreCheckoutQuery"
+            
+            payload = {
+                "pre_checkout_query_id": pre_checkout_query_id,
+                "ok": ok
+            }
+            if not ok and error_message:
+                payload["error_message"] = error_message
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload)
+                response.raise_for_status()
+                return response.json()
+        finally:
+            db.close()
+    
     async def handle_webhook(
         self,
         bot_id: UUID,
@@ -103,6 +192,17 @@ class TelegramAdapter(BaseAdapter):
         """
         if "message" in payload:
             message = payload["message"]
+            # Check if it's a payment message
+            if "successful_payment" in message:
+                return {
+                    "event_type": "successful_payment",
+                    "user_external_id": str(message["from"]["id"]),
+                    "text": "",
+                    "metadata": {
+                        "message_id": message.get("message_id"),
+                        "payment": message.get("successful_payment"),
+                    }
+                }
             return {
                 "event_type": "message",
                 "user_external_id": str(message["from"]["id"]),
@@ -123,6 +223,17 @@ class TelegramAdapter(BaseAdapter):
                 "metadata": {
                     "callback_query_id": callback.get("id"),
                     "message_id": callback.get("message", {}).get("message_id"),
+                }
+            }
+        elif "pre_checkout_query" in payload:
+            pre_checkout = payload["pre_checkout_query"]
+            return {
+                "event_type": "pre_checkout_query",
+                "user_external_id": str(pre_checkout["from"]["id"]),
+                "text": "",
+                "metadata": {
+                    "id": pre_checkout.get("id"),
+                    "invoice_payload": pre_checkout.get("invoice_payload"),
                 }
             }
         else:

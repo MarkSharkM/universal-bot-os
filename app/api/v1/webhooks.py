@@ -104,7 +104,7 @@ async def telegram_webhook(
                 update, user, bot_id, command_service,
                 referral_service, user_service, adapter, db
             )
-        elif event_type in ['payment', 'pre_checkout_query', 'successful_payment']:
+        elif event_type in ['pre_checkout_query', 'successful_payment']:
             await _handle_payment(
                 update, user, bot_id, user_service, adapter, db
             )
@@ -208,7 +208,7 @@ async def _handle_callback(
                 reply_markup=_format_buttons(response.get('buttons', [])),
                 parse_mode=response.get('parse_mode', 'HTML')
             )
-    elif data == 'buy_top':
+    elif data == 'buy_top' or data == '/buy_top':
         # Handle buy_top payment
         await _handle_buy_top(user, bot_id, adapter, db)
     elif data == 'activate_7':
@@ -230,23 +230,47 @@ async def _handle_payment(
     """Handle payment events (pre_checkout_query, successful_payment)"""
     if 'pre_checkout_query' in update:
         # Answer pre-checkout (approve payment)
-        # This would be done via Telegram API
-        pass
+        pre_checkout = update['pre_checkout_query']
+        query_id = pre_checkout.get('id')
+        invoice_payload = pre_checkout.get('invoice_payload', '')
+        
+        # Verify payload starts with buy_top
+        if invoice_payload.startswith('buy_top_'):
+            # Approve payment
+            await adapter.answer_pre_checkout_query(
+                bot_id,
+                query_id,
+                ok=True
+            )
+        else:
+            # Reject unknown payment
+            await adapter.answer_pre_checkout_query(
+                bot_id,
+                query_id,
+                ok=False,
+                error_message="Unknown payment"
+            )
     elif update.get('message', {}).get('successful_payment'):
         # Payment successful - unlock TOP
-        user_service.update_top_status(user.id, 'open')
+        payment = update['message']['successful_payment']
+        invoice_payload = payment.get('invoice_payload', '')
         
-        # Send confirmation
-        translation_service = TranslationService(db)
-        lang = translation_service.detect_language(user.language_code)
-        message = translation_service.get_translation('top_unlocked', lang)
-        
-        await adapter.send_message(
-            bot_id,
-            user.external_id,
-            message,
-            parse_mode='HTML'
-        )
+        # Verify it's a buy_top payment
+        if invoice_payload.startswith('buy_top_'):
+            # Unlock TOP
+            user_service.update_top_status(user.id, 'open')
+            
+            # Send confirmation
+            translation_service = TranslationService(db)
+            lang = translation_service.detect_language(user.language_code)
+            message = translation_service.get_translation('top_unlocked', lang)
+            
+            await adapter.send_message(
+                bot_id,
+                user.external_id,
+                message,
+                parse_mode='HTML'
+            )
 
 
 async def _handle_buy_top(
@@ -267,13 +291,35 @@ async def _handle_buy_top(
     
     title = translation_service.get_translation('buy_top_title', lang)
     description = translation_service.get_translation('buy_top_description', lang)
-    label = translation_service.get_translation('buy_top_label', lang)
     price = int(translation_service.get_translation('buy_top_price', lang) or 1)
     
+    # Convert price to Telegram Stars format (price * 100)
+    # 1 Star = 100 in Telegram API
+    star_amount = price * 100
+    
+    # Create invoice payload (unique identifier for this payment)
+    payload = f"buy_top_{bot_id}_{user.id}"
+    
     # Send invoice via Telegram API
-    # This would be done via adapter or direct HTTP request
-    # For now, placeholder
-    pass
+    prices = [{
+        "label": f"{price} Star{'s' if price > 1 else ''}",
+        "amount": star_amount
+    }]
+    
+    try:
+        await adapter.send_invoice(
+            bot_id=bot_id,
+            user_external_id=user.external_id,
+            title=title,
+            description=description,
+            payload=payload,
+            currency="XTR",  # XTR = Telegram Stars
+            prices=prices
+        )
+    except Exception as e:
+        # Log error but don't crash
+        import logging
+        logging.error(f"Error sending invoice: {e}")
 
 
 async def _handle_activate_7(
