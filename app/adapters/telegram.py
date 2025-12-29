@@ -92,8 +92,8 @@ class TelegramAdapter(BaseAdapter):
         title: str,
         description: str,
         payload: str,
-        currency: str = "XTR",
         prices: List[Dict[str, Any]],
+        currency: str = "XTR",
         **kwargs
     ) -> Dict[str, Any]:
         """
