@@ -212,23 +212,6 @@ async def _handle_callback(
                 error_msg,
                 parse_mode='HTML'
             )
-    elif data.startswith('/'):
-        # It's a command
-        command = command_service.parse_command(data)
-        if command:
-            response = command_service.handle_command(
-                command,
-                user.id,
-                user_lang=user.language_code
-            )
-            
-            await adapter.send_message(
-                bot_id,
-                user.external_id,
-                response.get('message', ''),
-                reply_markup=_format_buttons(response.get('buttons', [])),
-                parse_mode=response.get('parse_mode', 'HTML')
-            )
     elif data == 'activate_7':
         # Handle buy_top payment
         try:
