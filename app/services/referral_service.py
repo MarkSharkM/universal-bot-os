@@ -164,6 +164,20 @@ class ReferralService:
         self.db.commit()
         self.db.refresh(log_data)
         
+        # Update inviter's total_invited count if this is a referral
+        if is_referral and inviter_external_id:
+            inviter = self.db.query(User).filter(
+                and_(
+                    User.bot_id == self.bot_id,
+                    User.external_id == inviter_external_id,
+                    User.platform == 'telegram'
+                )
+            ).first()
+            
+            if inviter:
+                # Update inviter's total_invited count
+                self.update_total_invited(inviter.id)
+        
         return log_data
     
     def count_referrals(self, inviter_user_id: UUID) -> int:
@@ -195,15 +209,21 @@ class ReferralService:
             )
         ).all()
         
-        # Filter in Python
+        # Filter in Python - match by inviter_external_id
         referral_logs = []
         for log in all_logs:
             data = log.data or {}
+            # Check if this log is for this inviter
+            # is_referral can be boolean True or string 'true'
+            is_referral_value = data.get('is_referral')
+            is_valid_referral = (is_referral_value == True or 
+                                (isinstance(is_referral_value, str) and is_referral_value.lower() == 'true'))
+            
             if (data.get('inviter_external_id') == inviter.external_id and
-                data.get('is_referral') == 'true'):
+                is_valid_referral):
                 referral_logs.append(log)
         
-        # Get unique referred users
+        # Get unique referred users by ref_parameter
         unique_refs = set()
         for log in referral_logs:
             ref_param = log.data.get('ref_parameter', '')
@@ -239,6 +259,9 @@ class ReferralService:
             user.custom_data = {}
         
         user.custom_data['total_invited'] = total_invited
+        # Mark JSONB field as modified for SQLAlchemy
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(user, 'custom_data')
         self.db.commit()
         self.db.refresh(user)
         
