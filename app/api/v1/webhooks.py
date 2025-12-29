@@ -195,7 +195,24 @@ async def _handle_callback(
         logger.warning(f"Failed to answer callback query: {e}")
     
     # Parse callback data
-    if data.startswith('/'):
+    # Check for buy_top first (even if it starts with /)
+    if data == 'buy_top' or data == '/buy_top':
+        # Handle buy_top payment
+        try:
+            await _handle_buy_top(user, bot_id, adapter, db)
+        except Exception as e:
+            logger.error(f"Error handling buy_top: {e}", exc_info=True)
+            # Send error message to user
+            translation_service = TranslationService(db)
+            lang = translation_service.detect_language(user.language_code)
+            error_msg = f"❌ Помилка при відкритті інвойсу. Спробуйте пізніше."
+            await adapter.send_message(
+                bot_id,
+                user.external_id,
+                error_msg,
+                parse_mode='HTML'
+            )
+    elif data.startswith('/'):
         # It's a command
         command = command_service.parse_command(data)
         if command:
@@ -212,7 +229,7 @@ async def _handle_callback(
                 reply_markup=_format_buttons(response.get('buttons', [])),
                 parse_mode=response.get('parse_mode', 'HTML')
             )
-    elif data == 'buy_top' or data == '/buy_top':
+    elif data == 'activate_7':
         # Handle buy_top payment
         try:
             await _handle_buy_top(user, bot_id, adapter, db)
@@ -234,6 +251,9 @@ async def _handle_callback(
     elif data.startswith('share_from_'):
         # Handle share callback
         await _handle_share_callback(user, bot_id, command_service, adapter, db)
+    else:
+        # Unknown callback
+        logger.warning(f"Unknown callback data: {data}")
 
 
 async def _handle_payment(
