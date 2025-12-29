@@ -720,6 +720,12 @@ async def test_command(
             start_param=start_param
         )
         
+        # Format message: convert escaped newlines to actual newlines
+        # (same as in telegram.py for consistency in testing)
+        message = response.get('message', '')
+        if isinstance(message, str):
+            message = message.replace('\\n', '\n')
+        
         return {
             "success": True,
             "command": parsed_command,
@@ -728,7 +734,7 @@ async def test_command(
             "user_id": str(user.id),
             "user_lang": user_lang,
             "response": {
-                "message": response.get('message', ''),
+                "message": message,
                 "buttons": response.get('buttons', []),
                 "parse_mode": response.get('parse_mode', 'HTML'),
                 "other": {k: v for k, v in response.items() if k not in ['message', 'buttons', 'parse_mode']}
@@ -743,6 +749,51 @@ async def test_command(
             "command": parsed_command,
             "input": command
         }
+
+
+@router.post("/bots/{bot_id}/users/{user_id}/set-invited")
+async def set_user_invited_count(
+    bot_id: UUID,
+    user_id: UUID,
+    total_invited: int = Query(..., description="Total invited count to set"),
+    db: Session = Depends(get_db)
+):
+    """
+    Set user's total invited count (for testing).
+    
+    Args:
+        bot_id: Bot UUID
+        user_id: User UUID
+        total_invited: Total invited count to set
+        db: Database session
+    
+    Returns:
+        Updated user info
+    """
+    from app.models.user import User
+    
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.bot_id == bot_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not user.custom_data:
+        user.custom_data = {}
+    
+    user.custom_data['total_invited'] = total_invited
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "success": True,
+        "user_id": str(user.id),
+        "external_id": user.external_id,
+        "total_invited": total_invited,
+        "custom_data": user.custom_data
+    }
 
 
 @router.put("/translations/{key}/{lang}")
