@@ -10,6 +10,7 @@ from uuid import UUID
 from app.models.user import User
 from app.models.message import Message
 from app.models.business_data import BusinessData
+from app.models.bot import Bot
 
 
 class ReferralService:
@@ -57,13 +58,21 @@ class ReferralService:
         
         Args:
             user_id: User UUID
-            bot_username: Bot username (e.g., 'HubAggregatorBot')
+            bot_username: Bot username (optional, will be fetched from bot.config if not provided)
         
         Returns:
             Full referral URL
         """
         tag = self.generate_referral_tag(user_id)
-        bot_username = bot_username or "HubAggregatorBot"
+        
+        # Get bot username from config if not provided
+        if not bot_username:
+            bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+            if bot and bot.config and bot.config.get('username'):
+                bot_username = bot.config['username']
+            else:
+                # Fallback to hardcoded (should not happen in production)
+                bot_username = "HubAggregatorBot"
         
         return f"https://t.me/{bot_username}?start={tag}"
     

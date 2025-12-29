@@ -214,6 +214,61 @@ class TelegramAdapter(BaseAdapter):
         finally:
             db.close()
     
+    async def get_bot_info(self, bot_id: UUID) -> Dict[str, Any]:
+        """
+        Get bot info from Telegram API (getMe).
+        Caches username in bot.config['username'].
+        
+        Args:
+            bot_id: Bot UUID
+        
+        Returns:
+            Bot info dict with username, id, first_name, etc.
+        """
+        db = SessionLocal()
+        try:
+            bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if not bot:
+                raise ValueError(f"Bot {bot_id} not found")
+            
+            # Check cache first
+            if bot.config and bot.config.get('username'):
+                return {
+                    'username': bot.config['username'],
+                    'id': bot.config.get('bot_id'),
+                    'first_name': bot.config.get('first_name', bot.name),
+                }
+            
+            # Fetch from Telegram API
+            token = bot.token
+            url = f"{self.BASE_URL}{token}/getMe"
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url)
+                response.raise_for_status()
+                result = response.json()
+                
+                if result.get('ok') and result.get('result'):
+                    bot_info = result['result']
+                    username = bot_info.get('username')
+                    
+                    # Cache in bot.config
+                    if not bot.config:
+                        bot.config = {}
+                    bot.config['username'] = username
+                    bot.config['bot_id'] = bot_info.get('id')
+                    bot.config['first_name'] = bot_info.get('first_name')
+                    
+                    from sqlalchemy.orm.attributes import flag_modified
+                    flag_modified(bot, 'config')
+                    db.commit()
+                    
+                    return bot_info
+                else:
+                    raise ValueError(f"Failed to get bot info: {result}")
+        finally:
+            db.close()
+    
     async def handle_webhook(
         self,
         bot_id: UUID,
