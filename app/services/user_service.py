@@ -176,6 +176,8 @@ class UserService:
         status: str  # 'locked' or 'open'
     ) -> User:
         """Update user's TOP access status"""
+        from sqlalchemy.orm.attributes import flag_modified
+        
         user = self.db.query(User).filter(
             and_(
                 User.id == user_id,
@@ -190,6 +192,7 @@ class UserService:
             user.custom_data = {}
         
         user.custom_data['top_status'] = status
+        flag_modified(user, 'custom_data')  # Mark JSONB field as modified
         self.db.commit()
         self.db.refresh(user)
         

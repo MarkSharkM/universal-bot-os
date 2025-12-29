@@ -272,22 +272,40 @@ async def _handle_payment(
         payment = update['message']['successful_payment']
         invoice_payload = payment.get('invoice_payload', '')
         
+        logger.info(f"Payment received: payload={invoice_payload}, user_id={user.id}")
+        
         # Verify it's a buy_top payment
         if invoice_payload.startswith('buy_top_'):
-            # Unlock TOP
-            user_service.update_top_status(user.id, 'open')
-            
-            # Send confirmation
-            translation_service = TranslationService(db)
-            lang = translation_service.detect_language(user.language_code)
-            message = translation_service.get_translation('top_unlocked', lang)
-            
-            await adapter.send_message(
-                bot_id,
-                user.external_id,
-                message,
-                parse_mode='HTML'
-            )
+            try:
+                # Unlock TOP
+                user_service.update_top_status(user.id, 'open')
+                logger.info(f"TOP unlocked for user {user.id}")
+                
+                # Send confirmation
+                translation_service = TranslationService(db)
+                lang = translation_service.detect_language(user.language_code)
+                message = translation_service.get_translation('top_unlocked', lang)
+                
+                await adapter.send_message(
+                    bot_id,
+                    user.external_id,
+                    message,
+                    parse_mode='HTML'
+                )
+            except Exception as e:
+                logger.error(f"Error unlocking TOP: {e}", exc_info=True)
+                # Try to send error message
+                try:
+                    await adapter.send_message(
+                        bot_id,
+                        user.external_id,
+                        "❌ Помилка при розблокуванні TOP. Зверніться до підтримки.",
+                        parse_mode='HTML'
+                    )
+                except:
+                    pass
+        else:
+            logger.warning(f"Unknown payment payload: {invoice_payload}")
 
 
 async def _handle_buy_top(
