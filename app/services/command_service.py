@@ -321,8 +321,14 @@ class CommandService:
             
             message = f"{intro}\n\n" + "\n\n".join(partner_lines)
         
+        # Generate referral link for share button
+        referral_link = self.referral_service.generate_referral_link(user_id)
+        share_text = self.translation_service.get_translation('share_referral', lang, {
+            'referralLink': referral_link
+        })
+        
         buttons = [
-            [{'text': self.translation_service.get_translation('share_button', lang), 'callback_data': 'share_from_partners'}],
+            [{'text': self.translation_service.get_translation('share_button', lang), 'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"}],
             [{'text': self.translation_service.get_translation('partners_btn_top_partners', lang), 'callback_data': '/top'}],
             [{'text': self.translation_service.get_translation('partners_btn_earnings', lang), 'callback_data': '/earnings'}],
         ]
@@ -382,8 +388,14 @@ class CommandService:
         # Get language from earnings_data (now included in response)
         lang = earnings_data.get('lang', user_lang or 'en')
         
+        # Generate referral link for share button
+        referral_link = earnings_data.get('referral_link') or self.referral_service.generate_referral_link(user_id)
+        share_text = self.translation_service.get_translation('share_referral', lang, {
+            'referralLink': referral_link
+        })
+        
         buttons = [
-            [{'text': self.translation_service.get_translation('share_button', lang), 'callback_data': 'share_from_earnings'}],
+            [{'text': self.translation_service.get_translation('share_button', lang), 'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"}],
             [
                 {'text': self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': 1}), 'callback_data': 'buy_top'},
                 {'text': self.translation_service.get_translation('earnings_btn_top_partners', lang), 'callback_data': '=/top'}
