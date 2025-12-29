@@ -1296,19 +1296,25 @@ async def sync_bot_username(
         if not username:
             raise HTTPException(status_code=500, detail="Username not found in bot info")
         
-        # Reload bot to get updated config
-        db.refresh(bot)
+        # Save username directly in this session to ensure it's persisted
+        if not bot.config:
+            bot.config = {}
+        bot.config['username'] = username
+        bot.config['bot_id'] = bot_info.get('id')
+        bot.config['first_name'] = bot_info.get('first_name')
         
-        # Verify username was saved
-        saved_username = bot.config.get('username') if bot.config else None
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(bot, 'config')
+        db.commit()
+        db.refresh(bot)
         
         return {
             "message": "Bot username synced successfully",
             "username": username,
-            "saved_username": saved_username,
+            "saved_username": bot.config.get('username'),
             "bot_id": bot_info.get('id'),
             "first_name": bot_info.get('first_name'),
-            "config_updated": saved_username == username
+            "config_updated": bot.config.get('username') == username
         }
     except Exception as e:
         logger.error(f"Error syncing bot username: {e}", exc_info=True)
