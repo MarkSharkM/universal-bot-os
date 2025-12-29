@@ -265,9 +265,6 @@ async def _handle_callback(
     elif data == 'activate_7':
         # Handle 7% activation instructions
         await _handle_activate_7(user, bot_id, command_service, adapter, db)
-    elif data.startswith('share_from_'):
-        # Handle share callback
-        await _handle_share_callback(user, bot_id, command_service, adapter, db)
     elif data.startswith('=/') or data.startswith('/'):
         # Handle commands (including =/top, =/earnings, /top, /earnings)
         # Remove = prefix if present
