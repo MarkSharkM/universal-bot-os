@@ -1269,3 +1269,40 @@ async def list_translations(
         for t in translations
     ]
 
+
+@router.post("/bots/{bot_id}/sync-username")
+async def sync_bot_username(
+    bot_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Sync bot username from Telegram API (getMe) and save to bot.config.
+    This fixes referral links that show "bot doesn't exist" error.
+    """
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    if bot.platform_type != "telegram":
+        raise HTTPException(status_code=400, detail="Only Telegram bots supported")
+    
+    from app.adapters.telegram import TelegramAdapter
+    adapter = TelegramAdapter()
+    
+    try:
+        bot_info = await adapter.get_bot_info(bot_id)
+        username = bot_info.get('username')
+        
+        if not username:
+            raise HTTPException(status_code=500, detail="Username not found in bot info")
+        
+        return {
+            "message": "Bot username synced successfully",
+            "username": username,
+            "bot_id": bot_info.get('id'),
+            "first_name": bot_info.get('first_name')
+        }
+    except Exception as e:
+        logger.error(f"Error syncing bot username: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to sync username: {str(e)}")
+
