@@ -218,6 +218,27 @@ async def _handle_callback(
     elif data.startswith('share_from_'):
         # Handle share callback
         await _handle_share_callback(user, bot_id, command_service, adapter, db)
+    elif data.startswith('=/') or data.startswith('/'):
+        # Handle commands (including =/top, =/earnings, /top, /earnings)
+        # Remove = prefix if present
+        command_text = data.lstrip('=')
+        command = command_service.parse_command(command_text)
+        if command:
+            response = command_service.handle_command(
+                command,
+                user.id,
+                user_lang=user.language_code
+            )
+            
+            await adapter.send_message(
+                bot_id,
+                user.external_id,
+                response.get('message', ''),
+                reply_markup=_format_buttons(response.get('buttons', [])),
+                parse_mode=response.get('parse_mode', 'HTML')
+            )
+        else:
+            logger.warning(f"Unknown command in callback: {data}")
     else:
         # Unknown callback
         logger.warning(f"Unknown callback data: {data}")
