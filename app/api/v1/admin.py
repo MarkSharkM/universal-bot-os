@@ -1296,11 +1296,19 @@ async def sync_bot_username(
         if not username:
             raise HTTPException(status_code=500, detail="Username not found in bot info")
         
+        # Reload bot to get updated config
+        db.refresh(bot)
+        
+        # Verify username was saved
+        saved_username = bot.config.get('username') if bot.config else None
+        
         return {
             "message": "Bot username synced successfully",
             "username": username,
+            "saved_username": saved_username,
             "bot_id": bot_info.get('id'),
-            "first_name": bot_info.get('first_name')
+            "first_name": bot_info.get('first_name'),
+            "config_updated": saved_username == username
         }
     except Exception as e:
         logger.error(f"Error syncing bot username: {e}", exc_info=True)
