@@ -262,6 +262,7 @@ class TelegramAdapter(BaseAdapter):
                     from sqlalchemy.orm.attributes import flag_modified
                     flag_modified(bot, 'config')
                     db.commit()
+                    db.refresh(bot)  # Refresh to ensure changes are visible
                     
                     return bot_info
                 else:

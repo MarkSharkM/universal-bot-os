@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional, Callable
 from sqlalchemy.orm import Session
 from uuid import UUID
 import re
+from urllib.parse import quote
 
 from app.services.user_service import UserService
 from app.services.translation_service import TranslationService
@@ -223,7 +224,7 @@ class CommandService:
             buttons = [[
                 {
                     'text': self.translation_service.get_translation('share_button', lang),
-                    'url': f"https://t.me/share/url?url={referral_link}&text={share_text}"
+                    'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"
                 },
                 {
                     'text': self.translation_service.get_translation('unlock_top_paid', lang, {'buy_top_price': buy_top_price}),
@@ -260,9 +261,10 @@ class CommandService:
                 error_msg = error_msg_map.get(lang, error_msg_map['en'])
             message = error_msg
         
+        referral_link = self.referral_service.generate_referral_link(user_id)
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),
-            'url': f"https://t.me/share/url?url={self.referral_service.generate_referral_link(user_id)}"
+            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}"
         }]]
         
         return {
@@ -359,7 +361,7 @@ class CommandService:
         
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),
-            'url': f"https://t.me/share/url?url={referral_link}&text={share_text}"
+            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"
         }]]
         
         return {
