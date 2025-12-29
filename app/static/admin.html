@@ -604,6 +604,14 @@
                 if (el) el.value = currentBotId;
             });
             
+            // Load users for messages dropdown
+            loadUsersForMessages();
+            
+            // Clear messages table when bot changes
+            document.getElementById('messages-user-select').value = '';
+            document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">Select a user to view messages</td></tr>';
+            });
+            
             // Reload current tab if it needs bot data
             const activeTab = document.querySelector('.tab-content.active');
             if (activeTab) {
