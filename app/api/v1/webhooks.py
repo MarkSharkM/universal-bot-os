@@ -310,17 +310,20 @@ async def _handle_buy_top(
     description = translation_service.get_translation('buy_top_description', lang)
     price = int(translation_service.get_translation('buy_top_price', lang) or 1)
     
-    # Telegram Stars: 1 Star = 100 in API (amount is in smallest currency unit)
-    # So for 1 star, we need amount = 100
-    star_amount = 100  # Always 1 star = 100
+    # For Telegram Stars (XTR), amount is the number of stars directly
+    # 1 star = amount: 1 (not 100 like other currencies)
+    star_amount = price  # 1 star = amount: 1
     
     # Create invoice payload (unique identifier for this payment)
     payload = f"buy_top_{bot_id}_{user.id}"
     
+    # Get label from translation
+    label = translation_service.get_translation('buy_top_label', lang) or f"{price} Star{'s' if price > 1 else ''}"
+    
     # Send invoice via Telegram API
     prices = [{
-        "label": "1 Star",  # Always 1 star
-        "amount": star_amount  # 100 = 1 star in Telegram API
+        "label": label,
+        "amount": star_amount  # For XTR (Stars), amount = number of stars
     }]
     
     try:
