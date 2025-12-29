@@ -184,68 +184,36 @@ class CommandService:
         top_status = self.user_service.get_top_status(user_id)
         
         if top_status == 'locked' and not can_unlock:
-            # TOP is locked
+            # TOP is locked - use translations from database
             referral_tag = self.referral_service.generate_referral_tag(user_id)
             referral_link = self.referral_service.generate_referral_link(user_id)
             
             # Get total invited count
             total_invited = self.referral_service.get_total_invited(user_id)
             
-            # Build message like in production
-            # "ТОП боти відкриваються після перших 5 запрошень."
-            # "Тобі залишилось запросити ще 2 друзів, щоб розблокувати найвигідніші партнерки!"
-            # "Також ти можеш відкрити ТОР миттєво за 1⭐."
-            # "Натисни, щоб поділитися посиланням:"
+            # Get buy_top_price from translations
+            buy_top_price = self.translation_service.get_translation('buy_top_price', lang) or '1'
+            try:
+                buy_top_price = int(buy_top_price)
+            except:
+                buy_top_price = 1
             
-            top_intro = self.translation_service.get_translation('top_locked_intro', lang)
-            if not top_intro or top_intro == 'top_locked_intro':
-                top_intro_map = {
-                    'uk': "ТОП боти відкриваються після перших 5 запрошень.",
-                    'en': "TOP bots open after the first 5 invitations.",
-                    'ru': "ТОП боты открываются после первых 5 приглашений.",
-                }
-                top_intro = top_intro_map.get(lang, top_intro_map['uk'])
+            # Use translation key for locked message (with needed parameter)
+            # This should match the format from n8n: earnings_step1_locked with {{needed}}
+            locked_msg = self.translation_service.get_translation(
+                'earnings_step1_locked',
+                lang,
+                {'needed': invites_needed}
+            )
             
-            # Message about remaining invites
-            if invites_needed > 0:
-                remaining_msg = self.translation_service.get_translation('top_locked_remaining', lang, {
-                    'needed': invites_needed,
-                    'total': total_invited
-                })
-                if not remaining_msg or remaining_msg == 'top_locked_remaining':
-                    remaining_msg_map = {
-                        'uk': f"Тобі залишилось запросити ще {invites_needed} друз{'ів' if invites_needed > 1 else 'а'}, щоб розблокувати найвигідніші партнерки!",
-                        'en': f"You have {invites_needed} more friend{'s' if invites_needed > 1 else ''} to invite to unlock the most profitable partners!",
-                        'ru': f"Тебе осталось пригласить ещё {invites_needed} друз{'ей' if invites_needed > 1 else 'а'}, чтобы разблокировать самые выгодные партнёрки!",
-                    }
-                    remaining_msg = remaining_msg_map.get(lang, remaining_msg_map['uk'])
-            else:
-                remaining_msg = ""
-            
-            # Message about instant unlock
-            instant_unlock_msg = self.translation_service.get_translation('top_locked_instant', lang)
-            if not instant_unlock_msg or instant_unlock_msg == 'top_locked_instant':
-                instant_unlock_msg_map = {
-                    'uk': "Також ти можеш відкрити ТОР миттєво за 1⭐.",
-                    'en': "You can also open TOP instantly for 1⭐.",
-                    'ru': "Также ты можешь открыть ТОР мгновенно за 1⭐.",
-                }
-                instant_unlock_msg = instant_unlock_msg_map.get(lang, instant_unlock_msg_map['uk'])
-            
-            # Share text
+            # Get share text from translations
             share_text = self.translation_service.get_translation('share_referral', lang, {
                 'referralLink': referral_link
             })
             
-            # Build full message
-            message_parts = [top_intro]
-            if remaining_msg:
-                message_parts.append(remaining_msg)
-            message_parts.append(instant_unlock_msg)
-            message_parts.append("")  # Empty line
-            message_parts.append(share_text)
-            
-            message = "\n".join(message_parts)
+            # Build message - use translations only, no hardcoded text
+            # Format should match production: locked message + share text
+            message = f"{locked_msg}\n\n{share_text}"
             
             buttons = [[
                 {
