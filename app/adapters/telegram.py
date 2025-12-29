@@ -1,7 +1,7 @@
 """
 Telegram adapter implementation
 """
-from typing import Dict, Any
+from typing import Dict, Any, List
 from uuid import UUID
 import httpx
 
@@ -93,7 +93,7 @@ class TelegramAdapter(BaseAdapter):
         description: str,
         payload: str,
         currency: str = "XTR",
-        prices: list,
+        prices: List[Dict[str, Any]],
         **kwargs
     ) -> Dict[str, Any]:
         """
@@ -130,6 +130,46 @@ class TelegramAdapter(BaseAdapter):
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(url, json=payload_data)
+                response.raise_for_status()
+                return response.json()
+        finally:
+            db.close()
+    
+    async def answer_callback_query(
+        self,
+        bot_id: UUID,
+        callback_query_id: str,
+        text: str = None,
+        show_alert: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Answer callback query (remove loading state).
+        
+        Args:
+            bot_id: Bot UUID
+            callback_query_id: Callback query ID
+            text: Optional text to show
+            show_alert: Show as alert popup
+        """
+        db = SessionLocal()
+        try:
+            bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if not bot:
+                raise ValueError(f"Bot {bot_id} not found")
+            
+            token = bot.token
+            url = f"{self.BASE_URL}{token}/answerCallbackQuery"
+            
+            payload = {
+                "callback_query_id": callback_query_id,
+            }
+            if text:
+                payload["text"] = text
+            if show_alert:
+                payload["show_alert"] = show_alert
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload)
                 response.raise_for_status()
                 return response.json()
         finally:

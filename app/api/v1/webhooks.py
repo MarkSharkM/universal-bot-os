@@ -186,9 +186,13 @@ async def _handle_callback(
     """Handle callback_query event"""
     callback_query = update.get('callback_query', {})
     data = callback_query.get('data', '').strip()
+    callback_query_id = callback_query.get('id', '')
     
     # Answer callback (remove loading state)
-    # This would be done via adapter, but for now we'll handle in command
+    try:
+        await adapter.answer_callback_query(bot_id, callback_query_id)
+    except Exception as e:
+        logger.warning(f"Failed to answer callback query: {e}")
     
     # Parse callback data
     if data.startswith('/'):
@@ -210,7 +214,20 @@ async def _handle_callback(
             )
     elif data == 'buy_top' or data == '/buy_top':
         # Handle buy_top payment
-        await _handle_buy_top(user, bot_id, adapter, db)
+        try:
+            await _handle_buy_top(user, bot_id, adapter, db)
+        except Exception as e:
+            logger.error(f"Error handling buy_top: {e}", exc_info=True)
+            # Send error message to user
+            translation_service = TranslationService(db)
+            lang = translation_service.detect_language(user.language_code)
+            error_msg = f"❌ Помилка при відкритті інвойсу. Спробуйте пізніше."
+            await adapter.send_message(
+                bot_id,
+                user.external_id,
+                error_msg,
+                parse_mode='HTML'
+            )
     elif data == 'activate_7':
         # Handle 7% activation instructions
         await _handle_activate_7(user, bot_id, command_service, adapter, db)
@@ -307,7 +324,7 @@ async def _handle_buy_top(
     }]
     
     try:
-        await adapter.send_invoice(
+        result = await adapter.send_invoice(
             bot_id=bot_id,
             user_external_id=user.external_id,
             title=title,
@@ -316,10 +333,11 @@ async def _handle_buy_top(
             currency="XTR",  # XTR = Telegram Stars
             prices=prices
         )
+        logger.info(f"Invoice sent successfully: {result}")
     except Exception as e:
-        # Log error but don't crash
-        import logging
-        logging.error(f"Error sending invoice: {e}")
+        # Log error and re-raise to handle in caller
+        logger.error(f"Error sending invoice: {e}", exc_info=True)
+        raise
 
 
 async def _handle_activate_7(
