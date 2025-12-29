@@ -71,8 +71,9 @@ class ReferralService:
             if bot and bot.config and bot.config.get('username'):
                 bot_username = bot.config['username']
             else:
-                # Fallback to hardcoded (should not happen in production)
-                bot_username = "HubAggregatorBot"
+                # Fallback: use correct production username
+                # This should not happen if sync-username was called
+                bot_username = "EarnHubAggregatorBot"
         
         return f"https://t.me/{bot_username}?start={tag}"
     
