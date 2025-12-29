@@ -368,13 +368,16 @@ class CommandService:
         """Handle /earnings command"""
         earnings_data = self.earnings_service.build_earnings_message(user_id, user_lang)
         
+        # Get language from earnings_data (now included in response)
+        lang = earnings_data.get('lang', user_lang or 'en')
+        
         buttons = [
-            [{'text': self.translation_service.get_translation('share_button', earnings_data.get('lang', 'en')), 'callback_data': 'share_from_earnings'}],
+            [{'text': self.translation_service.get_translation('share_button', lang), 'callback_data': 'share_from_earnings'}],
             [
-                {'text': self.translation_service.get_translation('earnings_btn_unlock_top', earnings_data.get('lang', 'en'), {'buy_top_price': 1}), 'callback_data': 'buy_top'},
-                {'text': self.translation_service.get_translation('earnings_btn_top_partners', earnings_data.get('lang', 'en')), 'callback_data': '=/top'}
+                {'text': self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': 1}), 'callback_data': 'buy_top'},
+                {'text': self.translation_service.get_translation('earnings_btn_top_partners', lang), 'callback_data': '=/top'}
             ],
-            [{'text': self.translation_service.get_translation('earnings_btn_activate_7', earnings_data.get('lang', 'en')), 'callback_data': 'activate_7'}],
+            [{'text': self.translation_service.get_translation('earnings_btn_activate_7', lang), 'callback_data': 'activate_7'}],
         ]
         
         return {

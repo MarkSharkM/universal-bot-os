@@ -103,6 +103,7 @@ class EarningsService:
         
         return {
             'text': message_text,
+            'lang': lang,  # Include language for button translations
             'referral_link': referral_link,
             'invites': total_invited,
             'needed': invites_needed,
