@@ -73,7 +73,9 @@ class EarningsService:
         message_parts = []
         
         # Header
-        if wallet and earned > 0:
+        # Show wallet info if wallet exists (even if earned = 0)
+        # Show "no income" only if no wallet at all
+        if wallet:
             header = self.translation_service.get_translation(
                 'earnings_has_income',
                 lang,
