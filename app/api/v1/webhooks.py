@@ -452,23 +452,6 @@ async def _handle_activate_7(
     )
 
 
-async def _handle_share_callback(
-    user,
-    bot_id: UUID,
-    command_service: CommandService,
-    adapter: TelegramAdapter,
-    db: Session
-):
-    """Handle share callback - show referral link"""
-    response = command_service.handle_command('share', user.id, user_lang=user.language_code)
-    
-    await adapter.send_message(
-        bot_id,
-        user.external_id,
-        response.get('message', ''),
-        reply_markup=_format_buttons(response.get('buttons', [])),
-        parse_mode=response.get('parse_mode', 'HTML')
-    )
 
 
 def _format_buttons(buttons: list) -> Dict[str, Any]:
