@@ -199,21 +199,18 @@ class CommandService:
                 buy_top_price = 1
             
             # Use translation key for locked message (with needed parameter)
-            # This should match the format from n8n: earnings_step1_locked with {{needed}}
-            locked_msg = self.translation_service.get_translation(
+            # This should match the format from production: earnings_step1_locked with {{needed}}
+            # The translation already includes all needed text, no need to add share_referral
+            message = self.translation_service.get_translation(
                 'earnings_step1_locked',
                 lang,
                 {'needed': invites_needed}
             )
             
-            # Get share text from translations
+            # Get share text for button URL only (not in message)
             share_text = self.translation_service.get_translation('share_referral', lang, {
                 'referralLink': referral_link
             })
-            
-            # Build message - use translations only, no hardcoded text
-            # Format should match production: locked message + share text
-            message = f"{locked_msg}\n\n{share_text}"
             
             buttons = [[
                 {
@@ -221,7 +218,7 @@ class CommandService:
                     'url': f"https://t.me/share/url?url={referral_link}&text={share_text}"
                 },
                 {
-                    'text': self.translation_service.get_translation('unlock_top_paid', lang, {'buy_top_price': 1}),
+                    'text': self.translation_service.get_translation('unlock_top_paid', lang, {'buy_top_price': buy_top_price}),
                     'callback_data': '/buy_top'
                 }
             ]]
