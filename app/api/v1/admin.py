@@ -405,7 +405,7 @@ async def delete_partner(
     
     if hard_delete:
         # Permanent deletion
-    db.delete(partner)
+        db.delete(partner)
         message = "Partner permanently deleted"
     else:
         # Soft delete
