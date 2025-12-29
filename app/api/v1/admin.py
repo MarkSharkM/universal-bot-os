@@ -1187,6 +1187,47 @@ async def list_bot_users(
     ]
 
 
+@router.get("/bots/{bot_id}/users/{user_id}/messages")
+async def list_user_messages(
+    bot_id: UUID,
+    user_id: UUID,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db)
+):
+    """
+    List messages for a specific user.
+    Useful for viewing what users type and bot responses.
+    
+    Args:
+        bot_id: Bot UUID
+        user_id: User UUID
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        db: Database session
+    
+    Returns:
+        List of messages (user and bot)
+    """
+    from app.models.message import Message
+    
+    messages = db.query(Message).filter(
+        Message.bot_id == bot_id,
+        Message.user_id == user_id
+    ).order_by(Message.timestamp.desc()).offset(skip).limit(limit).all()
+    
+    return [
+        {
+            "id": str(m.id),
+            "role": m.role,  # user, assistant, system
+            "content": m.content,
+            "custom_data": m.custom_data,
+            "timestamp": m.timestamp.isoformat() if m.timestamp else None
+        }
+        for m in messages
+    ]
+
+
 @router.get("/translations")
 async def list_translations(
     skip: int = Query(0, ge=0),

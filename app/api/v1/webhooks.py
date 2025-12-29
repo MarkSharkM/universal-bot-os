@@ -129,6 +129,20 @@ async def _handle_message(
     """Handle message event"""
     message = update.get('message', {})
     text = message.get('text', '').strip()
+    message_id = message.get('message_id')
+    
+    # Save user message to database (for future AI and analytics)
+    if text:
+        from app.models.message import Message
+        user_message = Message(
+            user_id=user.id,
+            bot_id=bot_id,
+            role='user',
+            content=text,
+            custom_data={'telegram_message_id': message_id} if message_id else {}
+        )
+        db.add(user_message)
+        db.commit()
     
     # Check if it's a wallet address (not a command)
     if text and not text.startswith('/'):
@@ -163,6 +177,18 @@ async def _handle_message(
             start_param=start_param
         )
         
+        # Save bot response to database
+        if response.get('message'):
+            bot_message = Message(
+                user_id=user.id,
+                bot_id=bot_id,
+                role='assistant',
+                content=response.get('message', ''),
+                custom_data={}
+            )
+            db.add(bot_message)
+            db.commit()
+        
         # Send response via adapter
         await adapter.send_message(
             bot_id,
@@ -170,6 +196,30 @@ async def _handle_message(
             response.get('message', ''),
             reply_markup=_format_buttons(response.get('buttons', [])),
             parse_mode=response.get('parse_mode', 'HTML')
+        )
+    elif text and not text.startswith('/'):
+        # Not a command, not a wallet - show wallet_invalid_format message (like in production)
+        translation_service = TranslationService(db)
+        lang = translation_service.detect_language(user.language_code)
+        error_message = translation_service.get_translation('wallet_invalid_format', lang)
+        
+        # Save bot response to database
+        bot_message = Message(
+            user_id=user.id,
+            bot_id=bot_id,
+            role='assistant',
+            content=error_message,
+            custom_data={}
+        )
+        db.add(bot_message)
+        db.commit()
+        
+        # Send error message
+        await adapter.send_message(
+            bot_id,
+            user.external_id,
+            error_message,
+            parse_mode='HTML'
         )
 
 
