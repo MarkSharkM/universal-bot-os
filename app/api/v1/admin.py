@@ -784,6 +784,9 @@ async def set_user_invited_count(
         user.custom_data = {}
     
     user.custom_data['total_invited'] = total_invited
+    # Mark JSONB field as modified for SQLAlchemy
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(user, 'custom_data')
     db.commit()
     db.refresh(user)
     
