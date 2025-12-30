@@ -340,11 +340,12 @@ async def list_bot_partners(
         BusinessData.data_type == 'partner'
     )
     
-    partners = query.offset(skip).limit(limit).all()
+    # Get all partners first (for filtering), then paginate
+    all_partners = query.all()
     
     # Filter in Python to avoid JSONB query issues
-    result = []
-    for p in partners:
+    filtered = []
+    for p in all_partners:
         partner_data = p.data or {}
         
         # Apply filters
@@ -352,6 +353,15 @@ async def list_bot_partners(
             continue
         if category and partner_data.get('category') != category:
             continue
+        
+        filtered.append(p)
+    
+    # Apply pagination after filtering
+    paginated = filtered[skip:skip + limit]
+    
+    result = []
+    for p in paginated:
+        partner_data = p.data or {}
         
         result.append({
             "id": str(p.id),
