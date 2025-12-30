@@ -199,6 +199,13 @@ async def admin_ui():
         return HTMLResponse(content=debug_info, status_code=404)
 
 
+@app.get("/favicon.ico")
+async def favicon():
+    """Return empty favicon to avoid 404 errors"""
+    from fastapi.responses import Response
+    return Response(content="", media_type="image/x-icon")
+
+
 # Request logging middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
