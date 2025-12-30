@@ -178,6 +178,32 @@ async def delete_bot(
     return {"message": message, "hard_delete": hard_delete}
 
 
+@router.delete("/bots/{bot_id}/hard")
+async def hard_delete_bot(
+    bot_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Permanently delete bot from database.
+    
+    Args:
+        bot_id: Bot UUID
+        db: Database session
+    
+    Returns:
+        Success message
+    """
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    # Permanent deletion
+    db.delete(bot)
+    db.commit()
+    
+    return {"message": "Bot permanently deleted"}
+
+
 @router.get("/bots/{bot_id}/stats")
 async def get_bot_stats(
     bot_id: UUID,
