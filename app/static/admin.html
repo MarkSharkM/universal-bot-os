@@ -1113,11 +1113,65 @@
             loadPartners();
         }
         
+        function showPartnerPreview(data) {
+            const previewCard = document.getElementById('partner-preview-card');
+            const previewContent = document.getElementById('partner-preview-content');
+            const warningsDiv = document.getElementById('partner-preview-warnings');
+            const warningsList = document.getElementById('partner-preview-warnings-list');
+            
+            if (!previewCard || !previewContent) return;
+            
+            // Build preview content
+            previewContent.innerHTML = `
+                <div><strong>Bot Name:</strong> ${data.botName || '<span style="color: #ef4444;">⚠️ Missing</span>'}</div>
+                <div><strong>Category:</strong> <span style="background: ${data.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${data.category || 'NEW'}</span></div>
+                <div><strong>Commission:</strong> ${data.commission || 0}%</div>
+                <div><strong>ROI Score:</strong> <span style="font-weight: 600; color: ${data.roiScore >= 5 ? '#22c55e' : data.roiScore >= 2 ? '#f59e0b' : '#ef4444'};">${data.roiScore || 0}</span></div>
+                <div><strong>Active:</strong> ${data.active === 'Yes' ? '✅' : '❌'}</div>
+                <div><strong>Verified:</strong> ${data.verified === 'Yes' ? '✅' : '❌'}</div>
+                <div style="grid-column: 1 / -1;"><strong>Referral Link:</strong><br><a href="${data.referralLink}" target="_blank" style="color: #2563eb; word-break: break-all; font-size: 11px;">${data.referralLink || '<span style="color: #ef4444;">⚠️ Missing</span>'}</a></div>
+                <div style="grid-column: 1 / -1;"><strong>Description (UK):</strong> ${data.descUk || '<span style="color: #ef4444;">⚠️ Missing</span>'}</div>
+                <div style="grid-column: 1 / -1;"><strong>Description (EN):</strong> ${data.descEn || '<span style="color: #ef4444;">⚠️ Missing</span>'}</div>
+            `;
+            
+            // Check for warnings
+            const warnings = [];
+            if (!data.botName || data.botName.trim() === '') warnings.push('Bot Name is missing');
+            if (!data.referralLink || data.referralLink.trim() === '') warnings.push('Referral Link is missing');
+            if (!data.descUk || data.descUk.trim() === '') warnings.push('Description (UK) is missing');
+            if (!data.descEn || data.descEn.trim() === '') warnings.push('Description (EN) is missing');
+            if (data.commission === 0) warnings.push('Commission is 0% - is this correct?');
+            if (data.roiScore === 0) warnings.push('ROI Score is 0 - is this correct?');
+            if (data.active === 'No') warnings.push('Partner is set to "No" (inactive)');
+            
+            if (warnings.length > 0 && warningsList) {
+                warningsList.innerHTML = warnings.map(w => `<li>${w}</li>`).join('');
+                warningsDiv.style.display = 'block';
+            } else if (warningsDiv) {
+                warningsDiv.style.display = 'none';
+            }
+            
+            // Show preview with animation
+            previewCard.style.display = 'block';
+            previewCard.style.opacity = '0';
+            previewCard.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                previewCard.style.transition = 'all 0.3s ease';
+                previewCard.style.opacity = '1';
+                previewCard.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // Scroll to preview
+            previewCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
         function showCreatePartnerForm() {
             document.getElementById('create-partner-form').style.display = 'block';
-            // Clear paste field when showing form
+            // Clear paste field and hide preview when showing form
             const pasteField = document.getElementById('partner-paste-data');
             if (pasteField) pasteField.value = '';
+            const previewCard = document.getElementById('partner-preview-card');
+            if (previewCard) previewCard.style.display = 'none';
         }
         
         function hideCreatePartnerForm() {
