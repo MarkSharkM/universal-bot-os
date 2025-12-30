@@ -173,9 +173,17 @@ class UserService:
     def update_top_status(
         self,
         user_id: UUID,
-        status: str  # 'locked' or 'open'
+        status: str,  # 'locked' or 'open'
+        unlock_method: Optional[str] = None  # 'payment' or 'invites'
     ) -> User:
-        """Update user's TOP access status"""
+        """
+        Update user's TOP access status.
+        
+        Args:
+            user_id: User UUID
+            status: 'locked' or 'open'
+            unlock_method: 'payment' (paid 1⭐) or 'invites' (invited 5+ friends)
+        """
         from sqlalchemy.orm.attributes import flag_modified
         
         user = self.db.query(User).filter(
@@ -192,6 +200,8 @@ class UserService:
             user.custom_data = {}
         
         user.custom_data['top_status'] = status
+        if unlock_method:
+            user.custom_data['top_unlock_method'] = unlock_method
         flag_modified(user, 'custom_data')  # Mark JSONB field as modified
         self.db.commit()
         self.db.refresh(user)

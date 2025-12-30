@@ -354,9 +354,9 @@ async def _handle_payment(
         # Verify it's a buy_top payment
         if invoice_payload.startswith('buy_top_'):
             try:
-                # Unlock TOP
-                user_service.update_top_status(user.id, 'open')
-                logger.info(f"TOP unlocked for user {user.id}")
+                # Unlock TOP (via payment)
+                user_service.update_top_status(user.id, 'open', unlock_method='payment')
+                logger.info(f"TOP unlocked for user {user.id} via payment")
                 
                 # Send confirmation
                 translation_service = TranslationService(db)

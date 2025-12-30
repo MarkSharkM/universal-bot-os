@@ -1291,6 +1291,7 @@ async def list_bot_users(
             "wallet_address": u.custom_data.get('wallet_address', '') if u.custom_data else '',
             "total_invited": u.custom_data.get('total_invited', 0) if u.custom_data else 0,
             "top_status": u.custom_data.get('top_status', 'locked') if u.custom_data else 'locked',
+            "top_unlock_method": u.custom_data.get('top_unlock_method', '') if u.custom_data else '',
             "device": u.custom_data.get('device', '') if u.custom_data else '',
             "device_version": u.custom_data.get('device_version', '') if u.custom_data else '',
             # Normalize language_code - if it's iOS/Android, it's device, not language
