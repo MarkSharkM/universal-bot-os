@@ -377,7 +377,7 @@ async def test_5_invites_unlock(
             "invites_needed": invites_needed,
         },
         "tests": tests,
-        "created_logs": len(created_logs),
+        "created_logs": created_logs_count,
     }
     except Exception as e:
         logger.error(f"Error in test_5_invites_unlock: {e}", exc_info=True)
