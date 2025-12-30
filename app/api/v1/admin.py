@@ -1242,6 +1242,7 @@ async def list_bot_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     sort_by: str = Query("created_at", description="Sort by: 'created_at' or 'last_activity'"),
+    user_id: Optional[UUID] = Query(None, description="Filter by user ID"),
     db: Session = Depends(get_db)
 ):
     """
@@ -1252,6 +1253,7 @@ async def list_bot_users(
         skip: Number of records to skip
         limit: Maximum number of records to return
         sort_by: Sort by 'created_at' or 'last_activity' (updated_at)
+        user_id: Optional user ID to filter by
         db: Database session
     
     Returns:
@@ -1263,9 +1265,12 @@ async def list_bot_users(
     else:
         order_by = User.created_at.desc()
     
-    users = db.query(User).filter(
-        User.bot_id == bot_id
-    ).order_by(order_by).offset(skip).limit(limit).all()
+    query = db.query(User).filter(User.bot_id == bot_id)
+    
+    if user_id:
+        query = query.filter(User.id == user_id)
+    
+    users = query.order_by(order_by).offset(skip).limit(limit).all()
     
     return [
         {

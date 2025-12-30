@@ -450,11 +450,15 @@
             <!-- Users Tab Content -->
             <div id="database-users-tab" class="database-tab-content active">
                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px;">
-                    <div style="padding: 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px;">
+                    <div style="padding: 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                         <label style="font-weight: 600; color: #374151;">Sort by:</label>
-                        <select id="users-sort-by" onchange="loadUsers()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                        <select id="users-sort-by" onchange="loadUsers(0, true)" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
                             <option value="created_at">Created (newest first)</option>
                             <option value="last_activity">Last Activity (recent first)</option>
+                        </select>
+                        <label style="font-weight: 600; color: #374151; margin-left: 20px;">Filter by user:</label>
+                        <select id="users-user-filter" onchange="loadUsers(0, true)" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; min-width: 250px;">
+                            <option value="">All users</option>
                         </select>
                     </div>
                 </div>
@@ -1446,12 +1450,38 @@
             }
         }
         
+        async function loadUsersForUsersFilter() {
+            if (!currentBotId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=1000`);
+                const users = await res.json();
+                const select = document.getElementById('users-user-filter');
+                
+                // Keep "All users" option
+                select.innerHTML = '<option value="">All users</option>';
+                
+                // Add users (username + external_id)
+                users.forEach(u => {
+                    const option = document.createElement('option');
+                    option.value = u.id;
+                    const displayName = u.username ? `@${u.username} (${u.external_id})` : `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.external_id;
+                    option.textContent = displayName;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading users for filter:', error);
+            }
+        }
+        
         async function loadUsers(offset = 0, reset = false) {
             if (!currentBotId) return;
             
             try {
                 const sortBy = document.getElementById('users-sort-by')?.value || 'created_at';
-                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=${offset}&limit=${ROWS_PER_PAGE}&sort_by=${sortBy}`);
+                const userId = document.getElementById('users-user-filter')?.value || '';
+                const url = `${API_BASE}/bots/${currentBotId}/users?skip=${offset}&limit=${ROWS_PER_PAGE}&sort_by=${sortBy}${userId ? `&user_id=${userId}` : ''}`;
+                const res = await fetch(url);
                 const users = await res.json();
                 const tbody = document.getElementById('database-users-tbody');
                 
