@@ -281,6 +281,12 @@
             
             <div id="create-partner-form" style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h3>Add New Partner</h3>
+                <div class="form-group" style="background: #e0f2fe; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 2px dashed #0284c7;">
+                    <label style="font-weight: 600; color: #0c4a6e; margin-bottom: 8px; display: block;">📋 Paste from Google Sheets (optional)</label>
+                    <textarea id="partner-paste-data" rows="3" placeholder="Paste row from Google Sheets here (tab-separated):&#10;Boinkers	Мем-батли за зірки 💩💎	💩💎 Meme battles for stars	..." style="width: 100%; padding: 8px; border: 1px solid #0284c7; border-radius: 4px; font-family: monospace; font-size: 12px;"></textarea>
+                    <button type="button" onclick="parsePastedData()" style="background: #0284c7; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 12px;">Parse & Fill Form</button>
+                    <p style="font-size: 11px; color: #0369a1; margin-top: 8px; margin-bottom: 0;">Format: Bot Name | Description (UK) | Description (EN) | Description (RU) | Description (DE) | Description (ES) | Referral Link | RefParam | Commission | Category | Active | Duration | Verified | ... | ROI Score</p>
+                </div>
                 <div class="form-group">
                     <label>Bot Name</label>
                     <input type="text" id="partner-name" placeholder="Partner Bot Name">
@@ -928,6 +934,59 @@
             }
         }
         
+        function parsePastedData() {
+            const pastedText = document.getElementById('partner-paste-data').value.trim();
+            if (!pastedText) {
+                alert('Please paste data from Google Sheets first');
+                return;
+            }
+            
+            // Split by tab (Google Sheets uses tabs when copying)
+            const parts = pastedText.split('\t');
+            
+            if (parts.length < 9) {
+                alert('Invalid format. Expected at least 9 columns separated by tabs.');
+                return;
+            }
+            
+            // Map columns from Google Sheets:
+            // 0: Bot Name
+            // 1: Description (UK)
+            // 2: Description (EN)
+            // 3: Description (RU)
+            // 4: Description (DE)
+            // 5: Description (ES)
+            // 6: Referral Link
+            // 7: RefParam (skip)
+            // 8: Commission
+            // 9: Category
+            // 10: Active
+            // 11: Duration (skip)
+            // 12: Verified
+            // ... (skip clicks, added, owner, доход)
+            // Last: ROI Score
+            
+            document.getElementById('partner-name').value = parts[0] || '';
+            document.getElementById('partner-description').value = parts[1] || '';
+            document.getElementById('partner-description-en').value = parts[2] || '';
+            document.getElementById('partner-description-ru').value = parts[3] || '';
+            document.getElementById('partner-description-de').value = parts[4] || '';
+            document.getElementById('partner-description-es').value = parts[5] || '';
+            document.getElementById('partner-link').value = parts[6] || '';
+            document.getElementById('partner-commission').value = parseFloat(parts[8]) || 0;
+            document.getElementById('partner-category').value = (parts[9] || 'NEW').toUpperCase();
+            document.getElementById('partner-active').value = (parts[10] || 'Yes').trim();
+            document.getElementById('partner-verified').value = (parts[12] || 'Yes').trim();
+            
+            // ROI Score is usually the last column
+            const roiScore = parts[parts.length - 1] || '0';
+            // Handle comma as decimal separator (1,60 -> 1.60)
+            const roiScoreValue = parseFloat(roiScore.replace(',', '.')) || 0;
+            document.getElementById('partner-roi').value = roiScoreValue;
+            
+            alert('Form filled successfully! Review and click "Add Partner" to save.');
+        }
+        
         async function loadPartners() {
             const botId = document.getElementById('partners-bot-select').value;
             if (!botId) return;
@@ -935,6 +994,14 @@
             try {
                 const res = await fetch(`${API_BASE}/bots/${botId}/partners`);
                 const partners = await res.json();
+                
+                // Sort by ROI Score
+                partners.sort((a, b) => {
+                    const roiA = parseFloat(a.roi_score || 0);
+                    const roiB = parseFloat(b.roi_score || 0);
+                    return partnersROISortDesc ? (roiB - roiA) : (roiA - roiB);
+                });
+                
                 const tbody = document.getElementById('partners-tbody');
                 tbody.innerHTML = partners.map(p => {
                     const refLink = p.referral_link || '';
@@ -1054,11 +1121,11 @@
                 description_de: document.getElementById('partner-description-de').value,
                 description_es: document.getElementById('partner-description-es').value,
                 referral_link: document.getElementById('partner-link').value,
-                commission: parseFloat(document.getElementById('partner-commission').value),
+                commission: parseFloat(document.getElementById('partner-commission').value) || 0,
                 category: document.getElementById('partner-category').value,
-                active: 'Yes',
-                verified: 'Yes',
-                roi_score: 0
+                active: document.getElementById('partner-active').value || 'Yes',
+                verified: document.getElementById('partner-verified').value || 'Yes',
+                roi_score: parseFloat(document.getElementById('partner-roi').value) || 0
             };
             
             try {
