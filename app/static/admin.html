@@ -1232,6 +1232,7 @@
                 
                 messages.forEach(msg => {
                     const row = document.createElement('tr');
+                    const isUser = msg.role === 'user';
                     const roleBadge = msg.role === 'user' ? '👤 User' : msg.role === 'assistant' ? '🤖 Bot' : '⚙️ System';
                     const roleColor = msg.role === 'user' ? '#3b82f6' : msg.role === 'assistant' ? '#10b981' : '#6b7280';
                     const userDisplay = msg.user_username ? `@${msg.user_username}` : (msg.user_name || msg.user_external_id);
