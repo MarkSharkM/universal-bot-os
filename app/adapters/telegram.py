@@ -63,24 +63,46 @@ class TelegramAdapter(BaseAdapter):
                 **kwargs
             }
             
-            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+            # Retry logic for network issues
+            max_retries = 2
+            last_error = None
+            
+            for attempt in range(max_retries + 1):
                 try:
-                    response = await client.post(url, json=payload)
-                    response.raise_for_status()
-                    return response.json()
+                    async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                        response = await client.post(url, json=payload)
+                        response.raise_for_status()
+                        return response.json()
                 except (httpx.ConnectTimeout, httpx.ReadTimeout) as e:
-                    # Log timeout but don't crash - Telegram API might be slow
+                    last_error = e
+                    if attempt < max_retries:
+                        # Wait before retry (exponential backoff)
+                        import asyncio
+                        await asyncio.sleep(0.5 * (attempt + 1))
+                        continue
+                    # Log timeout after all retries
                     import logging
                     logger = logging.getLogger(__name__)
-                    logger.warning(f"Telegram API timeout for sendMessage (chat_id={user_external_id}): {e}")
+                    logger.warning(f"Telegram API timeout for sendMessage after {max_retries + 1} attempts (chat_id={user_external_id}): {e}")
                     # Return error response instead of raising
-                    return {"ok": False, "error": "timeout", "description": "Telegram API timeout"}
+                    return {"ok": False, "error": "timeout", "description": "Telegram API timeout after retries"}
                 except httpx.HTTPStatusError as e:
-                    # Log HTTP errors but re-raise for proper error handling
+                    # Don't retry on HTTP errors (4xx, 5xx) - these are not network issues
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.error(f"Telegram API error for sendMessage: {e.response.status_code} - {e.response.text}")
                     raise
+                except Exception as e:
+                    last_error = e
+                    if attempt < max_retries:
+                        import asyncio
+                        await asyncio.sleep(0.5 * (attempt + 1))
+                        continue
+                    raise
+            
+            # Should not reach here, but just in case
+            if last_error:
+                raise last_error
         finally:
             db.close()
     
