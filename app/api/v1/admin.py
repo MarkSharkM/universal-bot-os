@@ -296,27 +296,30 @@ async def test_5_invites_unlock(
         initial_total_invited = user.custom_data.get('total_invited', 0) if user.custom_data else 0
         initial_top_status = user.custom_data.get('top_status', 'locked') if user.custom_data else 'locked'
         
-        # Create 5 referral events
-        timestamp = int(time.time())
-        for i in range(1, 6):
-            ref_param = f"_tgr_{user.external_id}"
-            referred_external_id = f"test_referred_{i}_{user.external_id}_{timestamp}"
-            
-            log_data = BusinessData(
-                bot_id=bot_id,
-                data_type='log',
-                data={
-                    'user_id': str(referred_external_id),
-                    'external_id': referred_external_id,
-                    'ref_parameter': ref_param,
-                    'referral_tag': ref_param,
-                    'inviter_external_id': user.external_id,
-                    'is_referral': True,
-                    'click_type': 'Referral',
-                    'event_type': 'start',
-                }
-            )
-            db.add(log_data)
+                # Create 5 referral events with unique ref_parameters
+                # Each referral should have a unique ref_parameter to be counted separately
+                timestamp = int(time.time())
+                for i in range(1, 6):
+                    # Each referral needs a unique ref_parameter
+                    # Format: _tgr_{inviter_external_id}_{unique_suffix}
+                    ref_param = f"_tgr_{user.external_id}_{i}_{timestamp}"
+                    referred_external_id = f"test_referred_{i}_{user.external_id}_{timestamp}"
+        
+                    log_data = BusinessData(
+                        bot_id=bot_id,
+                        data_type='log',
+                        data={
+                            'user_id': str(referred_external_id),
+                            'external_id': referred_external_id,
+                            'ref_parameter': ref_param,
+                            'referral_tag': ref_param,
+                            'inviter_external_id': user.external_id,
+                            'is_referral': True,
+                            'click_type': 'Referral',
+                            'event_type': 'start',
+                        }
+                    )
+                    db.add(log_data)
         
         db.commit()
         
