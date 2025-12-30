@@ -16,11 +16,11 @@ class TelegramAdapter(BaseAdapter):
     BASE_URL = "https://api.telegram.org/bot"
     
     # Timeout settings for Telegram API requests
-    # Connect timeout: 10s (time to establish connection)
-    # Read timeout: 30s (time to read response)
-    # Increased from 5s/10s to match n8n behavior (which had longer timeouts)
-    # Railway network might have higher latency to Telegram API
-    TIMEOUT = httpx.Timeout(10.0, connect=10.0, read=30.0)
+    # Connect timeout: 5s (time to establish connection)
+    # Read timeout: 10s (time to read response)
+    # Reduced from 30s to prevent long delays - Telegram API usually responds in <1s
+    # If it takes longer, it's likely a network issue and retry won't help
+    TIMEOUT = httpx.Timeout(5.0, connect=5.0, read=10.0)
     
     @property
     def platform_name(self) -> str:
@@ -64,7 +64,8 @@ class TelegramAdapter(BaseAdapter):
             }
             
             # Retry logic for network issues
-            max_retries = 2
+            # Reduced to 1 retry to prevent long delays (max 2 attempts total)
+            max_retries = 1
             last_error = None
             
             for attempt in range(max_retries + 1):
@@ -76,15 +77,15 @@ class TelegramAdapter(BaseAdapter):
                 except (httpx.ConnectTimeout, httpx.ReadTimeout) as e:
                     last_error = e
                     if attempt < max_retries:
-                        # Wait before retry (exponential backoff)
+                        # Quick retry with minimal delay (0.3s)
                         import asyncio
-                        await asyncio.sleep(0.5 * (attempt + 1))
+                        await asyncio.sleep(0.3)
                         continue
                     # Log timeout after all retries
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.warning(f"Telegram API timeout for sendMessage after {max_retries + 1} attempts (chat_id={user_external_id}): {e}")
-                    # Return error response instead of raising
+                    # Return error response instead of raising - don't block webhook
                     return {"ok": False, "error": "timeout", "description": "Telegram API timeout after retries"}
                 except httpx.HTTPStatusError as e:
                     # Don't retry on HTTP errors (4xx, 5xx) - these are not network issues
