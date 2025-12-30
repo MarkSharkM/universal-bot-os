@@ -1033,8 +1033,22 @@
             }
         }
         
+        let partnersROISortDesc = true;
+        
+        function sortPartnersByROI() {
+            partnersROISortDesc = !partnersROISortDesc;
+            const icon = document.getElementById('roi-sort-icon');
+            if (icon) {
+                icon.textContent = partnersROISortDesc ? '⬇' : '⬆';
+            }
+            loadPartners();
+        }
+        
         function showCreatePartnerForm() {
             document.getElementById('create-partner-form').style.display = 'block';
+            // Clear paste field when showing form
+            const pasteField = document.getElementById('partner-paste-data');
+            if (pasteField) pasteField.value = '';
         }
         
         function hideCreatePartnerForm() {
