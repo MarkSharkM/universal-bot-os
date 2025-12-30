@@ -210,13 +210,18 @@ async def hard_delete_bot(
     messages_count = db.query(Message).filter(Message.bot_id == bot_id).count()
     
     # Delete related data first (if any)
+    # IMPORTANT: Delete in correct order to avoid foreign key violations
+    # 1. Messages (references users)
+    # 2. Users (references bot)
+    # 3. BusinessData (references bot)
+    # 4. Bot
     try:
+        if messages_count > 0:
+            db.query(Message).filter(Message.bot_id == bot_id).delete(synchronize_session=False)
         if users_count > 0:
             db.query(User).filter(User.bot_id == bot_id).delete(synchronize_session=False)
         if business_data_count > 0:
             db.query(BusinessData).filter(BusinessData.bot_id == bot_id).delete(synchronize_session=False)
-        if messages_count > 0:
-            db.query(Message).filter(Message.bot_id == bot_id).delete(synchronize_session=False)
         
         # Delete bot
         db.delete(bot)
