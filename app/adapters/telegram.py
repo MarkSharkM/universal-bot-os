@@ -212,10 +212,20 @@ class TelegramAdapter(BaseAdapter):
             if show_alert:
                 payload["show_alert"] = show_alert
             
-            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
-                response = await client.post(url, json=payload)
-                response.raise_for_status()
-                return response.json()
+            try:
+                async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                    response = await client.post(url, json=payload)
+                    response.raise_for_status()
+                    return response.json()
+            except httpx.HTTPStatusError as e:
+                # 400 Bad Request usually means callback already answered or invalid
+                # Don't raise - just log and return error response
+                if e.response.status_code == 400:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Callback query already answered or invalid: {callback_query_id}")
+                    return {"ok": False, "error": "callback_query_invalid"}
+                raise
         finally:
             db.close()
     
