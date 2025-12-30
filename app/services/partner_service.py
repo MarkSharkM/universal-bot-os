@@ -137,20 +137,38 @@ class PartnerService:
         
         Args:
             partner_data: Partner data dictionary
-            lang: Language code
+            lang: Language code (uk, en, ru, de, es)
         
         Returns:
             Localized description
         """
-        # Try localized first
+        # For Ukrainian (uk), use base 'description' field
+        if lang == 'uk':
+            desc = partner_data.get('description', '')
+            if desc:
+                return desc
+            # Fallback to EN if UK not available
+            desc = partner_data.get('description_en', '')
+            if desc:
+                return desc
+        
+        # For other languages, try description_{lang}
         localized_key = f'description_{lang}'
         if localized_key in partner_data:
             desc = partner_data[localized_key]
             if desc:
                 return desc
         
-        # Fallback to base description
-        return partner_data.get('description', '')
+        # Fallback chain: base description -> description_en -> empty
+        desc = partner_data.get('description', '')
+        if desc:
+            return desc
+        
+        desc = partner_data.get('description_en', '')
+        if desc:
+            return desc
+        
+        return ''
     
     def personalize_referral_link(
         self,
