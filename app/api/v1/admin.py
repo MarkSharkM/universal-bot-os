@@ -2,6 +2,7 @@
 Admin API - Multi-tenant bot management
 CRUD operations for bots, partners, translations, AI config
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
@@ -16,6 +17,7 @@ from app.schemas.bot import BotCreate, BotUpdate, BotResponse
 from app.services.ai_service import AIService
 from app.services.translation_service import TranslationService
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -208,16 +210,21 @@ async def hard_delete_bot(
     messages_count = db.query(Message).filter(Message.bot_id == bot_id).count()
     
     # Delete related data first (if any)
-    if users_count > 0:
-        db.query(User).filter(User.bot_id == bot_id).delete()
-    if business_data_count > 0:
-        db.query(BusinessData).filter(BusinessData.bot_id == bot_id).delete()
-    if messages_count > 0:
-        db.query(Message).filter(Message.bot_id == bot_id).delete()
-    
-    # Delete bot
-    db.delete(bot)
-    db.commit()
+    try:
+        if users_count > 0:
+            db.query(User).filter(User.bot_id == bot_id).delete(synchronize_session=False)
+        if business_data_count > 0:
+            db.query(BusinessData).filter(BusinessData.bot_id == bot_id).delete(synchronize_session=False)
+        if messages_count > 0:
+            db.query(Message).filter(Message.bot_id == bot_id).delete(synchronize_session=False)
+        
+        # Delete bot
+        db.delete(bot)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting bot {bot_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to delete bot: {str(e)}")
     
     return {
         "message": "Bot permanently deleted",
