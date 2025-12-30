@@ -97,7 +97,7 @@ async def telegram_webhook(
         if event_type == 'message':
             await _handle_message(
                 update, user, bot_id, command_service,
-                referral_service, user_service, adapter, db
+                referral_service, user_service, adapter, db, event_data
             )
         elif event_type == 'callback_query':
             await _handle_callback(
