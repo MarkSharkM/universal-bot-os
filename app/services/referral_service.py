@@ -73,7 +73,7 @@ class ReferralService:
             else:
                 # Fallback: use correct production username
                 # This should not happen if sync-username was called
-                bot_username = "EarnHubAggregatorBot"
+                bot_username = "HubAggregatorBot"
         
         return f"https://t.me/{bot_username}?start={tag}"
     
