@@ -1200,59 +1200,80 @@
             }
         }
         
-        // Helper function to escape HTML but preserve Telegram formatting
+        // Helper function to format Telegram message (preserve HTML, handle newlines)
         function formatTelegramMessage(text) {
             if (!text) return '';
             
-            // First, decode escaped newlines (\n -> actual newline)
+            // Decode escaped newlines (\n -> actual newline)
             text = text.replace(/\\n/g, '\n');
             
-            // Escape HTML to prevent XSS, but preserve Telegram HTML tags
-            // Telegram uses: <b>, <i>, <u>, <s>, <code>, <pre>, <a href="...">
+            // Create a temporary div to sanitize HTML while preserving Telegram tags
             const tempDiv = document.createElement('div');
-            tempDiv.textContent = text;
-            let escaped = tempDiv.innerHTML;
             
-            // Restore Telegram HTML tags (they were escaped, need to restore)
-            // But first, we need to handle the original HTML from Telegram
-            // Since messages are stored with HTML tags, we should preserve them
-            // Let's check if text contains HTML tags
-            if (text.includes('<') && text.includes('>')) {
-                // Text already contains HTML (from Telegram), use it directly but sanitize
-                // Remove script tags and dangerous attributes
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                // Get text content but preserve allowed tags
-                const allowedTags = ['b', 'i', 'u', 's', 'code', 'pre', 'a'];
-                const walker = document.createTreeWalker(
-                    doc.body,
-                    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
-                    null
-                );
+            // Telegram uses: <b>, <i>, <u>, <s>, <code>, <pre>, <a href="...">
+            // We'll use DOMParser to safely parse and preserve only allowed tags
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            
+            // Sanitize: remove dangerous tags, keep only Telegram HTML tags
+            const allowedTags = ['b', 'i', 'u', 's', 'code', 'pre', 'a'];
+            const allowedAttrs = ['href'];
+            
+            function sanitizeNode(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    // Convert newlines to <br> in text nodes
+                    return node.textContent.replace(/\n/g, '<br>');
+                }
                 
-                let result = '';
-                let node;
-                while (node = walker.nextNode()) {
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        result += node.textContent.replace(/\n/g, '<br>');
-                    } else if (node.nodeType === Node.ELEMENT_NODE) {
-                        const tagName = node.tagName.toLowerCase();
-                        if (allowedTags.includes(tagName)) {
-                            const attrs = Array.from(node.attributes).map(attr => 
-                                attr.name === 'href' ? `href="${attr.value}"` : ''
-                            ).filter(Boolean).join(' ');
-                            const openTag = attrs ? `<${tagName} ${attrs}>` : `<${tagName}>`;
-                            result += openTag + node.textContent.replace(/\n/g, '<br>') + `</${tagName}>`;
-                        } else {
-                            result += node.textContent.replace(/\n/g, '<br>');
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const tagName = node.tagName.toLowerCase();
+                    
+                    if (allowedTags.includes(tagName)) {
+                        // Preserve allowed tag
+                        let html = `<${tagName}`;
+                        
+                        // Add allowed attributes
+                        if (tagName === 'a') {
+                            const href = node.getAttribute('href');
+                            if (href) {
+                                html += ` href="${href.replace(/"/g, '&quot;')}"`;
+                            }
                         }
+                        
+                        html += '>';
+                        
+                        // Process children
+                        for (let child of node.childNodes) {
+                            html += sanitizeNode(child);
+                        }
+                        
+                        html += `</${tagName}>`;
+                        return html;
+                    } else {
+                        // Remove disallowed tag, keep content
+                        let html = '';
+                        for (let child of node.childNodes) {
+                            html += sanitizeNode(child);
+                        }
+                        return html;
                     }
                 }
-                return result || text.replace(/\n/g, '<br>');
-            } else {
-                // Plain text, just convert newlines to <br>
-                return escaped.replace(/\n/g, '<br>');
+                
+                return '';
             }
+            
+            // Process body content
+            let result = '';
+            for (let child of doc.body.childNodes) {
+                result += sanitizeNode(child);
+            }
+            
+            // If no HTML tags were found, just convert newlines
+            if (!text.includes('<') || result === '') {
+                return text.replace(/\n/g, '<br>');
+            }
+            
+            return result;
         }
         
         async function loadMessages(offset = 0, reset = false) {
