@@ -1687,7 +1687,15 @@
                 // Reload users to show updated data
                 loadUsers(0, true);
             } catch (error) {
-                alert('Error updating user: ' + error.message);
+                let errorMessage = 'Failed to update user';
+                if (error && error.message) {
+                    errorMessage = error.message;
+                } else if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error && error.toString && error.toString() !== '[object Object]') {
+                    errorMessage = error.toString();
+                }
+                alert('Error updating user: ' + errorMessage);
                 console.error('Error updating user:', error);
             }
         }
