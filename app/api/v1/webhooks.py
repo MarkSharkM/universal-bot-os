@@ -195,13 +195,20 @@ async def _handle_message(
             db.commit()
         
         # Send response via adapter
-        await adapter.send_message(
-            bot_id,
-            user.external_id,
-            response.get('message', ''),
-            reply_markup=_format_buttons(response.get('buttons', [])),
-            parse_mode=response.get('parse_mode', 'HTML')
-        )
+        try:
+            result = await adapter.send_message(
+                bot_id,
+                user.external_id,
+                response.get('message', ''),
+                reply_markup=_format_buttons(response.get('buttons', [])),
+                parse_mode=response.get('parse_mode', 'HTML')
+            )
+            # Check if Telegram API returned error (e.g., timeout)
+            if result.get('ok') is False:
+                logger.warning(f"Telegram API returned error: {result.get('error')} - {result.get('description')}")
+        except Exception as e:
+            logger.error(f"Error sending message via Telegram API: {e}", exc_info=True)
+            # Don't raise - webhook should still return 200 OK to Telegram
     elif text and not text.startswith('/'):
         # Not a command, not a wallet - show wallet_invalid_format message (like in production)
         translation_service = TranslationService(db)

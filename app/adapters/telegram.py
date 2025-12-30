@@ -16,9 +16,10 @@ class TelegramAdapter(BaseAdapter):
     BASE_URL = "https://api.telegram.org/bot"
     
     # Timeout settings for Telegram API requests
-    # Connect timeout: 10s (time to establish connection)
-    # Read timeout: 30s (time to read response)
-    TIMEOUT = httpx.Timeout(10.0, connect=10.0, read=30.0)
+    # Connect timeout: 5s (time to establish connection)
+    # Read timeout: 10s (time to read response)
+    # Telegram API usually responds quickly, so shorter timeouts prevent hanging
+    TIMEOUT = httpx.Timeout(5.0, connect=5.0, read=10.0)
     
     @property
     def platform_name(self) -> str:
@@ -62,9 +63,23 @@ class TelegramAdapter(BaseAdapter):
             }
             
             async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
-                response = await client.post(url, json=payload)
-                response.raise_for_status()
-                return response.json()
+                try:
+                    response = await client.post(url, json=payload)
+                    response.raise_for_status()
+                    return response.json()
+                except (httpx.ConnectTimeout, httpx.ReadTimeout) as e:
+                    # Log timeout but don't crash - Telegram API might be slow
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Telegram API timeout for sendMessage (chat_id={user_external_id}): {e}")
+                    # Return error response instead of raising
+                    return {"ok": False, "error": "timeout", "description": "Telegram API timeout"}
+                except httpx.HTTPStatusError as e:
+                    # Log HTTP errors but re-raise for proper error handling
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Telegram API error for sendMessage: {e.response.status_code} - {e.response.text}")
+                    raise
         finally:
             db.close()
     
