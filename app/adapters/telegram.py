@@ -16,10 +16,11 @@ class TelegramAdapter(BaseAdapter):
     BASE_URL = "https://api.telegram.org/bot"
     
     # Timeout settings for Telegram API requests
-    # Connect timeout: 5s (time to establish connection)
-    # Read timeout: 10s (time to read response)
-    # Telegram API usually responds quickly, so shorter timeouts prevent hanging
-    TIMEOUT = httpx.Timeout(5.0, connect=5.0, read=10.0)
+    # Connect timeout: 10s (time to establish connection)
+    # Read timeout: 30s (time to read response)
+    # Increased from 5s/10s to match n8n behavior (which had longer timeouts)
+    # Railway network might have higher latency to Telegram API
+    TIMEOUT = httpx.Timeout(10.0, connect=10.0, read=30.0)
     
     @property
     def platform_name(self) -> str:
