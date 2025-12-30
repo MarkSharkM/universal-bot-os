@@ -780,12 +780,15 @@
                 const tbody = document.getElementById('partners-tbody');
                 tbody.innerHTML = partners.map(p => {
                     const refLink = p.referral_link || '';
-                    const shortLink = refLink.length > 30 ? refLink.substring(0, 30) + '...' : refLink;
                     return `
                     <tr>
                         <td><strong>${p.bot_name}</strong></td>
                         <td><span style="background: ${p.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${p.category}</span></td>
-                        <td><a href="${refLink}" target="_blank" title="${refLink}" style="font-size: 11px; color: #2563eb;">${shortLink}</a></td>
+                        <td style="word-break: break-all; max-width: 300px; padding: 10px;">
+                            <a href="${refLink}" target="_blank" style="font-size: 11px; color: #2563eb; text-decoration: none; line-height: 1.4; display: block;">
+                                ${refLink || '-'}
+                            </a>
+                        </td>
                         <td>${p.commission}%</td>
                         <td>${p.active === 'Yes' ? '✅' : '❌'}</td>
                         <td>${p.verified === 'Yes' ? '✅' : '❌'}</td>
@@ -1263,6 +1266,11 @@
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${partner.id.substring(0, 8)}...</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>${partner.bot_name}</strong></td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><span style="background: ${partner.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${partner.category}</span></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; word-break: break-all; max-width: 300px;">
+                            <a href="${partner.referral_link || '#'}" target="_blank" style="color: #2563eb; text-decoration: none; font-size: 11px; line-height: 1.4;">
+                                ${partner.referral_link || '-'}
+                            </a>
+                        </td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${partner.active === 'Yes' ? '✅' : '❌'}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${partner.commission}%</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${partner.deleted_at ? new Date(partner.deleted_at).toLocaleDateString() : '-'}</td>
