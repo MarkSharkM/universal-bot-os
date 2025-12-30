@@ -379,6 +379,9 @@ async def test_5_invites_unlock(
         "tests": tests,
         "created_logs": len(created_logs),
     }
+    except Exception as e:
+        logger.error(f"Error in test_5_invites_unlock: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Test failed: {str(e)}")
 
 
 @router.get("/bots/{bot_id}/stats")
