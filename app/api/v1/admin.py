@@ -299,82 +299,82 @@ async def test_5_invites_unlock(
         # Create 5 referral events
         timestamp = int(time.time())
         for i in range(1, 6):
-        ref_param = f"_tgr_{user.external_id}"
-        referred_external_id = f"test_referred_{i}_{user.external_id}_{timestamp}"
+            ref_param = f"_tgr_{user.external_id}"
+            referred_external_id = f"test_referred_{i}_{user.external_id}_{timestamp}"
+            
+            log_data = BusinessData(
+                bot_id=bot_id,
+                data_type='log',
+                data={
+                    'user_id': str(referred_external_id),
+                    'external_id': referred_external_id,
+                    'ref_parameter': ref_param,
+                    'referral_tag': ref_param,
+                    'inviter_external_id': user.external_id,
+                    'is_referral': True,
+                    'click_type': 'Referral',
+                    'event_type': 'start',
+                }
+            )
+            db.add(log_data)
         
-        log_data = BusinessData(
-            bot_id=bot_id,
-            data_type='log',
-            data={
-                'user_id': str(referred_external_id),
-                'external_id': referred_external_id,
-                'ref_parameter': ref_param,
-                'referral_tag': ref_param,
-                'inviter_external_id': user.external_id,
-                'is_referral': True,
-                'click_type': 'Referral',
-                'event_type': 'start',
-            }
-        )
-        db.add(log_data)
-    
-    db.commit()
-    
-    # Count created logs (we created exactly 5)
-    created_logs_count = 5
-    
-    # Update total_invited (this should auto-unlock TOP)
-    updated_user = referral_service.update_total_invited(user_id)
-    
-    # Refresh user to get latest data
-    db.refresh(updated_user)
-    
-    # Get final state
-    final_total_invited = updated_user.custom_data.get('total_invited', 0)
-    final_top_status = updated_user.custom_data.get('top_status', 'locked')
-    final_top_unlock_method = updated_user.custom_data.get('top_unlock_method', '')
-    
-    # Check earnings message
-    earnings_data = earnings_service.build_earnings_message(user_id)
-    can_unlock, invites_needed = referral_service.check_top_unlock_eligibility(user_id)
-    
-    # Verify results
-    tests = {
-        "total_invited_is_5": final_total_invited == 5,
-        "top_status_is_open": final_top_status == 'open',
-        "top_unlock_method_is_invites": final_top_unlock_method == 'invites',
-        "earnings_shows_5_invites": earnings_data['invites'] == 5,
-        "earnings_top_status_is_open": earnings_data['top_status'] == 'open',
-        "can_unlock_is_true": can_unlock,
-        "invites_needed_is_0": invites_needed == 0,
-    }
-    
-    all_passed = all(tests.values())
-    
-    return {
-        "success": all_passed,
-        "message": "All tests passed!" if all_passed else "Some tests failed",
-        "initial_state": {
-            "total_invited": initial_total_invited,
-            "top_status": initial_top_status,
-        },
-        "final_state": {
-            "total_invited": final_total_invited,
-            "top_status": final_top_status,
-            "top_unlock_method": final_top_unlock_method,
-        },
-        "earnings_data": {
-            "invites": earnings_data['invites'],
-            "needed": earnings_data['needed'],
-            "top_status": earnings_data['top_status'],
-        },
-        "eligibility_check": {
-            "can_unlock": can_unlock,
-            "invites_needed": invites_needed,
-        },
-        "tests": tests,
-        "created_logs": created_logs_count,
-    }
+        db.commit()
+        
+        # Count created logs (we created exactly 5)
+        created_logs_count = 5
+        
+        # Update total_invited (this should auto-unlock TOP)
+        updated_user = referral_service.update_total_invited(user_id)
+        
+        # Refresh user to get latest data
+        db.refresh(updated_user)
+        
+        # Get final state
+        final_total_invited = updated_user.custom_data.get('total_invited', 0)
+        final_top_status = updated_user.custom_data.get('top_status', 'locked')
+        final_top_unlock_method = updated_user.custom_data.get('top_unlock_method', '')
+        
+        # Check earnings message
+        earnings_data = earnings_service.build_earnings_message(user_id)
+        can_unlock, invites_needed = referral_service.check_top_unlock_eligibility(user_id)
+        
+        # Verify results
+        tests = {
+            "total_invited_is_5": final_total_invited == 5,
+            "top_status_is_open": final_top_status == 'open',
+            "top_unlock_method_is_invites": final_top_unlock_method == 'invites',
+            "earnings_shows_5_invites": earnings_data['invites'] == 5,
+            "earnings_top_status_is_open": earnings_data['top_status'] == 'open',
+            "can_unlock_is_true": can_unlock,
+            "invites_needed_is_0": invites_needed == 0,
+        }
+        
+        all_passed = all(tests.values())
+        
+        return {
+            "success": all_passed,
+            "message": "All tests passed!" if all_passed else "Some tests failed",
+            "initial_state": {
+                "total_invited": initial_total_invited,
+                "top_status": initial_top_status,
+            },
+            "final_state": {
+                "total_invited": final_total_invited,
+                "top_status": final_top_status,
+                "top_unlock_method": final_top_unlock_method,
+            },
+            "earnings_data": {
+                "invites": earnings_data['invites'],
+                "needed": earnings_data['needed'],
+                "top_status": earnings_data['top_status'],
+            },
+            "eligibility_check": {
+                "can_unlock": can_unlock,
+                "invites_needed": invites_needed,
+            },
+            "tests": tests,
+            "created_logs": created_logs_count,
+        }
     except Exception as e:
         logger.error(f"Error in test_5_invites_unlock: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Test failed: {str(e)}")
