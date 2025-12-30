@@ -283,10 +283,25 @@
                 <h3>Add New Partner</h3>
                 <div class="form-group" style="background: #e0f2fe; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 2px dashed #0284c7;">
                     <label style="font-weight: 600; color: #0c4a6e; margin-bottom: 8px; display: block;">📋 Paste from Google Sheets (optional)</label>
-                    <textarea id="partner-paste-data" rows="3" placeholder="Paste row from Google Sheets here (tab-separated):&#10;Boinkers	Мем-батли за зірки 💩💎	💩💎 Meme battles for stars	..." style="width: 100%; padding: 8px; border: 1px solid #0284c7; border-radius: 4px; font-family: monospace; font-size: 12px;"></textarea>
+                    <textarea id="partner-paste-data" rows="3" placeholder="Paste row from Google Sheets here (tab-separated) - will auto-parse:&#10;Boinkers	Мем-батли за зірки 💩💎	💩💎 Meme battles for stars	..." style="width: 100%; padding: 8px; border: 1px solid #0284c7; border-radius: 4px; font-family: monospace; font-size: 12px; transition: background-color 0.3s ease, border-color 0.3s ease;" onpaste="setTimeout(() => parsePastedData(), 100)"></textarea>
                     <button type="button" onclick="parsePastedData()" style="background: #0284c7; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 12px;">Parse & Fill Form</button>
                     <p style="font-size: 11px; color: #0369a1; margin-top: 8px; margin-bottom: 0;">Format: Bot Name | Description (UK) | Description (EN) | Description (RU) | Description (DE) | Description (ES) | Referral Link | RefParam | Commission | Category | Active | Duration | Verified | ... | ROI Score</p>
                 </div>
+                
+                <!-- Preview Card -->
+                <div id="partner-preview-card" style="display: none; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <h4 style="margin-top: 0; color: #15803d; display: flex; align-items: center; gap: 8px;">
+                        <span>✅</span> Preview - Review before adding
+                    </h4>
+                    <div id="partner-preview-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+                        <!-- Will be filled by JavaScript -->
+                    </div>
+                    <div id="partner-preview-warnings" style="margin-top: 15px; padding: 10px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; display: none;">
+                        <strong style="color: #92400e;">⚠️ Warnings:</strong>
+                        <ul id="partner-preview-warnings-list" style="margin: 8px 0 0 0; padding-left: 20px; color: #78350f;"></ul>
+                    </div>
+                </div>
+                
                 <div class="form-group">
                     <label>Bot Name</label>
                     <input type="text" id="partner-name" placeholder="Partner Bot Name">
