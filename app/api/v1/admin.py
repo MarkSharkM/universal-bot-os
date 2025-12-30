@@ -146,13 +146,15 @@ async def update_bot(
 @router.delete("/bots/{bot_id}")
 async def delete_bot(
     bot_id: UUID,
+    hard_delete: bool = Query(False, description="If true, permanently delete. Otherwise soft delete."),
     db: Session = Depends(get_db)
 ):
     """
-    Delete bot (soft delete - set is_active=False).
+    Delete bot (soft delete by default, or hard delete if specified).
     
     Args:
         bot_id: Bot UUID
+        hard_delete: If true, permanently delete. Otherwise soft delete (set is_active=False).
         db: Database session
     
     Returns:
@@ -162,11 +164,18 @@ async def delete_bot(
     if not bot:
         raise HTTPException(status_code=404, detail="Bot not found")
     
-    # Soft delete
-    bot.is_active = False
+    if hard_delete:
+        # Permanent deletion
+        db.delete(bot)
+        message = "Bot permanently deleted"
+    else:
+        # Soft delete
+        bot.is_active = False
+        message = "Bot deactivated successfully"
+    
     db.commit()
     
-    return {"message": "Bot deactivated successfully"}
+    return {"message": message, "hard_delete": hard_delete}
 
 
 @router.get("/bots/{bot_id}/stats")
