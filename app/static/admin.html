@@ -624,13 +624,49 @@
         let currentBotId = null;
         let currentBotName = null;
         
+        // Simple cache for API responses (to reduce server load)
+        const cache = {
+            bots: { data: null, timestamp: 0, ttl: 5 * 60 * 1000 }, // 5 minutes
+            usersForFilter: { data: null, timestamp: 0, ttl: 2 * 60 * 1000 }, // 2 minutes
+            partners: { data: null, timestamp: 0, ttl: 1 * 60 * 1000 }, // 1 minute
+        };
+        
+        function getCached(key) {
+            const cached = cache[key];
+            if (cached && cached.data && (Date.now() - cached.timestamp) < cached.ttl) {
+                return cached.data;
+            }
+            return null;
+        }
+        
+        function setCache(key, data) {
+            cache[key] = { data, timestamp: Date.now(), ttl: cache[key]?.ttl || 60000 };
+        }
+        
         async function loadGlobalBotSelector() {
             try {
+                // Check cache first
+                const cached = getCached('bots');
+                if (cached) {
+                    const select = document.getElementById('global-bot-select');
+                    if (select) {
+                        select.innerHTML = '<option value="">Select Bot</option>' + 
+                            cached.map(bot => `<option value="${bot.id}">${bot.name}</option>`).join('');
+                        if (cached.length > 0) {
+                            select.value = cached[0].id;
+                            onGlobalBotChange();
+                        }
+                    }
+                    return;
+                }
+                
                 const res = await fetch(`${API_BASE}/bots?limit=50`);
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}`);
                 }
                 const bots = await res.json();
+                setCache('bots', bots); // Cache for 5 minutes
+                
                 const select = document.getElementById('global-bot-select');
                 if (!select) return;
                 
@@ -1456,29 +1492,39 @@
             if (!currentBotId) return;
             
             try {
+                // Check cache first (same as users filter)
+                const cacheKey = `usersForFilter_${currentBotId}`;
+                const cached = getCached(cacheKey);
+                if (cached) {
+                    const select = document.getElementById('messages-user-filter');
+                    if (select) {
+                        select.innerHTML = '<option value="">All users</option>' + cached;
+                    }
+                    return;
+                }
+                
                 // Load only first 100 users for filter (to save resources)
                 const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=100`);
                 const users = await res.json();
                 const select = document.getElementById('messages-user-filter');
                 
                 // Keep "All users" option
-                select.innerHTML = '<option value="">All users</option>';
+                let optionsHtml = '<option value="">All users</option>';
                 
                 // Add users (username + external_id)
                 users.forEach(u => {
-                    const option = document.createElement('option');
-                    option.value = u.id;
                     const displayName = u.username ? `@${u.username} (${u.external_id})` : `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.external_id;
-                    option.textContent = displayName;
-                    select.appendChild(option);
+                    optionsHtml += `<option value="${u.id}">${displayName}</option>`;
                 });
                 
                 if (users.length === 100) {
-                    const option = document.createElement('option');
-                    option.disabled = true;
-                    option.textContent = '... (showing first 100)';
-                    select.appendChild(option);
+                    optionsHtml += '<option disabled>... (showing first 100)</option>';
                 }
+                
+                select.innerHTML = optionsHtml;
+                
+                // Cache for 2 minutes
+                cache[cacheKey] = { data: optionsHtml, timestamp: Date.now(), ttl: 2 * 60 * 1000 };
             } catch (error) {
                 console.error('Error loading users for filter:', error);
             }
@@ -1488,29 +1534,39 @@
             if (!currentBotId) return;
             
             try {
+                // Check cache first
+                const cacheKey = `usersForFilter_${currentBotId}`;
+                const cached = getCached(cacheKey);
+                if (cached) {
+                    const select = document.getElementById('users-user-filter');
+                    if (select) {
+                        select.innerHTML = '<option value="">All users</option>' + cached;
+                    }
+                    return;
+                }
+                
                 // Load only first 100 users for filter (to save resources)
                 const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=100`);
                 const users = await res.json();
                 const select = document.getElementById('users-user-filter');
                 
                 // Keep "All users" option
-                select.innerHTML = '<option value="">All users</option>';
+                let optionsHtml = '<option value="">All users</option>';
                 
                 // Add users (username + external_id)
                 users.forEach(u => {
-                    const option = document.createElement('option');
-                    option.value = u.id;
                     const displayName = u.username ? `@${u.username} (${u.external_id})` : `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.external_id;
-                    option.textContent = displayName;
-                    select.appendChild(option);
+                    optionsHtml += `<option value="${u.id}">${displayName}</option>`;
                 });
                 
                 if (users.length === 100) {
-                    const option = document.createElement('option');
-                    option.disabled = true;
-                    option.textContent = '... (showing first 100)';
-                    select.appendChild(option);
+                    optionsHtml += '<option disabled>... (showing first 100)</option>';
                 }
+                
+                select.innerHTML = optionsHtml;
+                
+                // Cache for 2 minutes
+                cache[cacheKey] = { data: optionsHtml, timestamp: Date.now(), ttl: 2 * 60 * 1000 };
             } catch (error) {
                 console.error('Error loading users for filter:', error);
             }
