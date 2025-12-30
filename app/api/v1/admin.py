@@ -243,6 +243,136 @@ async def hard_delete_bot(
     }
 
 
+@router.post("/bots/{bot_id}/users/{user_id}/test-5-invites")
+async def test_5_invites_unlock(
+    bot_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Test endpoint: Simulate 5 referrals and verify TOP auto-unlock.
+    
+    This endpoint:
+    1. Creates 5 referral log entries
+    2. Updates total_invited count (which should auto-unlock TOP)
+    3. Returns verification results
+    
+    Args:
+        bot_id: Bot UUID
+        user_id: User UUID (the inviter)
+        db: Database session
+    
+    Returns:
+        Test results with verification
+    """
+    from app.services.referral_service import ReferralService
+    from app.services.earnings_service import EarningsService
+    from app.services.user_service import UserService
+    from app.services.translation_service import TranslationService
+    
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.bot_id == bot_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Initialize services
+    referral_service = ReferralService(db, bot_id)
+    user_service = UserService(db, bot_id)
+    translation_service = TranslationService(db, bot_id)
+    earnings_service = EarningsService(
+        db, bot_id, user_service, referral_service, translation_service
+    )
+    
+    # Get initial state
+    initial_total_invited = user.custom_data.get('total_invited', 0) if user.custom_data else 0
+    initial_top_status = user.custom_data.get('top_status', 'locked') if user.custom_data else 'locked'
+    
+    # Create 5 referral events
+    created_logs = []
+    for i in range(1, 6):
+        ref_param = f"_tgr_{user.external_id}"
+        referred_external_id = f"test_referred_{i}_{user.external_id}_{int(time.time())}"
+        
+        log_data = BusinessData(
+            bot_id=bot_id,
+            data_type='log',
+            data={
+                'user_id': str(referred_external_id),
+                'external_id': referred_external_id,
+                'ref_parameter': ref_param,
+                'referral_tag': ref_param,
+                'inviter_external_id': user.external_id,
+                'is_referral': True,
+                'click_type': 'Referral',
+                'event_type': 'start',
+            }
+        )
+        db.add(log_data)
+        created_logs.append(str(log_data.id)))
+    
+    db.commit()
+    
+    # Update total_invited (this should auto-unlock TOP)
+    updated_user = referral_service.update_total_invited(user_id)
+    
+    # Refresh user to get latest data
+    db.refresh(updated_user)
+    
+    # Get final state
+    final_total_invited = updated_user.custom_data.get('total_invited', 0)
+    final_top_status = updated_user.custom_data.get('top_status', 'locked')
+    final_top_unlock_method = updated_user.custom_data.get('top_unlock_method', '')
+    
+    # Check earnings message
+    earnings_data = earnings_service.build_earnings_message(user_id)
+    can_unlock, invites_needed = referral_service.check_top_unlock_eligibility(user_id)
+    
+    # Verify results
+    tests = {
+        "total_invited_is_5": final_total_invited == 5,
+        "top_status_is_open": final_top_status == 'open',
+        "top_unlock_method_is_invites": final_top_unlock_method == 'invites',
+        "earnings_shows_5_invites": earnings_data['invites'] == 5,
+        "earnings_top_status_is_open": earnings_data['top_status'] == 'open',
+        "can_unlock_is_true": can_unlock,
+        "invites_needed_is_0": invites_needed == 0,
+    }
+    
+    all_passed = all(tests.values())
+    
+    return {
+        "success": all_passed,
+        "message": "All tests passed!" if all_passed else "Some tests failed",
+        "initial_state": {
+            "total_invited": initial_total_invited,
+            "top_status": initial_top_status,
+        },
+        "final_state": {
+            "total_invited": final_total_invited,
+            "top_status": final_top_status,
+            "top_unlock_method": final_top_unlock_method,
+        },
+        "earnings_data": {
+            "invites": earnings_data['invites'],
+            "needed": earnings_data['needed'],
+            "top_status": earnings_data['top_status'],
+        },
+        "eligibility_check": {
+            "can_unlock": can_unlock,
+            "invites_needed": invites_needed,
+        },
+        "tests": tests,
+        "created_logs": len(created_logs),
+    }
+
+
 @router.get("/bots/{bot_id}/stats")
 async def get_bot_stats(
     bot_id: UUID,
