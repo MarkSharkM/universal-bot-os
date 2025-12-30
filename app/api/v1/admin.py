@@ -291,14 +291,14 @@ async def test_5_invites_unlock(
         earnings_service = EarningsService(
             db, bot_id, user_service, referral_service, translation_service
         )
-    
-    # Get initial state
-    initial_total_invited = user.custom_data.get('total_invited', 0) if user.custom_data else 0
-    initial_top_status = user.custom_data.get('top_status', 'locked') if user.custom_data else 'locked'
-    
-    # Create 5 referral events
-    timestamp = int(time.time())
-    for i in range(1, 6):
+        
+        # Get initial state
+        initial_total_invited = user.custom_data.get('total_invited', 0) if user.custom_data else 0
+        initial_top_status = user.custom_data.get('top_status', 'locked') if user.custom_data else 'locked'
+        
+        # Create 5 referral events
+        timestamp = int(time.time())
+        for i in range(1, 6):
         ref_param = f"_tgr_{user.external_id}"
         referred_external_id = f"test_referred_{i}_{user.external_id}_{timestamp}"
         
