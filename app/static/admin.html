@@ -966,25 +966,55 @@
             // ... (skip clicks, added, owner, доход)
             // Last: ROI Score
             
-            document.getElementById('partner-name').value = parts[0] || '';
-            document.getElementById('partner-description').value = parts[1] || '';
-            document.getElementById('partner-description-en').value = parts[2] || '';
-            document.getElementById('partner-description-ru').value = parts[3] || '';
-            document.getElementById('partner-description-de').value = parts[4] || '';
-            document.getElementById('partner-description-es').value = parts[5] || '';
-            document.getElementById('partner-link').value = parts[6] || '';
-            document.getElementById('partner-commission').value = parseFloat(parts[8]) || 0;
-            document.getElementById('partner-category').value = (parts[9] || 'NEW').toUpperCase();
-            document.getElementById('partner-active').value = (parts[10] || 'Yes').trim();
-            document.getElementById('partner-verified').value = (parts[12] || 'Yes').trim();
+            // Clean and parse data
+            const botName = (parts[0] || '').trim();
+            const descUk = (parts[1] || '').trim();
+            const descEn = (parts[2] || '').trim();
+            const descRu = (parts[3] || '').trim();
+            const descDe = (parts[4] || '').trim();
+            const descEs = (parts[5] || '').trim();
+            const referralLink = (parts[6] || '').trim();
+            // Skip parts[7] - RefParam
+            const commission = parseFloat((parts[8] || '0').replace(/\s/g, '').replace(',', '.')) || 0;
+            const category = (parts[9] || 'NEW').trim().toUpperCase();
+            const active = (parts[10] || 'Yes').trim();
+            // Skip parts[11] - Duration
+            const verified = (parts[12] || 'Yes').trim();
             
-            // ROI Score is usually the last column
-            const roiScore = parts[parts.length - 1] || '0';
-            // Handle comma as decimal separator (1,60 -> 1.60)
-            const roiScoreValue = parseFloat(roiScore.replace(',', '.')) || 0;
+            // ROI Score is usually the last column (or second to last)
+            let roiScore = parts[parts.length - 1] || '0';
+            // If last is 1,0 and second to last is 1,60, use second to last
+            if (parts.length >= 2 && parts[parts.length - 1] === '1,0' && parts[parts.length - 2]) {
+                roiScore = parts[parts.length - 2];
+            }
+            // Handle comma as decimal separator (1,60 -> 1.60) and remove spaces
+            const roiScoreValue = parseFloat(roiScore.replace(/\s/g, '').replace(',', '.')) || 0;
+            
+            // Fill form
+            document.getElementById('partner-name').value = botName;
+            document.getElementById('partner-description').value = descUk;
+            document.getElementById('partner-description-en').value = descEn;
+            document.getElementById('partner-description-ru').value = descRu;
+            document.getElementById('partner-description-de').value = descDe;
+            document.getElementById('partner-description-es').value = descEs;
+            document.getElementById('partner-link').value = referralLink;
+            document.getElementById('partner-commission').value = commission;
+            document.getElementById('partner-category').value = category;
+            document.getElementById('partner-active').value = active;
+            document.getElementById('partner-verified').value = verified;
             document.getElementById('partner-roi').value = roiScoreValue;
             
-            alert('Form filled successfully! Review and click "Add Partner" to save.');
+            // Show success message briefly
+            const pasteField = document.getElementById('partner-paste-data');
+            const originalBg = pasteField.style.background;
+            pasteField.style.background = '#d1fae5';
+            setTimeout(() => {
+                pasteField.style.background = originalBg;
+            }, 1000);
+            
+            console.log('Form filled from Google Sheets data:', {
+                botName, commission, category, active, verified, roiScore: roiScoreValue
+            });
         }
         
         async function loadPartners() {
