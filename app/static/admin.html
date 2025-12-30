@@ -1509,12 +1509,21 @@
                     const totalInvited = user.total_invited || 0;
                     const topStatus = user.top_status || 'locked';
                     const topUnlockMethod = user.top_unlock_method || '';
+                    const totalInvited = user.total_invited || 0;
                     let topBadge;
                     if (topStatus === 'open') {
-                        const tooltip = topUnlockMethod === 'payment' 
+                        // Determine unlock method if not set
+                        let method = topUnlockMethod;
+                        if (!method) {
+                            // If total_invited >= 5, likely unlocked via invites
+                            // Otherwise, likely via payment (or unknown)
+                            method = totalInvited >= 5 ? 'invites' : 'payment';
+                        }
+                        
+                        const tooltip = method === 'payment' 
                             ? 'TOP відкрито за оплату (1⭐)' 
-                            : topUnlockMethod === 'invites' 
-                            ? `TOP відкрито за запрошених друзів (${user.total_invited || 0} запрошених)`
+                            : method === 'invites' 
+                            ? `TOP відкрито за запрошених друзів (${totalInvited} запрошених)`
                             : 'TOP відкрито';
                         topBadge = `<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; cursor: help;" title="${tooltip}">OPEN</span>`;
                     } else {
