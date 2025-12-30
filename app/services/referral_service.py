@@ -274,12 +274,9 @@ class ReferralService:
         if total_invited >= self.REQUIRED_INVITES:
             current_top_status = user.custom_data.get('top_status', 'locked')
             if current_top_status != 'open':
-                # Unlock TOP via invites
-                from app.services.user_service import UserService
-                user_service = UserService(self.db, self.bot_id)
-                user_service.update_top_status(user.id, 'open', unlock_method='invites')
-                # Refresh user to get updated data
-                self.db.refresh(user)
+                # Unlock TOP via invites - update directly to avoid circular import
+                user.custom_data['top_status'] = 'open'
+                user.custom_data['top_unlock_method'] = 'invites'
         
         # Mark JSONB field as modified for SQLAlchemy
         from sqlalchemy.orm.attributes import flag_modified
