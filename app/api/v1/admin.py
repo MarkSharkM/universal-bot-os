@@ -316,9 +316,16 @@ async def test_5_invites_unlock(
             }
         )
         db.add(log_data)
-        created_logs.append(str(log_data.id))
     
     db.commit()
+    
+    # Get IDs after commit
+    for log_data in db.query(BusinessData).filter(
+        BusinessData.bot_id == bot_id,
+        BusinessData.data_type == 'log',
+        BusinessData.data['inviter_external_id'].astext == user.external_id
+    ).order_by(BusinessData.created_at.desc()).limit(5).all():
+        created_logs.append(str(log_data.id))
     
     # Update total_invited (this should auto-unlock TOP)
     updated_user = referral_service.update_total_invited(user_id)
