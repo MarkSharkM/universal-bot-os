@@ -384,6 +384,65 @@ async def test_5_invites_unlock(
         raise HTTPException(status_code=500, detail=f"Test failed: {str(e)}")
 
 
+@router.post("/bots/{bot_id}/create-test-user")
+async def create_test_user(
+    bot_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Create a test user and generate 5 referral links for testing.
+    
+    Args:
+        bot_id: Bot UUID
+        db: Database session
+    
+    Returns:
+        Test user info and 5 referral links
+    """
+    from app.services.user_service import UserService
+    from app.services.referral_service import ReferralService
+    
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    # Initialize services
+    user_service = UserService(db, bot_id)
+    referral_service = ReferralService(db, bot_id)
+    
+    # Create test user
+    test_external_id = f"test_user_{int(time.time())}"
+    test_user = user_service.get_or_create_user(
+        external_id=test_external_id,
+        platform="telegram",
+        language_code="uk",
+        username="test_user",
+        first_name="Test",
+        last_name="User"
+    )
+    
+    # Generate 5 referral links
+    referral_links = []
+    for i in range(1, 6):
+        link = referral_service.generate_referral_link(test_user.id)
+        referral_links.append({
+            "number": i,
+            "link": link,
+            "ref_param": referral_service.generate_referral_tag(test_user.id)
+        })
+    
+    return {
+        "test_user": {
+            "id": str(test_user.id),
+            "external_id": test_user.external_id,
+            "username": "test_user",
+            "name": "Test User"
+        },
+        "referral_links": referral_links,
+        "instructions": "Натисніть на кожну лінку в Telegram, щоб симулювати 5 запрошень. Після цього викличте /earnings або /top щоб перевірити, чи відкрився TOP."
+    }
+
+
 @router.get("/bots/{bot_id}/stats")
 async def get_bot_stats(
     bot_id: UUID,
