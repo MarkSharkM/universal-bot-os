@@ -720,7 +720,10 @@
             document.getElementById(`database-${tabName}-tab`).style.display = 'block';
             
             // Load data if needed
-            if (tabName === 'users' && currentBotId) loadUsers(0, true);
+            if (tabName === 'users' && currentBotId) {
+                loadUsersForUsersFilter();
+                loadUsers(0, true);
+            }
             if (tabName === 'partners' && currentBotId) loadPartnersData(0, true);
             if (tabName === 'translations') loadTranslationsData(0, true);
             if (tabName === 'messages' && currentBotId) {
