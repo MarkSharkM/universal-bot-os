@@ -133,7 +133,11 @@ async def update_bot(
     if bot_data.name is not None:
         bot.name = bot_data.name
     if bot_data.config is not None:
+        if not bot.config:
+            bot.config = {}
         bot.config.update(bot_data.config)
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(bot, 'config')
     if bot_data.default_lang is not None:
         bot.default_lang = bot_data.default_lang
     if bot_data.is_active is not None:
