@@ -297,10 +297,10 @@ async def test_5_invites_unlock(
     initial_top_status = user.custom_data.get('top_status', 'locked') if user.custom_data else 'locked'
     
     # Create 5 referral events
-    created_logs = []
+    timestamp = int(time.time())
     for i in range(1, 6):
         ref_param = f"_tgr_{user.external_id}"
-        referred_external_id = f"test_referred_{i}_{user.external_id}_{int(time.time())}"
+        referred_external_id = f"test_referred_{i}_{user.external_id}_{timestamp}"
         
         log_data = BusinessData(
             bot_id=bot_id,
@@ -320,13 +320,8 @@ async def test_5_invites_unlock(
     
     db.commit()
     
-    # Get IDs after commit
-    for log_data in db.query(BusinessData).filter(
-        BusinessData.bot_id == bot_id,
-        BusinessData.data_type == 'log',
-        BusinessData.data['inviter_external_id'].astext == user.external_id
-    ).order_by(BusinessData.created_at.desc()).limit(5).all():
-        created_logs.append(str(log_data.id))
+    # Count created logs (we created exactly 5)
+    created_logs_count = 5
     
     # Update total_invited (this should auto-unlock TOP)
     updated_user = referral_service.update_total_invited(user_id)
