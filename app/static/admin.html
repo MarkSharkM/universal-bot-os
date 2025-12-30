@@ -211,11 +211,11 @@
         </header>
         
         <div class="tabs">
-            <button class="tab active" onclick="showTab('bots')">Bots</button>
-            <button class="tab" onclick="showTab('partners')">Partners</button>
-            <button class="tab" onclick="showTab('database')">🗄️ Database</button>
-            <button class="tab" onclick="showTab('ai')">AI Config</button>
-            <button class="tab" onclick="showTab('stats')">Statistics</button>
+            <button class="tab active" onclick="showTab('bots', event)">Bots</button>
+            <button class="tab" onclick="showTab('partners', event)">Partners</button>
+            <button class="tab" onclick="showTab('database', event)">🗄️ Database</button>
+            <button class="tab" onclick="showTab('ai', event)">AI Config</button>
+            <button class="tab" onclick="showTab('stats', event)">Statistics</button>
         </div>
         
         <!-- Bots Tab -->
@@ -1604,7 +1604,6 @@
                     const totalInvited = user.total_invited || 0;
                     const topStatus = user.top_status || 'locked';
                     const topUnlockMethod = user.top_unlock_method || '';
-                    const totalInvited = user.total_invited || 0;
                     let topBadge;
                     if (topStatus === 'open') {
                         // Determine unlock method if not set
