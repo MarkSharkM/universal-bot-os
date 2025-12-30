@@ -313,6 +313,8 @@ async def list_bot_partners(
     bot_id: UUID,
     category: Optional[str] = None,
     active_only: bool = True,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),  # Max 500 partners per request
     db: Session = Depends(get_db)
 ):
     """
@@ -322,6 +324,8 @@ async def list_bot_partners(
         bot_id: Bot UUID
         category: Filter by category (TOP, NEW)
         active_only: Show only active partners
+        skip: Number of records to skip
+        limit: Maximum number of records to return (max 500)
         db: Database session
     
     Returns:
@@ -336,7 +340,7 @@ async def list_bot_partners(
         BusinessData.data_type == 'partner'
     )
     
-    partners = query.all()
+    partners = query.offset(skip).limit(limit).all()
     
     # Filter in Python to avoid JSONB query issues
     result = []

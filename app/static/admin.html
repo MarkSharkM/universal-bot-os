@@ -1119,7 +1119,8 @@
             if (!currentBotId) return;
             
             try {
-                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?limit=1000`);
+                // Load only first 100 users for dropdown (lazy load more if needed)
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?limit=100`);
                 const users = await res.json();
                 const select = document.getElementById('messages-user-select');
                 select.innerHTML = '<option value="">-- Select user to view messages --</option>';
@@ -1130,6 +1131,14 @@
                     option.textContent = `${user.external_id} (${user.platform})`;
                     select.appendChild(option);
                 });
+                
+                // Show note if there are more users
+                if (users.length === 100) {
+                    const option = document.createElement('option');
+                    option.disabled = true;
+                    option.textContent = `... (showing first 100 users, use search for more)`;
+                    select.appendChild(option);
+                }
             } catch (error) {
                 console.error('Error loading users for messages:', error);
             }
@@ -1232,7 +1241,8 @@
             if (!currentBotId) return;
             
             try {
-                const res = await fetch(`${API_BASE}/bots/${currentBotId}/partners`);
+                // Load partners with pagination from API
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/partners?skip=${offset}&limit=${ROWS_PER_PAGE}`);
                 const partners = await res.json();
                 const tbody = document.getElementById('database-partners-tbody');
                 
@@ -1241,15 +1251,13 @@
                     partnersOffset = 0;
                 }
                 
-                const visiblePartners = partners.slice(offset, offset + ROWS_PER_PAGE);
-                
-                if (visiblePartners.length === 0 && reset) {
+                if (partners.length === 0 && reset) {
                     tbody.innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">No partners found</td></tr>';
                     document.getElementById('database-partners-more').style.display = 'none';
                     return;
                 }
                 
-                visiblePartners.forEach(partner => {
+                partners.forEach(partner => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${partner.id.substring(0, 8)}...</td>
@@ -1263,8 +1271,9 @@
                     tbody.appendChild(row);
                 });
                 
-                partnersOffset += visiblePartners.length;
-                document.getElementById('database-partners-more').style.display = partnersOffset < partners.length ? 'block' : 'none';
+                partnersOffset += partners.length;
+                // Show "Load more" if we got full page (might be more)
+                document.getElementById('database-partners-more').style.display = partners.length === ROWS_PER_PAGE ? 'block' : 'none';
             } catch (error) {
                 console.error('Error loading partners:', error);
                 document.getElementById('database-partners-tbody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #ef4444;">Error loading partners</td></tr>';
@@ -1313,9 +1322,8 @@
         }
         
         function loadAllUsers() {
+            // Reset and load first page (pagination handles the rest)
             loadUsers(0, true);
-            // Load all by setting large limit
-            loadUsers(0, false);
         }
         
         function loadMorePartners() {
@@ -1323,6 +1331,7 @@
         }
         
         function loadAllPartners() {
+            // Reset and load first page
             loadPartnersData(0, true);
         }
         
