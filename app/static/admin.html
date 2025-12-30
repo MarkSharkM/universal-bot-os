@@ -278,8 +278,24 @@
                     <input type="text" id="partner-name" placeholder="Partner Bot Name">
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="partner-description" rows="3"></textarea>
+                    <label>Description (UK)</label>
+                    <textarea id="partner-description" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description (EN)</label>
+                    <textarea id="partner-description-en" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description (RU)</label>
+                    <textarea id="partner-description-ru" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description (DE) <span style="color: #6b7280; font-size: 12px;">(optional)</span></label>
+                    <textarea id="partner-description-de" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Description (ES) <span style="color: #6b7280; font-size: 12px;">(optional)</span></label>
+                    <textarea id="partner-description-es" rows="2"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Referral Link</label>
@@ -825,6 +841,8 @@
             document.getElementById('edit-partner-description').value = partner.description || '';
             document.getElementById('edit-partner-description-en').value = partner.description_en || '';
             document.getElementById('edit-partner-description-ru').value = partner.description_ru || '';
+            document.getElementById('edit-partner-description-de').value = partner.description_de || '';
+            document.getElementById('edit-partner-description-es').value = partner.description_es || '';
             document.getElementById('edit-partner-link').value = partner.referral_link || '';
             document.getElementById('edit-partner-commission').value = partner.commission || 0;
             document.getElementById('edit-partner-category').value = partner.category || 'NEW';
@@ -849,6 +867,8 @@
                 description: document.getElementById('edit-partner-description').value,
                 description_en: document.getElementById('edit-partner-description-en').value,
                 description_ru: document.getElementById('edit-partner-description-ru').value,
+                description_de: document.getElementById('edit-partner-description-de').value,
+                description_es: document.getElementById('edit-partner-description-es').value,
                 referral_link: document.getElementById('edit-partner-link').value,
                 commission: parseFloat(document.getElementById('edit-partner-commission').value),
                 category: document.getElementById('edit-partner-category').value,
@@ -887,6 +907,10 @@
             const data = {
                 bot_name: document.getElementById('partner-name').value,
                 description: document.getElementById('partner-description').value,
+                description_en: document.getElementById('partner-description-en').value,
+                description_ru: document.getElementById('partner-description-ru').value,
+                description_de: document.getElementById('partner-description-de').value,
+                description_es: document.getElementById('partner-description-es').value,
                 referral_link: document.getElementById('partner-link').value,
                 commission: parseFloat(document.getElementById('partner-commission').value),
                 category: document.getElementById('partner-category').value,
