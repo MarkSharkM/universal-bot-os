@@ -458,6 +458,7 @@
                                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Username</th>
                                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
                                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Platform</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Device</th>
                                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Language</th>
                                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Wallet</th>
                                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Invited</th>
@@ -468,7 +469,7 @@
                             </tr>
                         </thead>
                         <tbody id="database-users-tbody">
-                            <tr><td colspan="12" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
+                            <tr><td colspan="13" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
                         </tbody>
                     </table>
                     <div id="database-users-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
@@ -1277,7 +1278,7 @@
                 }
                 
                 if (users.length === 0 && reset) {
-                    tbody.innerHTML = '<tr><td colspan="12" style="padding: 20px; text-align: center; color: #6b7280;">No users found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="13" style="padding: 20px; text-align: center; color: #6b7280;">No users found</td></tr>';
                     document.getElementById('database-users-more').style.display = 'none';
                     return;
                 }
@@ -1299,8 +1300,11 @@
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${username}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${fullName}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${user.platform}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-align: center;">
+                            ${user.device_os ? `<span style="background: #e5e7eb; color: #374151; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500;">${user.device_os}</span>` : (user.device ? `<span style="background: #e5e7eb; color: #374151; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${user.device}</span>` : '-')}
+                        </td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">
-                            ${['iOS', 'Android'].includes(user.language_code) ? `<span style="color: #6b7280;">${user.language_code}</span>` : user.language_code}
+                            ${user.language ? `<span style="background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500;">${user.language.toUpperCase()}</span>` : '-'}
                         </td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 10px; word-break: break-all; max-width: 150px;">${wallet}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-align: center;">${totalInvited}</td>
