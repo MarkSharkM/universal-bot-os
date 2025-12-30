@@ -530,20 +530,12 @@
             
             <!-- Messages Tab Content -->
             <div id="database-messages-tab" class="database-tab-content" style="display: none;">
-                <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                        <thead style="background: #f9fafb;">
-                            <tr>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">User</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Role</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Content</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Timestamp</th>
-                            </tr>
-                        </thead>
-                        <tbody id="database-messages-tbody">
-                            <tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>
-                        </tbody>
-                    </table>
+                <div style="background: #f0f2f5; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 20px;">
+                    <div id="database-messages-container" style="max-height: 800px; overflow-y: auto; padding: 10px;">
+                        <div id="database-messages-list" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</div>
+                        </div>
+                    </div>
                     <div id="database-messages-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
                         <button onclick="loadMoreMessages()" style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show More (20 more)</button>
                     </div>
@@ -641,9 +633,9 @@
                 if (el) el.value = currentBotId;
             });
             
-            // Clear messages table when bot changes
-            const messagesTbody = document.getElementById('database-messages-tbody');
-            if (messagesTbody) messagesTbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>';
+            // Clear messages when bot changes
+            const messagesList = document.getElementById('database-messages-list');
+            if (messagesList) messagesList.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</div>';
             
             // Reload current tab if it needs bot data
             const activeTab = document.querySelector('.tab-content.active');
@@ -1208,65 +1200,177 @@
             }
         }
         
+        // Helper function to escape HTML but preserve Telegram formatting
+        function formatTelegramMessage(text) {
+            if (!text) return '';
+            
+            // First, decode escaped newlines (\n -> actual newline)
+            text = text.replace(/\\n/g, '\n');
+            
+            // Escape HTML to prevent XSS, but preserve Telegram HTML tags
+            // Telegram uses: <b>, <i>, <u>, <s>, <code>, <pre>, <a href="...">
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = text;
+            let escaped = tempDiv.innerHTML;
+            
+            // Restore Telegram HTML tags (they were escaped, need to restore)
+            // But first, we need to handle the original HTML from Telegram
+            // Since messages are stored with HTML tags, we should preserve them
+            // Let's check if text contains HTML tags
+            if (text.includes('<') && text.includes('>')) {
+                // Text already contains HTML (from Telegram), use it directly but sanitize
+                // Remove script tags and dangerous attributes
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                // Get text content but preserve allowed tags
+                const allowedTags = ['b', 'i', 'u', 's', 'code', 'pre', 'a'];
+                const walker = document.createTreeWalker(
+                    doc.body,
+                    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+                    null
+                );
+                
+                let result = '';
+                let node;
+                while (node = walker.nextNode()) {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        result += node.textContent.replace(/\n/g, '<br>');
+                    } else if (node.nodeType === Node.ELEMENT_NODE) {
+                        const tagName = node.tagName.toLowerCase();
+                        if (allowedTags.includes(tagName)) {
+                            const attrs = Array.from(node.attributes).map(attr => 
+                                attr.name === 'href' ? `href="${attr.value}"` : ''
+                            ).filter(Boolean).join(' ');
+                            const openTag = attrs ? `<${tagName} ${attrs}>` : `<${tagName}>`;
+                            result += openTag + node.textContent.replace(/\n/g, '<br>') + `</${tagName}>`;
+                        } else {
+                            result += node.textContent.replace(/\n/g, '<br>');
+                        }
+                    }
+                }
+                return result || text.replace(/\n/g, '<br>');
+            } else {
+                // Plain text, just convert newlines to <br>
+                return escaped.replace(/\n/g, '<br>');
+            }
+        }
+        
         async function loadMessages(offset = 0, reset = false) {
             if (!currentBotId) {
-                document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>';
+                document.getElementById('database-messages-list').innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</div>';
                 return;
             }
             
             try {
                 const res = await fetch(`${API_BASE}/bots/${currentBotId}/messages?skip=${offset}&limit=${MESSAGES_PER_PAGE}`);
                 const messages = await res.json();
-                const tbody = document.getElementById('database-messages-tbody');
+                const container = document.getElementById('database-messages-list');
                 
                 if (reset) {
-                    tbody.innerHTML = '';
+                    container.innerHTML = '';
                     messagesOffset = 0;
                 }
                 
                 if (messages.length === 0 && reset) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">No messages found</td></tr>';
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">No messages found</div>';
                     document.getElementById('database-messages-more').style.display = 'none';
                     return;
                 }
                 
                 messages.forEach(msg => {
-                    const row = document.createElement('tr');
                     const isUser = msg.role === 'user';
-                    const roleBadge = msg.role === 'user' ? '👤 User' : msg.role === 'assistant' ? '🤖 Bot' : '⚙️ System';
-                    const roleColor = msg.role === 'user' ? '#3b82f6' : msg.role === 'assistant' ? '#10b981' : '#6b7280';
-                    const userDisplay = msg.user_username ? `@${msg.user_username}` : (msg.user_name || msg.user_external_id);
-                    const contentFull = msg.content.replace(/\n/g, '<br>');
-                    const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : '-';
+                    const userDisplay = msg.user_username ? `@${msg.user_username}` : (msg.user_name || msg.user_external_id || 'Unknown');
+                    const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString('uk-UA', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    }) : '-';
                     
-                    // Style like Telegram - user messages (blue), bot messages (gray)
-                    const messageStyle = isUser 
-                        ? 'background: #e3f2fd; border-left: 3px solid #2196f3; padding: 12px; border-radius: 8px; margin: 4px 0;'
-                        : 'background: #f5f5f5; border-left: 3px solid #4caf50; padding: 12px; border-radius: 8px; margin: 4px 0;';
-                    
-                    row.innerHTML = `
-                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; vertical-align: top;">
-                            <div style="font-weight: 600; color: #1f2937;">${userDisplay}</div>
-                            <div style="color: #6b7280; font-size: 10px; margin-top: 2px;">ID: ${msg.user_external_id}</div>
-                        </td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">
-                            <span style="background: ${roleColor}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; display: inline-block;">${roleBadge}</span>
-                        </td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; max-width: 500px;">
-                            <div style="${messageStyle}">
-                                <div style="font-size: 13px; line-height: 1.5; color: ${isUser ? '#1565c0' : '#1f2937'}; word-wrap: break-word;">${contentFull}</div>
-                            </div>
-                        </td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; color: #6b7280; vertical-align: top;">${timestamp}</td>
+                    // Telegram-like message bubble
+                    const messageDiv = document.createElement('div');
+                    messageDiv.style.cssText = `
+                        display: flex;
+                        flex-direction: ${isUser ? 'row-reverse' : 'row'};
+                        align-items: flex-start;
+                        gap: 8px;
+                        margin-bottom: 12px;
+                        padding: 0 8px;
                     `;
-                    tbody.appendChild(row);
+                    
+                    // User avatar/icon
+                    const avatarDiv = document.createElement('div');
+                    avatarDiv.style.cssText = `
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        background: ${isUser ? '#0088cc' : '#e5e5e5'};
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 18px;
+                        flex-shrink: 0;
+                    `;
+                    avatarDiv.textContent = isUser ? '👤' : '🤖';
+                    
+                    // Message bubble
+                    const bubbleDiv = document.createElement('div');
+                    bubbleDiv.style.cssText = `
+                        max-width: 70%;
+                        background: ${isUser ? '#0088cc' : '#ffffff'};
+                        color: ${isUser ? '#ffffff' : '#000000'};
+                        padding: 10px 14px;
+                        border-radius: ${isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px'};
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                        word-wrap: break-word;
+                        line-height: 1.4;
+                    `;
+                    
+                    // Message header (user name + timestamp)
+                    const headerDiv = document.createElement('div');
+                    headerDiv.style.cssText = `
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-bottom: 4px;
+                        color: ${isUser ? '#ffffff' : '#0088cc'};
+                        opacity: 0.9;
+                    `;
+                    headerDiv.textContent = `${userDisplay} • ${timestamp}`;
+                    
+                    // Message content
+                    const contentDiv = document.createElement('div');
+                    contentDiv.style.cssText = `
+                        font-size: 14px;
+                        line-height: 1.5;
+                        word-wrap: break-word;
+                        white-space: pre-wrap;
+                    `;
+                    
+                    // Format message content (preserve HTML from Telegram)
+                    const formattedContent = formatTelegramMessage(msg.content);
+                    contentDiv.innerHTML = formattedContent;
+                    
+                    bubbleDiv.appendChild(headerDiv);
+                    bubbleDiv.appendChild(contentDiv);
+                    
+                    messageDiv.appendChild(avatarDiv);
+                    messageDiv.appendChild(bubbleDiv);
+                    
+                    container.appendChild(messageDiv);
                 });
                 
                 messagesOffset += messages.length;
                 document.getElementById('database-messages-more').style.display = messages.length === MESSAGES_PER_PAGE ? 'block' : 'none';
+                
+                // Scroll to bottom if reset
+                if (reset) {
+                    const scrollContainer = document.getElementById('database-messages-container');
+                    scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                }
             } catch (error) {
                 console.error('Error loading messages:', error);
-                document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #ef4444;">Error loading messages</td></tr>';
+                document.getElementById('database-messages-list').innerHTML = '<div style="padding: 20px; text-align: center; color: #ef4444;">Error loading messages: ' + error.message + '</div>';
             }
         }
         
