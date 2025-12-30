@@ -15,6 +15,11 @@ class TelegramAdapter(BaseAdapter):
     
     BASE_URL = "https://api.telegram.org/bot"
     
+    # Timeout settings for Telegram API requests
+    # Connect timeout: 10s (time to establish connection)
+    # Read timeout: 30s (time to read response)
+    TIMEOUT = httpx.Timeout(10.0, connect=10.0, read=30.0)
+    
     @property
     def platform_name(self) -> str:
         return "telegram"
@@ -56,7 +61,7 @@ class TelegramAdapter(BaseAdapter):
                 **kwargs
             }
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 return response.json()
@@ -78,7 +83,7 @@ class TelegramAdapter(BaseAdapter):
             token = bot.token
             url = f"{self.BASE_URL}{token}/getChat"
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                 response = await client.post(url, json={"chat_id": user_external_id})
                 response.raise_for_status()
                 return response.json()
@@ -128,7 +133,7 @@ class TelegramAdapter(BaseAdapter):
                 **kwargs
             }
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                 response = await client.post(url, json=payload_data)
                 response.raise_for_status()
                 return response.json()
@@ -168,7 +173,7 @@ class TelegramAdapter(BaseAdapter):
             if show_alert:
                 payload["show_alert"] = show_alert
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 return response.json()
@@ -207,7 +212,7 @@ class TelegramAdapter(BaseAdapter):
             if not ok and error_message:
                 payload["error_message"] = error_message
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 return response.json()
@@ -243,7 +248,7 @@ class TelegramAdapter(BaseAdapter):
             token = bot.token
             url = f"{self.BASE_URL}{token}/getMe"
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                 response = await client.post(url)
                 response.raise_for_status()
                 result = response.json()
