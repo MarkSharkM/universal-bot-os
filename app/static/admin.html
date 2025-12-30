@@ -1671,8 +1671,14 @@
                 });
                 
                 if (!res.ok) {
-                    const error = await res.json();
-                    throw new Error(error.detail || 'Failed to update user');
+                    let errorText = 'Failed to update user';
+                    try {
+                        const error = await res.json();
+                        errorText = error.detail || error.message || JSON.stringify(error);
+                    } catch (e) {
+                        errorText = `HTTP ${res.status}: ${res.statusText}`;
+                    }
+                    throw new Error(errorText);
                 }
                 
                 const result = await res.json();

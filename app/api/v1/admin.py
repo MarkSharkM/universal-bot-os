@@ -1439,7 +1439,12 @@ async def remove_duplicate_partners(
 async def update_user(
     bot_id: UUID,
     user_id: UUID,
-    user_data: Dict[str, Any],
+    top_status: Optional[str] = Query(None, description="Set TOP status: 'locked' or 'open'"),
+    top_unlock_method: Optional[str] = Query(None, description="Set TOP unlock method: 'payment' or 'invites'"),
+    total_invited: Optional[int] = Query(None, description="Set total invited count"),
+    wallet_address: Optional[str] = Query(None, description="Set wallet address"),
+    balance: Optional[float] = Query(None, description="Set user balance"),
+    custom_data: Optional[Dict[str, Any]] = Body(None, description="Update custom_data (merged)"),
     db: Session = Depends(get_db)
 ):
     """
@@ -1448,13 +1453,12 @@ async def update_user(
     Args:
         bot_id: Bot UUID
         user_id: User UUID
-        user_data: Dictionary with parameters to update:
-            - top_status: 'locked' or 'open'
-            - top_unlock_method: 'payment' or 'invites'
-            - total_invited: int (number of invited friends)
-            - wallet_address: str (TON wallet address)
-            - balance: float (user balance)
-            - custom_data: dict (any custom data)
+        top_status: 'locked' or 'open'
+        top_unlock_method: 'payment' or 'invites'
+        total_invited: int (number of invited friends)
+        wallet_address: str (TON wallet address)
+        balance: float (user balance)
+        custom_data: dict (any custom data)
         db: Database session
     
     Returns:
@@ -1481,30 +1485,33 @@ async def update_user(
     # Update parameters
     updated_fields = []
     
-    if 'top_status' in user_data:
-        user.custom_data['top_status'] = user_data['top_status']
+    if top_status is not None:
+        user.custom_data['top_status'] = top_status
         updated_fields.append('top_status')
     
-    if 'top_unlock_method' in user_data:
-        user.custom_data['top_unlock_method'] = user_data['top_unlock_method']
+    if top_unlock_method is not None:
+        user.custom_data['top_unlock_method'] = top_unlock_method
         updated_fields.append('top_unlock_method')
     
-    if 'total_invited' in user_data:
-        user.custom_data['total_invited'] = int(user_data['total_invited'])
+    if total_invited is not None:
+        user.custom_data['total_invited'] = total_invited
         updated_fields.append('total_invited')
     
-    if 'wallet_address' in user_data:
-        user.custom_data['wallet_address'] = user_data['wallet_address']
+    if wallet_address is not None:
+        user.custom_data['wallet_address'] = wallet_address
         updated_fields.append('wallet_address')
     
-    if 'balance' in user_data:
-        user.balance = float(user_data['balance'])
+    if balance is not None:
+        user.balance = balance
         updated_fields.append('balance')
     
-    if 'custom_data' in user_data:
+    if custom_data is not None:
         # Merge custom_data
-        user.custom_data.update(user_data['custom_data'])
+        user.custom_data.update(custom_data)
         updated_fields.append('custom_data (merged)')
+    
+    if not updated_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
     
     # Mark JSONB field as modified
     flag_modified(user, 'custom_data')
