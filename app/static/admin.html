@@ -626,9 +626,14 @@
         
         async function loadGlobalBotSelector() {
             try {
-                const res = await fetch(`${API_BASE}/bots`);
+                const res = await fetch(`${API_BASE}/bots?limit=50`);
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
                 const bots = await res.json();
                 const select = document.getElementById('global-bot-select');
+                if (!select) return;
+                
                 select.innerHTML = '<option value="">Select Bot</option>' + 
                     bots.map(bot => `<option value="${bot.id}">${bot.name}</option>`).join('');
                 
@@ -636,9 +641,15 @@
                 if (bots.length > 0) {
                     select.value = bots[0].id;
                     onGlobalBotChange();
+                } else {
+                    select.innerHTML = '<option value="">No bots found</option>';
                 }
             } catch (error) {
                 console.error('Error loading bots:', error);
+                const select = document.getElementById('global-bot-select');
+                if (select) {
+                    select.innerHTML = '<option value="">Error loading bots</option>';
+                }
             }
         }
         
@@ -1180,7 +1191,7 @@
         
         async function loadDatabaseData() {
             if (!currentBotId) {
-                document.getElementById('database-users-tbody').innerHTML = '<tr><td colspan="12" style="padding: 20px; text-align: center; color: #6b7280;">Please select a bot from header</td></tr>';
+                document.getElementById('database-users-tbody').innerHTML = '<tr><td colspan="14" style="padding: 20px; text-align: center; color: #6b7280;">Please select a bot from header</td></tr>';
                 return;
             }
             
@@ -1189,14 +1200,26 @@
             translationsOffset = 0;
             messagesOffset = 0;
             
-            // Load users for messages dropdown
-            await loadUsersForMessages();
-            
-            await Promise.all([
-                loadUsers(0, true),
-                loadPartnersData(0, true),
-                loadTranslationsData(0, true)
-            ]);
+            // Load only current tab data (lazy loading)
+            const activeSubTab = document.querySelector('#database .tab.active');
+            if (activeSubTab) {
+                const tabName = activeSubTab.textContent.trim().toLowerCase();
+                if (tabName.includes('users')) {
+                    await loadUsersForUsersFilter();
+                    await loadUsers(0, true);
+                } else if (tabName.includes('partners')) {
+                    await loadPartnersData(0, true);
+                } else if (tabName.includes('translations')) {
+                    await loadTranslationsData(0, true);
+                } else if (tabName.includes('messages')) {
+                    await loadUsersForMessagesFilter();
+                    await loadMessages(0, true);
+                }
+            } else {
+                // Default: load users only
+                await loadUsersForUsersFilter();
+                await loadUsers(0, true);
+            }
         }
         
         async function loadUsersForMessages() {
@@ -1433,7 +1456,8 @@
             if (!currentBotId) return;
             
             try {
-                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=1000`);
+                // Load only first 100 users for filter (to save resources)
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=100`);
                 const users = await res.json();
                 const select = document.getElementById('messages-user-filter');
                 
@@ -1448,6 +1472,13 @@
                     option.textContent = displayName;
                     select.appendChild(option);
                 });
+                
+                if (users.length === 100) {
+                    const option = document.createElement('option');
+                    option.disabled = true;
+                    option.textContent = '... (showing first 100)';
+                    select.appendChild(option);
+                }
             } catch (error) {
                 console.error('Error loading users for filter:', error);
             }
@@ -1457,7 +1488,8 @@
             if (!currentBotId) return;
             
             try {
-                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=1000`);
+                // Load only first 100 users for filter (to save resources)
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=100`);
                 const users = await res.json();
                 const select = document.getElementById('users-user-filter');
                 
@@ -1472,6 +1504,13 @@
                     option.textContent = displayName;
                     select.appendChild(option);
                 });
+                
+                if (users.length === 100) {
+                    const option = document.createElement('option');
+                    option.disabled = true;
+                    option.textContent = '... (showing first 100)';
+                    select.appendChild(option);
+                }
             } catch (error) {
                 console.error('Error loading users for filter:', error);
             }
