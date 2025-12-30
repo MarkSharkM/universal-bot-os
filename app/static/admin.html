@@ -431,24 +431,36 @@
                 <small>Viewing data for selected bot. First 10 rows shown, click "Show More" to load additional rows.</small>
             </div>
             
-            <!-- Users Table -->
-            <div style="margin-bottom: 30px;">
-                <h3>👥 Users</h3>
+            <!-- Database Sub-tabs -->
+            <div class="tabs" style="margin-bottom: 20px;">
+                <button class="tab active" onclick="showDatabaseTab('users')">👥 Users</button>
+                <button class="tab" onclick="showDatabaseTab('partners')">🤝 Partners</button>
+                <button class="tab" onclick="showDatabaseTab('translations')">🌐 Translations</button>
+                <button class="tab" onclick="showDatabaseTab('messages')">💬 Messages</button>
+            </div>
+            
+            <!-- Users Tab Content -->
+            <div id="database-users-tab" class="database-tab-content active">
                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <table style="width: 100%; border-collapse: collapse;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                         <thead style="background: #f9fafb;">
                             <tr>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">ID</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">External ID</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Platform</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Language</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Balance</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Active</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Created</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 11px;">ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">External ID</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Username</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Platform</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Language</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Wallet</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Invited</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">TOP</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Balance</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Active</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Created</th>
                             </tr>
                         </thead>
                         <tbody id="database-users-tbody">
-                            <tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
+                            <tr><td colspan="12" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
                         </tbody>
                     </table>
                     <div id="database-users-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
@@ -458,9 +470,8 @@
                 </div>
             </div>
             
-            <!-- Business Data (Partners) Table -->
-            <div style="margin-bottom: 30px;">
-                <h3>🤝 Partners (business_data)</h3>
+            <!-- Partners Tab Content -->
+            <div id="database-partners-tab" class="database-tab-content" style="display: none;">
                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead style="background: #f9fafb;">
@@ -485,9 +496,8 @@
                 </div>
             </div>
             
-            <!-- Translations Table -->
-            <div style="margin-bottom: 30px;">
-                <h3>🌐 Translations</h3>
+            <!-- Translations Tab Content -->
+            <div id="database-translations-tab" class="database-tab-content" style="display: none;">
                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead style="background: #f9fafb;">
@@ -509,9 +519,8 @@
                 </div>
             </div>
             
-            <!-- Messages Table -->
-            <div style="margin-bottom: 30px;">
-                <h3>💬 Messages (User & Bot)</h3>
+            <!-- Messages Tab Content -->
+            <div id="database-messages-tab" class="database-tab-content" style="display: none;">
                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <div style="padding: 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
                         <label style="display: inline-block; margin-right: 10px;">Select User:</label>
@@ -664,7 +673,11 @@
                     }
                 });
             }
-            if (tabName === 'database') loadDatabaseData();
+            if (tabName === 'database') {
+                loadDatabaseData();
+                // Show users tab by default
+                showDatabaseTab('users');
+            }
             if (tabName === 'ai') {
                 loadBotsForSelect('ai-bot-select', () => {
                     if (currentBotId) {
@@ -681,6 +694,23 @@
                     }
                 });
             }
+        }
+        
+        // Database sub-tabs switching
+        function showDatabaseTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('#database .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.database-tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById(`database-${tabName}-tab`).style.display = 'block';
+            
+            // Load data if needed
+            if (tabName === 'users' && currentBotId) loadUsers(0, true);
+            if (tabName === 'partners' && currentBotId) loadPartnersData(0, true);
+            if (tabName === 'translations') loadTranslationsData(0, true);
+            // Messages tab doesn't need auto-load (requires user selection)
         }
         
         // Show stats tab for specific bot
@@ -1131,7 +1161,7 @@
         
         async function loadDatabaseData() {
             if (!currentBotId) {
-                document.getElementById('database-users-tbody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #6b7280;">Please select a bot from header</td></tr>';
+                document.getElementById('database-users-tbody').innerHTML = '<tr><td colspan="12" style="padding: 20px; text-align: center; color: #6b7280;">Please select a bot from header</td></tr>';
                 return;
             }
             

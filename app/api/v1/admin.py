@@ -1269,7 +1269,14 @@ async def list_bot_users(
             "is_active": u.is_active,
             "custom_data": u.custom_data,
             "created_at": u.created_at.isoformat() if u.created_at else None,
-            "updated_at": u.updated_at.isoformat() if u.updated_at else None
+            "updated_at": u.updated_at.isoformat() if u.updated_at else None,
+            # Extract common custom_data fields for easier access
+            "username": u.custom_data.get('username', '') if u.custom_data else '',
+            "first_name": u.custom_data.get('first_name', '') if u.custom_data else '',
+            "last_name": u.custom_data.get('last_name', '') if u.custom_data else '',
+            "wallet_address": u.custom_data.get('wallet_address', '') if u.custom_data else '',
+            "total_invited": u.custom_data.get('total_invited', 0) if u.custom_data else 0,
+            "top_status": u.custom_data.get('top_status', 'locked') if u.custom_data else 'locked',
         }
         for u in users
     ]
