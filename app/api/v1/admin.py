@@ -1436,6 +1436,97 @@ async def remove_duplicate_partners(
     }
 
 
+@router.patch("/bots/{bot_id}/users/{user_id}")
+async def update_user(
+    bot_id: UUID,
+    user_id: UUID,
+    user_data: Dict[str, Any],
+    db: Session = Depends(get_db)
+):
+    """
+    Update user parameters (top_status, total_invited, wallet, etc.).
+    
+    Args:
+        bot_id: Bot UUID
+        user_id: User UUID
+        user_data: Dictionary with parameters to update:
+            - top_status: 'locked' or 'open'
+            - top_unlock_method: 'payment' or 'invites'
+            - total_invited: int (number of invited friends)
+            - wallet_address: str (TON wallet address)
+            - balance: float (user balance)
+            - custom_data: dict (any custom data)
+        db: Database session
+    
+    Returns:
+        Updated user info
+    """
+    from sqlalchemy.orm.attributes import flag_modified
+    
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.bot_id == bot_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Initialize custom_data if not exists
+    if not user.custom_data:
+        user.custom_data = {}
+    
+    # Update parameters
+    updated_fields = []
+    
+    if 'top_status' in user_data:
+        user.custom_data['top_status'] = user_data['top_status']
+        updated_fields.append('top_status')
+    
+    if 'top_unlock_method' in user_data:
+        user.custom_data['top_unlock_method'] = user_data['top_unlock_method']
+        updated_fields.append('top_unlock_method')
+    
+    if 'total_invited' in user_data:
+        user.custom_data['total_invited'] = int(user_data['total_invited'])
+        updated_fields.append('total_invited')
+    
+    if 'wallet_address' in user_data:
+        user.custom_data['wallet_address'] = user_data['wallet_address']
+        updated_fields.append('wallet_address')
+    
+    if 'balance' in user_data:
+        user.balance = float(user_data['balance'])
+        updated_fields.append('balance')
+    
+    if 'custom_data' in user_data:
+        # Merge custom_data
+        user.custom_data.update(user_data['custom_data'])
+        updated_fields.append('custom_data (merged)')
+    
+    # Mark JSONB field as modified
+    flag_modified(user, 'custom_data')
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "success": True,
+        "message": f"Updated fields: {', '.join(updated_fields)}",
+        "user": {
+            "id": str(user.id),
+            "external_id": user.external_id,
+            "top_status": user.custom_data.get('top_status', 'locked'),
+            "top_unlock_method": user.custom_data.get('top_unlock_method', ''),
+            "total_invited": user.custom_data.get('total_invited', 0),
+            "wallet_address": user.custom_data.get('wallet_address', ''),
+            "balance": float(user.balance),
+        }
+    }
+
+
 @router.get("/bots/{bot_id}/users")
 async def list_bot_users(
     bot_id: UUID,
