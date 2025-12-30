@@ -209,7 +209,7 @@ async def _handle_message(
         except Exception as e:
             logger.error(f"Error sending message via Telegram API: {e}", exc_info=True)
             # Don't raise - webhook should still return 200 OK to Telegram
-    elif text and not text.startswith('/'):
+    elif text:
         # Not a command, not a wallet - show wallet_invalid_format message (like in production)
         translation_service = TranslationService(db)
         lang = translation_service.detect_language(user.language_code)
@@ -227,12 +227,15 @@ async def _handle_message(
         db.commit()
         
         # Send error message
-        await adapter.send_message(
-            bot_id,
-            user.external_id,
-            error_message,
-            parse_mode='HTML'
-        )
+        try:
+            await adapter.send_message(
+                bot_id,
+                user.external_id,
+                error_message,
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            logger.error(f"Error sending error message via Telegram API: {e}", exc_info=True)
 
 
 async def _handle_callback(
