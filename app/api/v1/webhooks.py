@@ -96,6 +96,7 @@ async def telegram_webhook(
         from sqlalchemy.orm.attributes import flag_modified
         user.updated_at = datetime.now()
         db.commit()
+        db.refresh(user)  # Refresh to get updated timestamp
         
         # Route by event type
         event_type = event_data.get('event_type', '')

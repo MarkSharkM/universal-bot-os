@@ -1292,6 +1292,7 @@ async def list_bot_users(
             "total_invited": u.custom_data.get('total_invited', 0) if u.custom_data else 0,
             "top_status": u.custom_data.get('top_status', 'locked') if u.custom_data else 'locked',
             "device": u.custom_data.get('device', '') if u.custom_data else '',
+            "device_version": u.custom_data.get('device_version', '') if u.custom_data else '',
             # Normalize language_code - if it's iOS/Android, it's device, not language
             "device_os": u.language_code if u.language_code in ['iOS', 'Android'] else '',
             "language": u.language_code if u.language_code not in ['iOS', 'Android'] else (u.custom_data.get('language', 'uk') if u.custom_data else 'uk'),

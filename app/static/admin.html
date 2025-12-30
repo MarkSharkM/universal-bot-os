@@ -1508,7 +1508,9 @@
                     const wallet = user.wallet_address || '-';
                     const totalInvited = user.total_invited || 0;
                     const topStatus = user.top_status || 'locked';
-                    const topBadge = topStatus === 'open' ? '<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">OPEN</span>' : '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">LOCKED</span>';
+                    const topBadge = topStatus === 'open' 
+                        ? '<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;" title="TOP unlocked (paid or invited 5+ users)">OPEN</span>' 
+                        : '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;" title="TOP locked (needs 5 invites or 1⭐ payment)">LOCKED</span>';
                     const lastActivity = user.last_activity ? new Date(user.last_activity).toLocaleString() : '-';
                     
                     row.innerHTML = `
