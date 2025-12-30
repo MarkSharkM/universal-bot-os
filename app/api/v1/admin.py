@@ -266,12 +266,13 @@ async def test_5_invites_unlock(
     Returns:
         Test results with verification
     """
-    from app.services.referral_service import ReferralService
-    from app.services.earnings_service import EarningsService
-    from app.services.user_service import UserService
-    from app.services.translation_service import TranslationService
-    
-    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    try:
+        from app.services.referral_service import ReferralService
+        from app.services.earnings_service import EarningsService
+        from app.services.user_service import UserService
+        from app.services.translation_service import TranslationService
+        
+        bot = db.query(Bot).filter(Bot.id == bot_id).first()
     if not bot:
         raise HTTPException(status_code=404, detail="Bot not found")
     
