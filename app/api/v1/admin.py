@@ -185,6 +185,7 @@ async def hard_delete_bot(
 ):
     """
     Permanently delete bot from database.
+    WARNING: This will also delete all related data (users, business_data, etc.)
     
     Args:
         bot_id: Bot UUID
@@ -197,11 +198,33 @@ async def hard_delete_bot(
     if not bot:
         raise HTTPException(status_code=404, detail="Bot not found")
     
-    # Permanent deletion
+    # Check related data
+    from app.models.user import User
+    from app.models.business_data import BusinessData
+    from app.models.message import Message
+    
+    users_count = db.query(User).filter(User.bot_id == bot_id).count()
+    business_data_count = db.query(BusinessData).filter(BusinessData.bot_id == bot_id).count()
+    messages_count = db.query(Message).filter(Message.bot_id == bot_id).count()
+    
+    # Delete related data first (if any)
+    if users_count > 0:
+        db.query(User).filter(User.bot_id == bot_id).delete()
+    if business_data_count > 0:
+        db.query(BusinessData).filter(BusinessData.bot_id == bot_id).delete()
+    if messages_count > 0:
+        db.query(Message).filter(Message.bot_id == bot_id).delete()
+    
+    # Delete bot
     db.delete(bot)
     db.commit()
     
-    return {"message": "Bot permanently deleted"}
+    return {
+        "message": "Bot permanently deleted",
+        "deleted_users": users_count,
+        "deleted_business_data": business_data_count,
+        "deleted_messages": messages_count
+    }
 
 
 @router.get("/bots/{bot_id}/stats")
