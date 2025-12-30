@@ -1241,6 +1241,7 @@ async def list_bot_users(
     bot_id: UUID,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    sort_by: str = Query("created_at", description="Sort by: 'created_at' or 'last_activity'"),
     db: Session = Depends(get_db)
 ):
     """
@@ -1250,14 +1251,21 @@ async def list_bot_users(
         bot_id: Bot UUID
         skip: Number of records to skip
         limit: Maximum number of records to return
+        sort_by: Sort by 'created_at' or 'last_activity' (updated_at)
         db: Database session
     
     Returns:
         List of users
     """
+    # Determine sort column
+    if sort_by == "last_activity":
+        order_by = User.updated_at.desc()
+    else:
+        order_by = User.created_at.desc()
+    
     users = db.query(User).filter(
         User.bot_id == bot_id
-    ).order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+    ).order_by(order_by).offset(skip).limit(limit).all()
     
     return [
         {
@@ -1270,6 +1278,7 @@ async def list_bot_users(
             "custom_data": u.custom_data,
             "created_at": u.created_at.isoformat() if u.created_at else None,
             "updated_at": u.updated_at.isoformat() if u.updated_at else None,
+            "last_activity": u.updated_at.isoformat() if u.updated_at else u.created_at.isoformat() if u.created_at else None,
             # Extract common custom_data fields for easier access
             "username": u.custom_data.get('username', '') if u.custom_data else '',
             "first_name": u.custom_data.get('first_name', '') if u.custom_data else '',
@@ -1291,16 +1300,18 @@ async def list_bot_messages(
     bot_id: UUID,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
+    user_id: Optional[UUID] = Query(None, description="Filter by user ID"),
     db: Session = Depends(get_db)
 ):
     """
-    List all messages for a bot (all users).
+    List all messages for a bot (all users or filtered by user).
     Useful for viewing all conversations.
     
     Args:
         bot_id: Bot UUID
         skip: Number of records to skip
         limit: Maximum number of records to return
+        user_id: Optional user ID to filter messages
         db: Database session
     
     Returns:
@@ -1309,9 +1320,12 @@ async def list_bot_messages(
     from app.models.message import Message
     from app.models.user import User
     
-    messages = db.query(Message).filter(
-        Message.bot_id == bot_id
-    ).order_by(Message.timestamp.desc()).offset(skip).limit(limit).all()
+    query = db.query(Message).filter(Message.bot_id == bot_id)
+    
+    if user_id:
+        query = query.filter(Message.user_id == user_id)
+    
+    messages = query.order_by(Message.timestamp.desc()).offset(skip).limit(limit).all()
     
     result = []
     for m in messages:
