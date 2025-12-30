@@ -299,15 +299,26 @@ class TelegramAdapter(BaseAdapter):
                         "payment": message.get("successful_payment"),
                     }
                 }
+            # Extract start parameter if present (for deep linking)
+            start_param = None
+            text = message.get("text", "")
+            if text and text.startswith("/start"):
+                # Telegram sends /start with parameter as: /start _tgr_xxx
+                import re
+                match = re.match(r'^/start\s+(.+)$', text, re.IGNORECASE)
+                if match:
+                    start_param = match.group(1).strip()
+            
             return {
                 "event_type": "message",
                 "user_external_id": str(message["from"]["id"]),
-                "text": message.get("text", ""),
+                "text": text,
                 "metadata": {
                     "message_id": message.get("message_id"),
                     "chat_id": message.get("chat", {}).get("id"),
                     "username": message.get("from", {}).get("username"),
                     "first_name": message.get("from", {}).get("first_name"),
+                    "start_parameter": start_param,  # Include start parameter in metadata
                 }
             }
         elif "callback_query" in payload:

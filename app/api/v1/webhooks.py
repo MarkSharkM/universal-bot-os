@@ -157,7 +157,11 @@ async def _handle_message(
     
     # Parse command
     command = command_service.parse_command(text)
-    start_param = command_service.extract_start_parameter(text)
+    # Try to get start parameter from metadata first (extracted by adapter)
+    start_param = event_data.get('metadata', {}).get('start_parameter')
+    # Fallback to extracting from text
+    if not start_param:
+        start_param = command_service.extract_start_parameter(text)
     
     # Log referral if /start with param
     if command == 'start' and start_param:
