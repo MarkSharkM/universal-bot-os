@@ -124,7 +124,8 @@ async def _handle_message(
     referral_service: ReferralService,
     user_service: UserService,
     adapter: TelegramAdapter,
-    db: Session
+    db: Session,
+    event_data: Dict[str, Any]
 ):
     """Handle message event"""
     message = update.get('message', {})
