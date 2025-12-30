@@ -708,7 +708,7 @@
             if (tabName === 'users' && currentBotId) loadUsers(0, true);
             if (tabName === 'partners' && currentBotId) loadPartnersData(0, true);
             if (tabName === 'translations') loadTranslationsData(0, true);
-            // Messages tab doesn't need auto-load (requires user selection)
+            if (tabName === 'messages' && currentBotId) loadMessages(0, true);
         }
         
         // Show stats tab for specific bot
