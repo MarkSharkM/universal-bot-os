@@ -1004,13 +1004,37 @@
             document.getElementById('partner-verified').value = verified;
             document.getElementById('partner-roi').value = roiScoreValue;
             
-            // Show success message briefly
+            // Enhanced highlight animation
             const pasteField = document.getElementById('partner-paste-data');
-            const originalBg = pasteField.style.background;
             pasteField.style.background = '#d1fae5';
-            setTimeout(() => {
-                pasteField.style.background = originalBg;
-            }, 1000);
+            pasteField.style.borderColor = '#22c55e';
+            pasteField.style.borderWidth = '2px';
+            pasteField.style.transition = 'all 0.3s ease';
+            
+            // Animate border pulse
+            let pulseCount = 0;
+            const pulseInterval = setInterval(() => {
+                pulseCount++;
+                if (pulseCount % 2 === 0) {
+                    pasteField.style.borderColor = '#22c55e';
+                } else {
+                    pasteField.style.borderColor = '#16a34a';
+                }
+                if (pulseCount >= 6) {
+                    clearInterval(pulseInterval);
+                    setTimeout(() => {
+                        pasteField.style.background = '';
+                        pasteField.style.borderColor = '#0284c7';
+                        pasteField.style.borderWidth = '1px';
+                    }, 500);
+                }
+            }, 200);
+            
+            // Show preview card
+            showPartnerPreview({
+                botName, descUk, descEn, descRu, descDe, descEs,
+                referralLink, commission, category, active, verified, roiScore: roiScoreValue
+            });
             
             console.log('Form filled from Google Sheets data:', {
                 botName, commission, category, active, verified, roiScore: roiScoreValue
@@ -1181,6 +1205,9 @@
                 
                 if (res.ok) {
                     showMessage('partners-message', 'Partner added successfully!', 'success');
+                    // Hide preview after successful creation
+                    const previewCard = document.getElementById('partner-preview-card');
+                    if (previewCard) previewCard.style.display = 'none';
                     hideCreatePartnerForm();
                     loadPartners();
                 } else {
