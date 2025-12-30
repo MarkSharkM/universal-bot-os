@@ -315,7 +315,7 @@ async def test_5_invites_unlock(
             }
         )
         db.add(log_data)
-        created_logs.append(str(log_data.id)))
+        created_logs.append(str(log_data.id))
     
     db.commit()
     
