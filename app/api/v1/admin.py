@@ -273,24 +273,24 @@ async def test_5_invites_unlock(
         from app.services.translation_service import TranslationService
         
         bot = db.query(Bot).filter(Bot.id == bot_id).first()
-    if not bot:
-        raise HTTPException(status_code=404, detail="Bot not found")
-    
-    user = db.query(User).filter(
-        User.id == user_id,
-        User.bot_id == bot_id
-    ).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Initialize services
-    referral_service = ReferralService(db, bot_id)
-    user_service = UserService(db, bot_id)
-    translation_service = TranslationService(db)
-    earnings_service = EarningsService(
-        db, bot_id, user_service, referral_service, translation_service
-    )
+        if not bot:
+            raise HTTPException(status_code=404, detail="Bot not found")
+        
+        user = db.query(User).filter(
+            User.id == user_id,
+            User.bot_id == bot_id
+        ).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Initialize services
+        referral_service = ReferralService(db, bot_id)
+        user_service = UserService(db, bot_id)
+        translation_service = TranslationService(db)
+        earnings_service = EarningsService(
+            db, bot_id, user_service, referral_service, translation_service
+        )
     
     # Get initial state
     initial_total_invited = user.custom_data.get('total_invited', 0) if user.custom_data else 0
