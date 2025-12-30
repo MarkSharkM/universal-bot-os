@@ -1257,7 +1257,7 @@ async def list_bot_users(
     """
     users = db.query(User).filter(
         User.bot_id == bot_id
-    ).offset(skip).limit(limit).all()
+    ).order_by(User.created_at.desc()).offset(skip).limit(limit).all()
     
     return [
         {
@@ -1280,6 +1280,58 @@ async def list_bot_users(
         }
         for u in users
     ]
+
+
+@router.get("/bots/{bot_id}/messages")
+async def list_bot_messages(
+    bot_id: UUID,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db)
+):
+    """
+    List all messages for a bot (all users).
+    Useful for viewing all conversations.
+    
+    Args:
+        bot_id: Bot UUID
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        db: Database session
+    
+    Returns:
+        List of messages with user info
+    """
+    from app.models.message import Message
+    from app.models.user import User
+    
+    messages = db.query(Message).filter(
+        Message.bot_id == bot_id
+    ).order_by(Message.timestamp.desc()).offset(skip).limit(limit).all()
+    
+    result = []
+    for m in messages:
+        # Get user info
+        user = db.query(User).filter(User.id == m.user_id).first()
+        user_info = {
+            "external_id": user.external_id if user else "unknown",
+            "username": user.custom_data.get('username', '') if user and user.custom_data else '',
+            "first_name": user.custom_data.get('first_name', '') if user and user.custom_data else '',
+        } if user else {"external_id": "unknown", "username": "", "first_name": ""}
+        
+        result.append({
+            "id": str(m.id),
+            "user_id": str(m.user_id),
+            "user_external_id": user_info["external_id"],
+            "user_username": user_info["username"],
+            "user_name": user_info["first_name"],
+            "role": m.role,  # user, assistant, system
+            "content": m.content,
+            "custom_data": m.custom_data,
+            "timestamp": m.timestamp.isoformat() if m.timestamp else None
+        })
+    
+    return result
 
 
 @router.get("/bots/{bot_id}/users/{user_id}/messages")

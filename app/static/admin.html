@@ -530,22 +530,17 @@
             <!-- Messages Tab Content -->
             <div id="database-messages-tab" class="database-tab-content" style="display: none;">
                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <div style="padding: 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                        <label style="display: inline-block; margin-right: 10px;">Select User:</label>
-                        <select id="messages-user-select" onchange="loadMessages()" style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <option value="">-- Select user to view messages --</option>
-                        </select>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                         <thead style="background: #f9fafb;">
                             <tr>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Role</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Content</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Timestamp</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">User</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Role</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Content</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Timestamp</th>
                             </tr>
                         </thead>
                         <tbody id="database-messages-tbody">
-                            <tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">Select a user to view messages</td></tr>
+                            <tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>
                         </tbody>
                     </table>
                     <div id="database-messages-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
@@ -645,14 +640,9 @@
                 if (el) el.value = currentBotId;
             });
             
-            // Load users for messages dropdown
-            loadUsersForMessages();
-            
             // Clear messages table when bot changes
-            const messagesSelect = document.getElementById('messages-user-select');
             const messagesTbody = document.getElementById('database-messages-tbody');
-            if (messagesSelect) messagesSelect.value = '';
-            if (messagesTbody) messagesTbody.innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">Select a user to view messages</td></tr>';
+            if (messagesTbody) messagesTbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>';
             
             // Reload current tab if it needs bot data
             const activeTab = document.querySelector('.tab-content.active');
@@ -1218,14 +1208,13 @@
         }
         
         async function loadMessages(offset = 0, reset = false) {
-            const userId = document.getElementById('messages-user-select').value;
-            if (!userId || !currentBotId) {
-                document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">Select a user to view messages</td></tr>';
+            if (!currentBotId) {
+                document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>';
                 return;
             }
             
             try {
-                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/messages?skip=${offset}&limit=${MESSAGES_PER_PAGE}`);
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/messages?skip=${offset}&limit=${MESSAGES_PER_PAGE}`);
                 const messages = await res.json();
                 const tbody = document.getElementById('database-messages-tbody');
                 
@@ -1235,7 +1224,7 @@
                 }
                 
                 if (messages.length === 0 && reset) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">No messages found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">No messages found</td></tr>';
                     document.getElementById('database-messages-more').style.display = 'none';
                     return;
                 }
@@ -1244,14 +1233,19 @@
                     const row = document.createElement('tr');
                     const roleBadge = msg.role === 'user' ? '👤 User' : msg.role === 'assistant' ? '🤖 Bot' : '⚙️ System';
                     const roleColor = msg.role === 'user' ? '#3b82f6' : msg.role === 'assistant' ? '#10b981' : '#6b7280';
-                    const contentPreview = msg.content.length > 100 ? msg.content.substring(0, 100) + '...' : msg.content;
+                    const userDisplay = msg.user_username ? `@${msg.user_username}` : (msg.user_name || msg.user_external_id);
+                    const contentFull = msg.content.replace(/\n/g, '<br>');
                     const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : '-';
                     
                     row.innerHTML = `
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">
+                            <div><strong>${userDisplay}</strong></div>
+                            <div style="color: #6b7280; font-size: 10px;">ID: ${msg.user_external_id}</div>
+                        </td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">
                             <span style="background: ${roleColor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">${roleBadge}</span>
                         </td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; max-width: 500px; word-wrap: break-word;">${contentPreview.replace(/\n/g, '<br>')}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; max-width: 500px; word-wrap: break-word;">${contentFull}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${timestamp}</td>
                     `;
                     tbody.appendChild(row);
@@ -1261,7 +1255,7 @@
                 document.getElementById('database-messages-more').style.display = messages.length === MESSAGES_PER_PAGE ? 'block' : 'none';
             } catch (error) {
                 console.error('Error loading messages:', error);
-                document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #ef4444;">Error loading messages</td></tr>';
+                document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #ef4444;">Error loading messages</td></tr>';
             }
         }
         
@@ -1305,13 +1299,15 @@
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${username}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${fullName}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${user.platform}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${user.language_code}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">
+                            ${['iOS', 'Android'].includes(user.language_code) ? `<span style="color: #6b7280;">${user.language_code}</span>` : user.language_code}
+                        </td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 10px; word-break: break-all; max-width: 150px;">${wallet}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-align: center;">${totalInvited}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-align: center;">${topBadge}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px;">${user.balance || 0}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-align: center;">${user.is_active ? '✅' : '❌'}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${new Date(user.created_at).toLocaleDateString()}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${new Date(user.created_at).toLocaleString()}</td>
                     `;
                     tbody.appendChild(row);
                 });
