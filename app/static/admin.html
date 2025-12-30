@@ -497,31 +497,33 @@
                         </select>
                     </div>
                 </div>
-                <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                        <thead style="background: #f9fafb;">
-                            <tr>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 11px;">ID</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">External ID</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Username</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Platform</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Device</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Language</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Wallet</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Invited</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">TOP</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Balance</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Active</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Created</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Last Activity</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="database-users-tbody">
-                            <tr><td colspan="15" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
-                        </tbody>
-                    </table>
+                <div style="background: white; border-radius: 8px; overflow-x: auto; overflow-y: visible; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div style="min-width: 1400px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1400px;">
+                            <thead style="background: #f9fafb;">
+                                <tr>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 11px; white-space: nowrap;">ID</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">External ID</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Username</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Name</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Platform</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Device</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Language</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Wallet</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Invited</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">TOP</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Balance</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Active</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Created</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap;">Last Activity</th>
+                                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap; position: sticky; right: 0; background: #f9fafb; z-index: 10;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="database-users-tbody">
+                                <tr><td colspan="15" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <div id="database-users-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
                         <button onclick="loadMoreUsers()" style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show More (10 more)</button>
                         <button onclick="loadAllUsers()" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load All</button>
