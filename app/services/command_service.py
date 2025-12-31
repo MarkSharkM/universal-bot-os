@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional, Callable
 from sqlalchemy.orm import Session
 from uuid import UUID
 import re
+import logging
 from urllib.parse import quote
 
 from app.services.user_service import UserService
@@ -13,6 +14,8 @@ from app.services.translation_service import TranslationService
 from app.services.partner_service import PartnerService
 from app.services.referral_service import ReferralService
 from app.services.earnings_service import EarningsService
+
+logger = logging.getLogger(__name__)
 
 
 class CommandService:
@@ -110,9 +113,6 @@ class CommandService:
         Returns:
             Response dictionary with message, buttons, etc.
         """
-        import logging
-        logger = logging.getLogger(__name__)
-        
         logger.info(f"handle_command: command={command}, user_id={user_id}, lang={user_lang}, start_param={start_param}")
         
         handlers = {
