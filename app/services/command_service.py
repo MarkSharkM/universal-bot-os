@@ -426,20 +426,17 @@ class CommandService:
         # This way text is on top ("Ось твоє реферальне посилання:"), URL and preview card are below
         message = f"{message_text}\n\n{referral_link}"
         
-        # For share button text, use text WITHOUT URL to avoid duplicate links
-        # URL is already in the 'url' parameter, Telegram will add preview automatically
-        share_text_without_url = self.translation_service.get_translation('share_referral_text', lang, {})
-        if not share_text_without_url or share_text_without_url == 'share_referral_text':
-            # Fallback: use share_referral but remove URL part
-            share_text_full = self.translation_service.get_translation('share_referral', lang, {
-                'referralLink': referral_link
-            })
-            # Remove the URL line if it exists
-            share_text_without_url = '\n'.join([line for line in share_text_full.split('\n') if not line.startswith('http')])
+        # For share button text, use text with URL at the end (after empty line) for proper positioning
+        # This is the text that appears when user clicks "Поділитись лінкою" button
+        share_text_for_button = self.translation_service.get_translation('share_referral', lang, {})
+        # Remove any placeholder
+        share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
+        # Add URL at the end with empty line before it so it appears lower
+        share_text_for_button = f"{share_text_for_button}\n\n{referral_link}"
         
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),
-            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text_without_url, safe='')}"
+            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text_for_button, safe='')}"
         }]]
         
         return {
