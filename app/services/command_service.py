@@ -414,11 +414,15 @@ class CommandService:
         
         referral_link = self.referral_service.generate_referral_link(user_id)
         
-        message = self.translation_service.get_translation(
+        # Get message text without URL (just the description)
+        message_text = self.translation_service.get_translation(
             'share_referral',
             lang,
-            {'referralLink': referral_link}
+            {}
         )
+        # Add URL at the end so preview card appears below the text
+        # This way text is on top, preview card with link is below
+        message = f"{message_text}\n{referral_link}"
         
         # For share button text, use text WITHOUT URL to avoid duplicate links
         # URL is already in the 'url' parameter, Telegram will add preview automatically
