@@ -186,12 +186,12 @@ class PartnerService:
         Personalize referral link with user's tag.
         Replaces personalizeReferral logic from Format_TopBots_Message.
         
-        IMPORTANT: For partner links, we use _tgr_{userId} format (not just {userId}).
-        This is different from main referral links which use {userId} format.
+        IMPORTANT: For partner links, we use same format as /share: just {userId} (no _tgr_ prefix).
+        This matches the main referral links format for consistency.
         
         Args:
             referral_link: Base referral link (from partner)
-            referral_tag: User's referral tag (now just {userId}, but we add _tgr_ for partners)
+            referral_tag: User's referral tag (user.external_id, e.g. "380927579")
         
         Returns:
             Personalized referral link
@@ -201,9 +201,9 @@ class PartnerService:
         
         import re
         
-        # For partner links, we use _tgr_{userId} format
-        # Convert referral_tag (which is now just {userId}) to _tgr_{userId} for partners
-        partner_tag = f"_tgr_{referral_tag}" if not referral_tag.startswith('_tgr_') else referral_tag
+        # For partner links, use same format as /share: just {userId} (no _tgr_ prefix)
+        # referral_tag is already user.external_id (e.g. "380927579")
+        partner_tag = referral_tag
         
         # Replace placeholders first
         link = referral_link
