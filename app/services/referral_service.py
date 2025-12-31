@@ -136,9 +136,10 @@ class ReferralService:
         ref_param: Optional[str],
         event_type: str = "start",  # 'start', 'click', etc.
         click_type: str = "Organic"  # 'Organic', 'Referral', 'gptstore'
-    ) -> BusinessData:
+    ) -> Optional[BusinessData]:
         """
         Log referral event to business_data.
+        Only logs once per user to avoid duplicates.
         Replaces bot_log Google Sheets table.
         
         Args:
@@ -148,7 +149,7 @@ class ReferralService:
             click_type: Type of click (Organic/Referral)
         
         Returns:
-            Created BusinessData record
+            Created BusinessData record, or None if already logged
         """
         user = self.db.query(User).filter(
             and_(
@@ -159,6 +160,21 @@ class ReferralService:
         
         if not user:
             raise ValueError(f"User {user_id} not found")
+        
+        # Check if this user already has a referral log (to avoid duplicates)
+        existing_log = self.db.query(BusinessData).filter(
+            and_(
+                BusinessData.bot_id == self.bot_id,
+                BusinessData.data_type == 'log',
+                BusinessData.data['external_id'].astext == user.external_id
+            )
+        ).first()
+        
+        if existing_log:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"log_referral_event: user {user.external_id} already has a log, skipping duplicate")
+            return None  # Already logged, don't create duplicate
         
         # Parse referral
         is_referral, inviter_external_id, referral_tag = self.parse_referral_parameter(ref_param)
