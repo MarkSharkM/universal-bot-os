@@ -99,28 +99,78 @@ async def telegram_webhook(
         db.refresh(user)  # Refresh to get updated timestamp
         
         # Route by event type
+        # IMPORTANT: Respond to Telegram webhook IMMEDIATELY (200 OK)
+        # Then process message asynchronously in background to avoid blocking
+        # Telegram requires webhook response within seconds, otherwise it retries
         event_type = event_data.get('event_type', '')
         
-        if event_type == 'message':
-            await _handle_message(
-                update, user, bot_id, command_service,
-                referral_service, user_service, adapter, db, event_data
-            )
-        elif event_type == 'callback_query':
-            await _handle_callback(
-                update, user, bot_id, command_service,
-                referral_service, user_service, adapter, db
-            )
-        elif event_type in ['pre_checkout_query', 'successful_payment']:
-            await _handle_payment(
-                update, user, bot_id, user_service, adapter, db
-            )
+        # Create background task for message processing (non-blocking)
+        import asyncio
+        from app.core.database import SessionLocal
         
+        if event_type == 'message':
+            # Create new DB session for background task (current session will close after response)
+            asyncio.create_task(_handle_message_async(
+                update, user.id, bot_id, event_data
+            ))
+        elif event_type == 'callback_query':
+            asyncio.create_task(_handle_callback_async(
+                update, user.id, bot_id
+            ))
+        elif event_type in ['pre_checkout_query', 'successful_payment']:
+            asyncio.create_task(_handle_payment_async(
+                update, user.id, bot_id
+            ))
+        
+        # Return immediately - don't wait for Telegram API or DB operations
         return {"ok": True}
         
     except Exception as e:
         logger.error(f"Webhook error: {e}", exc_info=True)
         return {"ok": False, "error": str(e)}
+
+
+async def _handle_message_async(
+    update: Dict[str, Any],
+    user_id: UUID,
+    bot_id: UUID,
+    event_data: Dict[str, Any]
+):
+    """
+    Async wrapper for message handling - creates new DB session for background task.
+    This allows webhook to return immediately while message is processed in background.
+    """
+    from app.core.database import SessionLocal
+    db = SessionLocal()
+    try:
+        from app.models.user import User
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            logger.error(f"User {user_id} not found in background task")
+            return
+        
+        # Initialize services with new DB session
+        user_service = UserService(db, bot_id)
+        translation_service = TranslationService(db)
+        referral_service = ReferralService(db, bot_id)
+        partner_service = PartnerService(db, bot_id)
+        earnings_service = EarningsService(
+            db, bot_id, user_service, referral_service, translation_service
+        )
+        command_service = CommandService(
+            db, bot_id, user_service, translation_service,
+            partner_service, referral_service, earnings_service
+        )
+        adapter = TelegramAdapter()
+        
+        await _handle_message(
+            update, user, bot_id, command_service,
+            referral_service, user_service, adapter, db, event_data
+        )
+    except Exception as e:
+        logger.error(f"Error in background message handler: {e}", exc_info=True)
+    finally:
+        db.close()
 
 
 async def _handle_message(
@@ -317,6 +367,47 @@ async def _handle_message(
             logger.error(f"Error sending error message via Telegram API: {e}", exc_info=True)
 
 
+async def _handle_callback_async(
+    update: Dict[str, Any],
+    user_id: UUID,
+    bot_id: UUID
+):
+    """
+    Async wrapper for callback handling - creates new DB session for background task.
+    """
+    from app.core.database import SessionLocal
+    db = SessionLocal()
+    try:
+        from app.models.user import User
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            logger.error(f"User {user_id} not found in background callback task")
+            return
+        
+        # Initialize services with new DB session
+        user_service = UserService(db, bot_id)
+        translation_service = TranslationService(db)
+        referral_service = ReferralService(db, bot_id)
+        partner_service = PartnerService(db, bot_id)
+        earnings_service = EarningsService(
+            db, bot_id, user_service, referral_service, translation_service
+        )
+        command_service = CommandService(
+            db, bot_id, user_service, translation_service,
+            partner_service, referral_service, earnings_service
+        )
+        adapter = TelegramAdapter()
+        
+        await _handle_callback(
+            update, user, bot_id, command_service,
+            referral_service, user_service, adapter, db
+        )
+    except Exception as e:
+        logger.error(f"Error in background callback handler: {e}", exc_info=True)
+    finally:
+        db.close()
+
+
 async def _handle_callback(
     update: Dict[str, Any],
     user,
@@ -383,6 +474,36 @@ async def _handle_callback(
     else:
         # Unknown callback
         logger.warning(f"Unknown callback data: {data}")
+
+
+async def _handle_payment_async(
+    update: Dict[str, Any],
+    user_id: UUID,
+    bot_id: UUID
+):
+    """
+    Async wrapper for payment handling - creates new DB session for background task.
+    """
+    from app.core.database import SessionLocal
+    db = SessionLocal()
+    try:
+        from app.models.user import User
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            logger.error(f"User {user_id} not found in background payment task")
+            return
+        
+        # Initialize services with new DB session
+        user_service = UserService(db, bot_id)
+        adapter = TelegramAdapter()
+        
+        await _handle_payment(
+            update, user, bot_id, user_service, adapter, db
+        )
+    except Exception as e:
+        logger.error(f"Error in background payment handler: {e}", exc_info=True)
+    finally:
+        db.close()
 
 
 async def _handle_payment(
