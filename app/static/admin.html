@@ -359,6 +359,11 @@
                     <label>ROI Score</label>
                     <input type="number" id="partner-roi" step="0.1" min="0" max="10">
                 </div>
+                <div class="form-group">
+                    <label>Duration (days)</label>
+                    <input type="number" id="partner-duration" placeholder="9999" min="0" step="1">
+                    <p style="font-size: 11px; color: #666; margin-top: 4px;">How many days the partnership is valid</p>
+                </div>
                 <button onclick="createPartner()">Add Partner</button>
                 <button onclick="hideCreatePartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
             </div>
@@ -423,6 +428,11 @@
                     <label>ROI Score</label>
                     <input type="number" id="edit-partner-roi" step="0.1" min="0" max="10">
                 </div>
+                <div class="form-group">
+                    <label>Duration (days)</label>
+                    <input type="number" id="edit-partner-duration" placeholder="9999" min="0" step="1">
+                    <p style="font-size: 11px; color: #666; margin-top: 4px;">How many days the partnership is valid</p>
+                </div>
                 <button onclick="updatePartner()">Save Changes</button>
                 <button onclick="hideEditPartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
             </div>
@@ -431,6 +441,12 @@
                 <button onclick="showDeletedPartners()" style="background: #ef4444;">🗑️ Show Deleted Partners</button>
             </div>
             
+            <div style="margin-bottom: 10px;">
+                <label style="margin-right: 10px;">
+                    <input type="checkbox" id="show-inactive-partners" onchange="loadPartners()" style="margin-right: 5px;">
+                    Show inactive partners
+                </label>
+            </div>
             <table id="partners-table">
                 <thead>
                     <tr>
@@ -440,6 +456,7 @@
                         <th>Commission</th>
                         <th>Active</th>
                         <th>Verified</th>
+                        <th>Duration (days)</th>
                         <th style="cursor: pointer;" onclick="sortPartnersByROI()" title="Click to sort by ROI Score">ROI <span id="roi-sort-icon">⬇</span></th>
                         <th>Actions</th>
                     </tr>
@@ -994,7 +1011,7 @@
             // 8: Commission
             // 9: Category
             // 10: Active
-            // 11: Duration (skip)
+            // 11: Duration
             // 12: Verified
             // ... (skip clicks, added, owner, доход)
             // Last: ROI Score
@@ -1011,7 +1028,8 @@
             const commission = parseFloat((parts[8] || '0').replace(/\s/g, '').replace(',', '.')) || 0;
             const category = (parts[9] || 'NEW').trim().toUpperCase();
             const active = (parts[10] || 'Yes').trim();
-            // Skip parts[11] - Duration
+            // Parse Duration (parts[11])
+            const duration = (parts[11] || '').trim().replace(/\s/g, '') || '';
             const verified = (parts[12] || 'Yes').trim();
             
             // ROI Score is usually the last column (or second to last)
@@ -1041,6 +1059,7 @@
             setValue('partner-active', active);
             setValue('partner-verified', verified);
             setValue('partner-roi', roiScoreValue);
+            setValue('partner-duration', duration);
             
             // Enhanced highlight animation
             const pasteField = document.getElementById('partner-paste-data');
@@ -1071,7 +1090,7 @@
             // Show preview card
             showPartnerPreview({
                 botName, descUk, descEn, descRu, descDe, descEs,
-                referralLink, commission, category, active, verified, roiScore: roiScoreValue
+                referralLink, commission, category, active, verified, roiScore: roiScoreValue, duration
             });
             
             console.log('Form filled from Google Sheets data:', {
@@ -1084,7 +1103,10 @@
             if (!botId) return;
             
             try {
-                const res = await fetch(`${API_BASE}/bots/${botId}/partners`);
+                // Check if we should show inactive partners
+                const showInactive = document.getElementById('show-inactive-partners')?.checked || false;
+                const activeOnly = !showInactive;
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners?active_only=${activeOnly}`);
                 const partners = await res.json();
                 
                 // Sort by ROI Score
@@ -1109,6 +1131,7 @@
                         <td>${p.commission}%</td>
                         <td>${p.active === 'Yes' ? '✅' : '❌'}</td>
                         <td>${p.verified === 'Yes' ? '✅' : '❌'}</td>
+                        <td>${p.duration || '-'}</td>
                         <td>${p.roi_score || 0}</td>
                         <td>
                             <button onclick="showEditPartnerForm('${p.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
@@ -1152,6 +1175,7 @@
                 <div><strong>ROI Score:</strong> <span style="font-weight: 600; color: ${data.roiScore >= 5 ? '#22c55e' : data.roiScore >= 2 ? '#f59e0b' : '#ef4444'};">${data.roiScore || 0}</span></div>
                 <div><strong>Active:</strong> ${data.active === 'Yes' ? '✅' : '❌'}</div>
                 <div><strong>Verified:</strong> ${data.verified === 'Yes' ? '✅' : '❌'}</div>
+                <div><strong>Duration:</strong> ${data.duration || '<span style="color: #ef4444;">⚠️ Missing</span>'}</div>
                 <div style="grid-column: 1 / -1;"><strong>Referral Link:</strong><br><a href="${data.referralLink}" target="_blank" style="color: #2563eb; word-break: break-all; font-size: 11px;">${data.referralLink || '<span style="color: #ef4444;">⚠️ Missing</span>'}</a></div>
                 <div style="grid-column: 1 / -1;"><strong>Description (UK):</strong> ${data.descUk || '<span style="color: #ef4444;">⚠️ Missing</span>'}</div>
                 <div style="grid-column: 1 / -1;"><strong>Description (EN):</strong> ${data.descEn || '<span style="color: #ef4444;">⚠️ Missing</span>'}</div>
@@ -1218,6 +1242,7 @@
             document.getElementById('edit-partner-active').value = partner.active || 'Yes';
             document.getElementById('edit-partner-verified').value = partner.verified || 'Yes';
             document.getElementById('edit-partner-roi').value = partner.roi_score || 0;
+            document.getElementById('edit-partner-duration').value = partner.duration || '';
             
             document.getElementById('edit-partner-form').style.display = 'block';
             document.getElementById('edit-partner-form').scrollIntoView({ behavior: 'smooth' });
@@ -1243,7 +1268,8 @@
                 category: document.getElementById('edit-partner-category').value,
                 active: document.getElementById('edit-partner-active').value,
                 verified: document.getElementById('edit-partner-verified').value,
-                roi_score: parseFloat(document.getElementById('edit-partner-roi').value) || 0
+                roi_score: parseFloat(document.getElementById('edit-partner-roi').value) || 0,
+                duration: document.getElementById('edit-partner-duration').value || ''
             };
             
             try {
@@ -1285,7 +1311,8 @@
                 category: document.getElementById('partner-category').value,
                 active: document.getElementById('partner-active').value || 'Yes',
                 verified: document.getElementById('partner-verified').value || 'Yes',
-                roi_score: parseFloat(document.getElementById('partner-roi').value) || 0
+                roi_score: parseFloat(document.getElementById('partner-roi').value) || 0,
+                duration: document.getElementById('partner-duration').value || ''
             };
             
             try {
@@ -1296,14 +1323,20 @@
                 });
                 
                 if (res.ok) {
-                    showMessage('partners-message', 'Partner added successfully!', 'success');
+                    const active = document.getElementById('partner-active').value || 'Yes';
+                    let message = 'Partner added successfully!';
+                    if (active === 'No') {
+                        message += ' (Note: Partner is inactive - enable "Show inactive partners" to see it)';
+                    }
+                    showMessage('partners-message', message, 'success');
                     // Hide preview after successful creation
                     const previewCard = document.getElementById('partner-preview-card');
                     if (previewCard) previewCard.style.display = 'none';
                     hideCreatePartnerForm();
                     loadPartners();
                 } else {
-                    showMessage('partners-message', 'Error adding partner', 'error');
+                    const error = await res.json();
+                    showMessage('partners-message', 'Error adding partner: ' + (error.detail || 'Unknown error'), 'error');
                 }
             } catch (error) {
                 showMessage('partners-message', 'Error: ' + error.message, 'error');
