@@ -686,6 +686,106 @@ async def _handle_activate_7(
 
 
 
+@router.post("/telegram-test/{bot_id}")
+async def telegram_webhook_test(
+    bot_id: UUID,
+    update: Dict[str, Any],
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Test endpoint for Telegram webhook - uses bot_id instead of bot_token.
+    Useful for testing referral counter updates.
+    
+    Args:
+        bot_id: Bot UUID
+        update: Telegram update object
+        background_tasks: FastAPI background tasks
+        db: Database session
+    
+    Returns:
+        OK response
+    """
+    try:
+        # Get bot by ID
+        bot = db.query(Bot).filter(Bot.id == bot_id).first()
+        if not bot:
+            logger.warning(f"Bot not found for id: {bot_id}")
+            return {"ok": False, "error": "Bot not found"}
+        if not bot.is_active:
+            logger.warning(f"Bot {bot.id} is inactive")
+            return {"ok": False, "error": "Bot is inactive"}
+        
+        # Initialize services
+        user_service = UserService(db, bot_id)
+        translation_service = TranslationService(db)
+        referral_service = ReferralService(db, bot_id)
+        partner_service = PartnerService(db, bot_id)
+        earnings_service = EarningsService(
+            db, bot_id, user_service, referral_service, translation_service
+        )
+        command_service = CommandService(
+            db, bot_id, user_service, translation_service,
+            partner_service, referral_service, earnings_service
+        )
+        
+        # Initialize adapter
+        adapter = TelegramAdapter()
+        
+        # Handle webhook
+        event_data = await adapter.handle_webhook(bot_id, update)
+        
+        # Extract user info
+        user_external_id = event_data.get('user_external_id', '')
+        if not user_external_id:
+            logger.warning("No user_external_id in webhook")
+            return {"ok": True}
+        
+        # Get or create user
+        from_user = update.get('message', {}).get('from') or \
+                   update.get('callback_query', {}).get('from') or \
+                   update.get('pre_checkout_query', {}).get('from') or {}
+        
+        user = user_service.get_or_create_user(
+            external_id=user_external_id,
+            platform="telegram",
+            language_code=from_user.get('language_code'),
+            username=from_user.get('username'),
+            first_name=from_user.get('first_name'),
+            last_name=from_user.get('last_name')
+        )
+        
+        # Update last_activity (updated_at) on any user interaction
+        from datetime import datetime
+        from sqlalchemy.orm.attributes import flag_modified
+        user.updated_at = datetime.now()
+        db.commit()
+        db.refresh(user)
+        
+        # Route by event type
+        event_type = event_data.get('event_type', '')
+        
+        # Add background task for message processing (non-blocking)
+        if event_type == 'message':
+            background_tasks.add_task(_handle_message_async,
+                update, user.id, bot_id, event_data
+            )
+        elif event_type == 'callback_query':
+            background_tasks.add_task(_handle_callback_async,
+                update, user.id, bot_id
+            )
+        elif event_type in ['pre_checkout_query', 'successful_payment']:
+            background_tasks.add_task(_handle_payment_async,
+                update, user.id, bot_id
+            )
+        
+        return {"ok": True}
+        
+    except Exception as e:
+        logger.error(f"Webhook test error: {e}", exc_info=True)
+        return {"ok": False, "error": str(e)}
+
+
 def _format_buttons(buttons: list) -> Dict[str, Any]:
     """
     Format buttons for Telegram inline keyboard.
