@@ -4,6 +4,7 @@ Handles Telegram webhook updates and routes to command handlers
 """
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from typing import Dict, Any
 from uuid import UUID
 import logging
@@ -140,6 +141,7 @@ async def _handle_message_async(
     Async wrapper for message handling - creates new DB session for background task.
     This allows webhook to return immediately while message is processed in background.
     """
+    logger.info(f"_handle_message_async: START - user_id={user_id}, bot_id={bot_id}, event_type={event_data.get('event_type', 'unknown')}")
     from app.core.database import SessionLocal
     db = SessionLocal()
     try:
@@ -148,6 +150,7 @@ async def _handle_message_async(
         if not user:
             logger.error(f"User {user_id} not found in background task")
             return
+        logger.info(f"_handle_message_async: user found - external_id={user.external_id}")
         
         # Initialize services with new DB session
         user_service = UserService(db, bot_id)
@@ -167,10 +170,12 @@ async def _handle_message_async(
             update, user, bot_id, command_service,
             referral_service, user_service, adapter, db, event_data
         )
+        logger.info(f"_handle_message_async: COMPLETED successfully for user_id={user_id}")
     except Exception as e:
         logger.error(f"Error in background message handler: {e}", exc_info=True)
     finally:
         db.close()
+        logger.info(f"_handle_message_async: DB session closed for user_id={user_id}")
 
 
 async def _handle_message(
@@ -230,7 +235,7 @@ async def _handle_message(
     inviter_external_id_for_update = None
     if command == 'start' and start_param:
         is_referral, inviter_id, ref_tag = referral_service.parse_referral_parameter(start_param)
-        logger.info(f"Start with param: is_referral={is_referral}, inviter_id={inviter_id}, ref_tag={ref_tag}")
+        logger.info(f"Start with param: is_referral={is_referral}, inviter_id={inviter_id}, ref_tag={ref_tag}, start_param={start_param}")
         log_data = referral_service.log_referral_event(
             user.id,
             start_param,
@@ -240,7 +245,7 @@ async def _handle_message(
         # Store inviter_external_id to update count AFTER sending message (non-blocking)
         if is_referral and inviter_id:
             inviter_external_id_for_update = inviter_id
-            logger.info(f"Will update inviter count for external_id={inviter_id} after sending message")
+            logger.info(f"Will update inviter count for external_id={inviter_id} after sending message (log_data.id={log_data.id if log_data else 'None'})")
         else:
             logger.info(f"Not a referral or no inviter_id: is_referral={is_referral}, inviter_id={inviter_id}")
     
@@ -296,27 +301,32 @@ async def _handle_message(
                     
                     # Update inviter's total_invited count AFTER sending message (non-blocking)
                     # This prevents blocking webhook on slow SQL queries
-                    logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update}")
+                    logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update} (type={type(inviter_external_id_for_update)})")
                     if inviter_external_id_for_update:
                         try:
-                            logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}")
+                            logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}, bot_id={bot_id}")
                             inviter = db.query(User).filter(
                                 and_(
                                     User.bot_id == bot_id,
-                                    User.external_id == inviter_external_id_for_update,
+                                    User.external_id == str(inviter_external_id_for_update),  # Ensure string comparison
                                     User.platform == 'telegram'
                                 )
                             ).first()
                             
                             if inviter:
-                                logger.info(f"Found inviter: user_id={inviter.id}, external_id={inviter.external_id}, updating total_invited")
+                                logger.info(f"Found inviter: user_id={inviter.id}, external_id={inviter.external_id}, current_total_invited={inviter.custom_data.get('total_invited', 'N/A') if inviter.custom_data else 'N/A'}, updating total_invited")
                                 # Ensure DB sees the new log before counting
                                 db.flush()
+                                logger.info(f"DB flushed, calling update_total_invited for inviter user_id={inviter.id}")
                                 updated_user = referral_service.update_total_invited(inviter.id)
+                                db.commit()  # Ensure update is committed
                                 new_count = updated_user.custom_data.get('total_invited', 0)
-                                logger.info(f"Inviter total_invited updated successfully: new_count={new_count}")
+                                logger.info(f"Inviter total_invited updated successfully: new_count={new_count} (was {inviter.custom_data.get('total_invited', 'N/A') if inviter.custom_data else 'N/A'})")
                             else:
-                                logger.warning(f"Inviter not found for external_id={inviter_external_id_for_update}, bot_id={bot_id}")
+                                logger.warning(f"Inviter not found for external_id={inviter_external_id_for_update}, bot_id={bot_id}. Checking all users with this external_id...")
+                                # Debug: check if user exists with different platform
+                                all_users = db.query(User).filter(User.external_id == str(inviter_external_id_for_update)).all()
+                                logger.warning(f"Found {len(all_users)} users with external_id={inviter_external_id_for_update}: {[(u.id, u.bot_id, u.platform) for u in all_users]}")
                         except Exception as update_error:
                             # Don't fail if update fails - message already sent
                             logger.error(f"Failed to update inviter total_invited: {update_error}", exc_info=True)

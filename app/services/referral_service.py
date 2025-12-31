@@ -194,7 +194,7 @@ class ReferralService:
         
         import logging
         logger = logging.getLogger(__name__)
-        logger.info(f"log_referral_event: saved log for user_id={user_id}, inviter_external_id={inviter_external_id}, is_referral={is_referral}")
+        logger.info(f"log_referral_event: saved log for user_id={user_id}, external_id={user.external_id}, inviter_external_id={inviter_external_id}, is_referral={is_referral}, log_id={log_data.id}, data={log_data.data}")
         
         # Note: update_total_invited() is called AFTER sending message to avoid blocking webhook
         # This is handled in webhook handler to keep /start fast
@@ -243,16 +243,41 @@ class ReferralService:
         """)
         
         try:
+            inviter_external_id_str = str(inviter.external_id)
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"count_referrals: executing query for inviter_external_id={inviter_external_id_str}, bot_id={self.bot_id}")
+            
             result = self.db.execute(
                 query,
                 {
                     'bot_id': str(self.bot_id),
-                    'inviter_external_id': str(inviter.external_id)
+                    'inviter_external_id': inviter_external_id_str
                 }
             ).first()
             
             count = result.count if result and hasattr(result, 'count') else 0
-            return int(count) if count else 0
+            count_int = int(count) if count else 0
+            
+            # Debug: also count total logs for this inviter (without DISTINCT)
+            debug_query = text("""
+                SELECT COUNT(*) as total_logs
+                FROM business_data
+                WHERE bot_id = CAST(:bot_id AS uuid)
+                  AND data_type = 'log'
+                  AND (data->>'inviter_external_id') = :inviter_external_id
+            """)
+            debug_result = self.db.execute(
+                debug_query,
+                {
+                    'bot_id': str(self.bot_id),
+                    'inviter_external_id': inviter_external_id_str
+                }
+            ).first()
+            total_logs = debug_result.total_logs if debug_result and hasattr(debug_result, 'total_logs') else 0
+            logger.info(f"count_referrals: found {count_int} unique referrals (total logs: {total_logs}) for inviter_external_id={inviter_external_id_str}")
+            
+            return count_int
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
@@ -287,8 +312,12 @@ class ReferralService:
         # Ensure we see latest logs (flush any pending changes)
         self.db.flush()
         
+        # Get current count before update
+        old_count = user.custom_data.get('total_invited', 0) if user.custom_data else 0
+        logger.info(f"update_total_invited: current total_invited={old_count} for user_id={user_id}, external_id={user.external_id}")
+        
         total_invited = self.count_referrals(user_id)
-        logger.info(f"update_total_invited: counted {total_invited} referrals for user_id={user_id}, inviter_external_id={user.external_id}")
+        logger.info(f"update_total_invited: counted {total_invited} referrals for user_id={user_id}, inviter_external_id={user.external_id} (was {old_count})")
         
         if not user.custom_data:
             user.custom_data = {}
