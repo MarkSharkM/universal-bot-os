@@ -161,32 +161,16 @@ class ReferralService:
         if not user:
             raise ValueError(f"User {user_id} not found")
         
-        # Parse referral first to check if it's a referral
+        # Parse referral
         is_referral, inviter_external_id, referral_tag = self.parse_referral_parameter(ref_param)
-        
-        # Only check for duplicates if this is a referral
-        # Check if this user already has a referral log for this specific inviter
-        # This prevents counting the same user multiple times for the same inviter
-        if is_referral and inviter_external_id:
-            from sqlalchemy import text
-            existing_log = self.db.query(BusinessData).filter(
-                and_(
-                    BusinessData.bot_id == self.bot_id,
-                    BusinessData.data_type == 'log',
-                    text(f"(data->>'external_id') = '{user.external_id}'"),
-                    text(f"(data->>'inviter_external_id') = '{inviter_external_id}'"),
-                    text("((data->>'is_referral') = 'true' OR (data->>'is_referral') = 'True' OR (data->>'is_referral')::boolean = true)")
-                )
-            ).first()
-            
-            if existing_log:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.info(f"log_referral_event: user {user.external_id} already has referral log for inviter {inviter_external_id}, skipping duplicate")
-                return None  # Already logged for this inviter, don't create duplicate
         
         if is_referral:
             click_type = "Referral"
+        
+        # Note: We don't check for duplicates here because:
+        # 1. count_referrals() uses DISTINCT external_id, so duplicates don't affect count
+        # 2. Checking duplicates adds an extra DB query on every /start, slowing it down
+        # 3. Logging every /start is useful for analytics
         
         log_data = BusinessData(
             bot_id=self.bot_id,
@@ -258,6 +242,7 @@ class ReferralService:
         from sqlalchemy import text, func
         
         # Use raw SQL with DISTINCT for maximum performance
+        # Handle is_referral as both boolean True and string 'true'/'True'
         query = text("""
             SELECT COUNT(DISTINCT data->>'external_id') as count
             FROM business_data
@@ -265,23 +250,30 @@ class ReferralService:
               AND data_type = 'log'
               AND (data->>'inviter_external_id') = :inviter_external_id
               AND (
-                (data->>'is_referral') = 'true' 
-                OR (data->>'is_referral') = 'True'
-                OR (data->>'is_referral')::boolean = true
+                (data->>'is_referral')::text = 'true'
+                OR (data->>'is_referral')::text = 'True'  
+                OR (data->>'is_referral')::boolean IS TRUE
               )
               AND (data->>'external_id') IS NOT NULL
               AND (data->>'external_id') != ''
         """)
         
-        result = self.db.execute(
-            query,
-            {
-                'bot_id': str(self.bot_id),
-                'inviter_external_id': str(inviter.external_id)
-            }
-        ).first()
-        
-        return result.count if result and result.count else 0
+        try:
+            result = self.db.execute(
+                query,
+                {
+                    'bot_id': str(self.bot_id),
+                    'inviter_external_id': str(inviter.external_id)
+                }
+            ).first()
+            
+            count = result.count if result and hasattr(result, 'count') else 0
+            return int(count) if count else 0
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"count_referrals SQL error: {e}", exc_info=True)
+            return 0
     
     def update_total_invited(self, user_id: UUID) -> User:
         """
