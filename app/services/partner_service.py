@@ -267,6 +267,7 @@ class PartnerService:
             Formatted message text
         """
         if not partners:
+            logger.warning(f"format_top_message: No partners provided for formatting")
             # Return empty message (will be handled by caller)
             return ''
         
