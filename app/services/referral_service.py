@@ -237,10 +237,11 @@ class ReferralService:
         
         # Use raw SQL for better performance with JSONB distinct
         # Get count of distinct external_ids for this inviter
+        # Use CAST for UUID parameter
         query = text("""
             SELECT COUNT(DISTINCT data->>'external_id') as unique_count
             FROM business_data
-            WHERE bot_id = :bot_id::uuid
+            WHERE bot_id = CAST(:bot_id AS uuid)
               AND data_type = 'log'
               AND (data->>'inviter_external_id') = :inviter_external_id
               AND (
