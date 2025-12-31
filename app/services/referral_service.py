@@ -317,7 +317,21 @@ class ReferralService:
         return user
     
     def get_total_invited(self, user_id: UUID) -> int:
-        """Get user's total invited count"""
+        """
+        Get user's total invited count.
+        Always recounts to ensure accuracy (count_referrals is now fast).
+        
+        Args:
+            user_id: User UUID
+        
+        Returns:
+            Number of invited users
+        """
+        # Always recount for accuracy - count_referrals is now optimized and fast
+        # It filters in SQL, so it's efficient even with many logs
+        total_invited = self.count_referrals(user_id)
+        
+        # Update cache for consistency (but we always recount)
         user = self.db.query(User).filter(
             and_(
                 User.id == user_id,
@@ -325,13 +339,17 @@ class ReferralService:
             )
         ).first()
         
-        if not user:
-            return 0
+        if user:
+            if not user.custom_data:
+                user.custom_data = {}
+            user.custom_data['total_invited'] = total_invited
+            
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(user, 'custom_data')
+            # Don't commit here - let caller commit if needed
+            # This avoids unnecessary commits on every read
         
-        if user.custom_data:
-            return user.custom_data.get('total_invited', 0)
-        
-        return 0
+        return total_invited
     
     def check_top_unlock_eligibility(self, user_id: UUID) -> Tuple[bool, int]:
         """
