@@ -1131,7 +1131,7 @@
                         <td>${p.commission}%</td>
                         <td>${p.active === 'Yes' ? '✅' : '❌'}</td>
                         <td>${p.verified === 'Yes' ? '✅' : '❌'}</td>
-                        <td>${p.duration || '-'}</td>
+                        <td>${p.duration ? String(p.duration).replace(/\s/g, '') : '-'}</td>
                         <td>${p.roi_score || 0}</td>
                         <td>
                             <button onclick="showEditPartnerForm('${p.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
@@ -1242,7 +1242,9 @@
             document.getElementById('edit-partner-active').value = partner.active || 'Yes';
             document.getElementById('edit-partner-verified').value = partner.verified || 'Yes';
             document.getElementById('edit-partner-roi').value = partner.roi_score || 0;
-            document.getElementById('edit-partner-duration').value = partner.duration || '';
+            // Clean duration (remove spaces like "9 999" -> "9999")
+            const duration = partner.duration ? String(partner.duration).replace(/\s/g, '') : '';
+            document.getElementById('edit-partner-duration').value = duration;
             
             document.getElementById('edit-partner-form').style.display = 'block';
             document.getElementById('edit-partner-form').scrollIntoView({ behavior: 'smooth' });
