@@ -955,8 +955,12 @@ async def test_command(
         db: Database session
     
     Returns:
-        Command response (message, buttons, etc.)
+        Command response (message, buttons, etc.) with detailed debug info
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"test_command: bot_id={bot_id}, command={command}, user_external_id={user_external_id}, user_lang={user_lang}")
+    
     from app.services import (
         UserService, TranslationService, CommandService,
         PartnerService, ReferralService, EarningsService
@@ -964,6 +968,7 @@ async def test_command(
     
     bot = db.query(Bot).filter(Bot.id == bot_id).first()
     if not bot:
+        logger.error(f"test_command: Bot {bot_id} not found")
         raise HTTPException(status_code=404, detail="Bot not found")
     
     # Initialize services
@@ -991,10 +996,13 @@ async def test_command(
     )
     
     # Parse command
+    logger.info(f"test_command: parsing command '{command}'")
     parsed_command = command_service.parse_command(command)
     start_param = command_service.extract_start_parameter(command)
+    logger.info(f"test_command: parsed_command={parsed_command}, start_param={start_param}")
     
     if not parsed_command:
+        logger.warning(f"test_command: Unknown command '{command}'")
         return {
             "error": "Unknown command",
             "input": command,
@@ -1003,12 +1011,14 @@ async def test_command(
     
     # Handle command
     try:
+        logger.info(f"test_command: handling command {parsed_command} for user {user.id}")
         response = command_service.handle_command(
             parsed_command,
             user.id,
             user_lang=user_lang,
             start_param=start_param
         )
+        logger.info(f"test_command: command {parsed_command} completed, has_message={bool(response.get('message'))}, has_error={bool(response.get('error'))}")
         
         # Format message: convert escaped newlines to actual newlines
         # (same as in telegram.py for consistency in testing)
@@ -1032,12 +1042,14 @@ async def test_command(
         }
     except Exception as e:
         import traceback
+        logger.error(f"test_command: Exception handling command {parsed_command}: {e}", exc_info=True)
         return {
             "success": False,
             "error": str(e),
             "traceback": traceback.format_exc(),
             "command": parsed_command,
-            "input": command
+            "input": command,
+            "user_id": str(user.id) if user else None
         }
 
 
