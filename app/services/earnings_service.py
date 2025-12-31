@@ -68,8 +68,6 @@ class EarningsService:
             logger.info(f"build_earnings_message: getting wallet")
             wallet = self.user_service.get_wallet(user_id)
             earned = float(user.balance) if user.balance else 0.0
-            logger.info(f"build_earnings_message: getting total_invited")
-            total_invited = self.referral_service.get_total_invited(user_id)
             logger.info(f"build_earnings_message: getting top_status")
             top_status = self.user_service.get_top_status(user_id)
             
@@ -78,10 +76,14 @@ class EarningsService:
             referral_tag = self.referral_service.generate_referral_tag(user_id)
             referral_link = self.referral_service.generate_referral_link(user_id)
             
-            # Check TOP unlock eligibility
+            # Check TOP unlock eligibility (this also gets total_invited internally)
             logger.info(f"build_earnings_message: checking top unlock eligibility")
             can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
             logger.info(f"build_earnings_message: can_unlock={can_unlock}, invites_needed={invites_needed}")
+            
+            # Get total_invited after check_top_unlock_eligibility (uses cache from previous call)
+            logger.info(f"build_earnings_message: getting total_invited")
+            total_invited = self.referral_service.get_total_invited(user_id)
         except Exception as e:
             logger.error(f"build_earnings_message: error getting user data: {e}", exc_info=True)
             raise

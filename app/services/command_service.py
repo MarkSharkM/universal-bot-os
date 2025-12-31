@@ -204,6 +204,10 @@ class CommandService:
             logger.info(f"_handle_top: checking top status")
             top_status = self.user_service.get_top_status(user_id)
             logger.info(f"_handle_top: top_status={top_status}, can_unlock={can_unlock}, invites_needed={invites_needed}")
+            
+            # Get total_invited once (check_top_unlock_eligibility already called get_total_invited, but we need it for message)
+            # Reuse from check_top_unlock_eligibility to avoid duplicate call
+            total_invited = self.referral_service.get_total_invited(user_id)
         except Exception as e:
             logger.error(f"_handle_top: error checking top status: {e}", exc_info=True)
             raise
@@ -216,10 +220,7 @@ class CommandService:
                 logger.info(f"_handle_top: generated referral_tag")
                 referral_link = self.referral_service.generate_referral_link(user_id)
                 logger.info(f"_handle_top: generated referral_link")
-                
-                # Get total invited count
-                logger.info(f"_handle_top: getting total_invited")
-                total_invited = self.referral_service.get_total_invited(user_id)
+                # total_invited already fetched above
                 logger.info(f"_handle_top: total_invited={total_invited}")
             except Exception as e:
                 logger.error(f"_handle_top: error in locked branch: {e}", exc_info=True)

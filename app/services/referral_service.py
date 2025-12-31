@@ -242,7 +242,7 @@ class ReferralService:
         from sqlalchemy import text, func
         
         # Use raw SQL with DISTINCT for maximum performance
-        # Handle is_referral as both boolean True and string 'true'/'True'
+        # Simplified: check is_referral as text first (faster), then boolean
         query = text("""
             SELECT COUNT(DISTINCT data->>'external_id') as count
             FROM business_data
@@ -250,9 +250,8 @@ class ReferralService:
               AND data_type = 'log'
               AND (data->>'inviter_external_id') = :inviter_external_id
               AND (
-                (data->>'is_referral')::text = 'true'
-                OR (data->>'is_referral')::text = 'True'  
-                OR (data->>'is_referral')::boolean IS TRUE
+                (data->>'is_referral') IN ('true', 'True')
+                OR (data->>'is_referral')::boolean = true
               )
               AND (data->>'external_id') IS NOT NULL
               AND (data->>'external_id') != ''
