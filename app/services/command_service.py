@@ -422,9 +422,9 @@ class CommandService:
         )
         # Remove any remaining [[referralLink]] placeholder
         message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
-        # Add URL at the end so preview card appears below the text
-        # This way text is on top ("Ось твоє реферальне посилання:"), preview card with link is below
-        message = f"{message_text}\n{referral_link}"
+        # Add URL at the end with empty lines before it so it appears lower
+        # This way text is on top ("Ось твоє реферальне посилання:"), URL and preview card are below
+        message = f"{message_text}\n\n{referral_link}"
         
         # For share button text, use text WITHOUT URL to avoid duplicate links
         # URL is already in the 'url' parameter, Telegram will add preview automatically
