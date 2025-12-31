@@ -298,11 +298,16 @@ async def _handle_message(
                     logger.error(f"Telegram API returned error for command {command}: {error_type} - {error_desc} (message_size={message_length}, buttons={buttons_count})")
                 else:
                     logger.info(f"Successfully sent response for command {command} (message_size={message_length}, buttons={buttons_count})")
-                    
-                    # Update inviter's total_invited count AFTER sending message (non-blocking)
-                    # This prevents blocking webhook on slow SQL queries
-                    logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update} (type={type(inviter_external_id_for_update)})")
-                    if inviter_external_id_for_update:
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout sending message for command {command} after 60s (message_size={message_length}, buttons={buttons_count})")
+            except Exception as send_error:
+                logger.error(f"Error sending message via Telegram API for command {command}: {send_error}", exc_info=True)
+            
+            # Update inviter's total_invited count AFTER attempting to send message (even if it failed)
+            # This ensures counter is updated even if Telegram API fails (e.g., test users)
+            # This prevents blocking webhook on slow SQL queries
+            logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update} (type={type(inviter_external_id_for_update)})")
+            if inviter_external_id_for_update:
                         try:
                             logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}, bot_id={bot_id}")
                             inviter = db.query(User).filter(
@@ -333,26 +338,23 @@ async def _handle_message(
                     else:
                         logger.debug(f"No inviter_external_id_for_update to process")
                     
-                    # Save bot response to database AFTER successful send (non-blocking)
-                    if response.get('message'):
-                        try:
-                            bot_message = Message(
-                                user_id=user.id,
-                                bot_id=bot_id,
-                                role='assistant',
-                                content=response.get('message', ''),
-                                custom_data={}
-                            )
-                            db.add(bot_message)
-                            db.commit()
-                        except Exception as db_error:
-                            # Don't fail if DB save fails - message already sent
-                            logger.warning(f"Failed to save bot message to DB: {db_error}")
-            except asyncio.TimeoutError:
-                logger.error(f"Timeout sending message for command {command} after 60s (message_size={message_length}, buttons={buttons_count})")
-                # Don't raise - webhook should still return 200 OK to Telegram
+            # Save bot response to database AFTER attempting to send (non-blocking)
+            if response.get('message'):
+                try:
+                    bot_message = Message(
+                        user_id=user.id,
+                        bot_id=bot_id,
+                        role='assistant',
+                        content=response.get('message', ''),
+                        custom_data={}
+                    )
+                    db.add(bot_message)
+                    db.commit()
+                except Exception as db_error:
+                    # Don't fail if DB save fails
+                    logger.warning(f"Failed to save bot message to DB: {db_error}")
         except Exception as e:
-            logger.error(f"Error sending message via Telegram API for command {command}: {e}", exc_info=True)
+            logger.error(f"Error in message sending block for command {command}: {e}", exc_info=True)
             # Don't raise - webhook should still return 200 OK to Telegram
     elif text:
         # Not a command, not a wallet - show wallet_invalid_format message (like in production)
