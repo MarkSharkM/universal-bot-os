@@ -420,13 +420,20 @@ class CommandService:
             {'referralLink': referral_link}
         )
         
-        share_text = self.translation_service.get_translation('share_referral', lang, {
-            'referralLink': referral_link
-        })
+        # For share button text, use text WITHOUT URL to avoid duplicate links
+        # URL is already in the 'url' parameter, Telegram will add preview automatically
+        share_text_without_url = self.translation_service.get_translation('share_referral_text', lang, {})
+        if not share_text_without_url or share_text_without_url == 'share_referral_text':
+            # Fallback: use share_referral but remove URL part
+            share_text_full = self.translation_service.get_translation('share_referral', lang, {
+                'referralLink': referral_link
+            })
+            # Remove the URL line if it exists
+            share_text_without_url = '\n'.join([line for line in share_text_full.split('\n') if not line.startswith('http')])
         
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),
-            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"
+            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text_without_url, safe='')}"
         }]]
         
         return {
