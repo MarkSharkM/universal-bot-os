@@ -296,6 +296,7 @@ async def _handle_message(
                     
                     # Update inviter's total_invited count AFTER sending message (non-blocking)
                     # This prevents blocking webhook on slow SQL queries
+                    logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update}")
                     if inviter_external_id_for_update:
                         try:
                             logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}")
