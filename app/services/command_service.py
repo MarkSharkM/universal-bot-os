@@ -304,8 +304,6 @@ class CommandService:
         start_param: Optional[str]
     ) -> Dict[str, Any]:
         """Handle /partners command"""
-        import logging
-        logger = logging.getLogger(__name__)
         logger.info(f"_handle_partners: user_id={user_id}, lang={user_lang}")
         
         user = self.user_service.get_user_by_id(user_id)
