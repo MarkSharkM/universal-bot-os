@@ -224,19 +224,28 @@ async def _handle_message(
             message_length = len(message_text) if message_text else 0
             logger.info(f"Sending response for command {command}: message_length={message_length}, has_buttons={bool(response.get('buttons'))}")
             
-            result = await adapter.send_message(
-                bot_id,
-                user.external_id,
-                message_text,
-                reply_markup=_format_buttons(response.get('buttons', [])),
-                parse_mode=response.get('parse_mode', 'HTML')
-            )
-            
-            # Check if Telegram API returned error (e.g., timeout)
-            if result.get('ok') is False:
-                logger.error(f"Telegram API returned error for command {command}: {result.get('error')} - {result.get('description')}")
-            else:
-                logger.info(f"Successfully sent response for command {command}")
+            # Add timeout protection - if earnings command takes too long, log it
+            import asyncio
+            try:
+                result = await asyncio.wait_for(
+                    adapter.send_message(
+                        bot_id,
+                        user.external_id,
+                        message_text,
+                        reply_markup=_format_buttons(response.get('buttons', [])),
+                        parse_mode=response.get('parse_mode', 'HTML')
+                    ),
+                    timeout=30.0  # 30 second timeout
+                )
+                
+                # Check if Telegram API returned error (e.g., timeout)
+                if result.get('ok') is False:
+                    logger.error(f"Telegram API returned error for command {command}: {result.get('error')} - {result.get('description')}")
+                else:
+                    logger.info(f"Successfully sent response for command {command}")
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout sending message for command {command} after 30 seconds")
+                # Don't raise - webhook should still return 200 OK to Telegram
         except Exception as e:
             logger.error(f"Error sending message via Telegram API for command {command}: {e}", exc_info=True)
             # Don't raise - webhook should still return 200 OK to Telegram
