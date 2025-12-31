@@ -230,41 +230,36 @@ class ReferralService:
         if not inviter:
             return 0
         
-        # Get all referral logs, filter in Python to avoid JSONB query issues
-        all_logs = self.db.query(BusinessData).filter(
-            and_(
-                BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'log'
-            )
-        ).all()
+        # Optimized: Filter in SQL using JSONB operators (PostgreSQL)
+        # This avoids loading all logs and filtering in Python
+        from sqlalchemy import text, func, distinct, or_
         
-        # Filter in Python - match by inviter_external_id
-        referral_logs = []
-        for log in all_logs:
-            data = log.data or {}
-            # Check if this log is for this inviter
-            # is_referral can be boolean True or string 'true'
-            is_referral_value = data.get('is_referral')
-            is_valid_referral = (is_referral_value == True or 
-                                (isinstance(is_referral_value, str) and is_referral_value.lower() == 'true'))
-            
-            if (data.get('inviter_external_id') == inviter.external_id and
-                is_valid_referral):
-                referral_logs.append(log)
+        # Use raw SQL for better performance with JSONB distinct
+        # Get count of distinct external_ids for this inviter
+        query = text("""
+            SELECT COUNT(DISTINCT data->>'external_id') as unique_count
+            FROM business_data
+            WHERE bot_id = :bot_id
+              AND data_type = 'log'
+              AND (data->>'inviter_external_id') = :inviter_external_id
+              AND (
+                (data->>'is_referral') = 'true' 
+                OR (data->>'is_referral') = 'True'
+                OR (data->>'is_referral')::boolean = true
+              )
+              AND (data->>'external_id') IS NOT NULL
+              AND (data->>'external_id') != ''
+        """)
         
-        # Get unique referred users by external_id (not ref_parameter!)
-        # Each user should be counted only once, even if they clicked the link multiple times
-        unique_referred_users = set()
-        for log in referral_logs:
-            external_id = log.data.get('external_id', '')
-            user_id = log.data.get('user_id', '')
-            # Use external_id if available, fallback to user_id
-            if external_id:
-                unique_referred_users.add(external_id)
-            elif user_id:
-                unique_referred_users.add(user_id)
+        result = self.db.execute(
+            query,
+            {
+                'bot_id': str(self.bot_id),
+                'inviter_external_id': str(inviter.external_id)
+            }
+        ).first()
         
-        return len(unique_referred_users)
+        return result.unique_count if result else 0
     
     def update_total_invited(self, user_id: UUID) -> User:
         """
