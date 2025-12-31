@@ -278,7 +278,11 @@ async def _handle_message(
             logger.info(f"Sending response for command {command}: message_length={message_length}, buttons={buttons_count}")
             
             # Add timeout protection - if command takes too long, log it
+            # Increased to 180s to accommodate Telegram API retries (5 retries with 60s timeout each + backoff delays)
+            # Max time: 60s timeout + (2+3+5+8+13)s backoff + 60s final attempt = ~151s, so 180s is safe
             import asyncio
+            import time
+            send_start_time = time.time()
             
             try:
                 result = await asyncio.wait_for(
@@ -289,8 +293,12 @@ async def _handle_message(
                         reply_markup=_format_buttons(response.get('buttons', [])),
                         parse_mode=response.get('parse_mode', 'HTML')
                     ),
-                    timeout=60.0  # 60 second timeout (should be enough with 30s Telegram API timeout + retries)
+                    timeout=180.0  # 180 second timeout to accommodate retries (5 retries × 60s + backoff delays)
                 )
+                
+                send_elapsed = time.time() - send_start_time
+                if send_elapsed > 10.0:
+                    logger.warning(f"Slow Telegram API response for command {command}: {send_elapsed:.2f}s (message_size={message_length}, buttons={buttons_count})")
                 
                 # Check if Telegram API returned error (e.g., timeout)
                 if result.get('ok') is False:
@@ -300,7 +308,8 @@ async def _handle_message(
                 else:
                     logger.info(f"Successfully sent response for command {command} (message_size={message_length}, buttons={buttons_count})")
             except asyncio.TimeoutError:
-                logger.error(f"Timeout sending message for command {command} after 60s (message_size={message_length}, buttons={buttons_count})")
+                send_elapsed = time.time() - send_start_time
+                logger.error(f"Timeout sending message for command {command} after {send_elapsed:.2f}s (timeout=180s, message_size={message_length}, buttons={buttons_count})")
             except Exception as send_error:
                 logger.error(f"Error sending message via Telegram API for command {command}: {send_error}", exc_info=True)
             

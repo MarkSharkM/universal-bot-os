@@ -72,17 +72,30 @@ class TelegramAdapter(BaseAdapter):
             max_retries = 5
             last_error = None
             
+            import time
+            start_time = time.time()
+            
             for attempt in range(max_retries + 1):
                 try:
                     async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                         response = await client.post(url, json=payload)
                         response.raise_for_status()
                         result = response.json()
-                        # Log success on retry
+                        
+                        # Log response time
+                        elapsed = time.time() - start_time
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        
                         if attempt > 0:
-                            import logging
-                            logger = logging.getLogger(__name__)
-                            logger.info(f"Telegram API sendMessage succeeded on retry {attempt} (chat_id={user_external_id})")
+                            logger.info(f"Telegram API sendMessage succeeded on retry {attempt} (chat_id={user_external_id}, elapsed={elapsed:.2f}s)")
+                        else:
+                            logger.debug(f"Telegram API sendMessage completed (chat_id={user_external_id}, elapsed={elapsed:.2f}s)")
+                        
+                        # Warn if response is slow (>5s)
+                        if elapsed > 5.0:
+                            logger.warning(f"Telegram API slow response: {elapsed:.2f}s (chat_id={user_external_id}, message_length={len(text)})")
+                        
                         return result
                 except (httpx.ConnectTimeout, httpx.ReadTimeout) as e:
                     last_error = e
