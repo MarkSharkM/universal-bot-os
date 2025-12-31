@@ -331,15 +331,15 @@ async def _handle_message(
                     ).first()
                     
                     if inviter:
-                        logger.info(f"Found inviter: user_id={inviter.id}, external_id={inviter.external_id}, current_total_invited={inviter.custom_data.get('total_invited', 'N/A') if inviter.custom_data else 'N/A'}, updating total_invited")
+                        # Save old count BEFORE update
+                        old_count = inviter.custom_data.get('total_invited', 0) if inviter.custom_data else 0
+                        logger.info(f"Found inviter: user_id={inviter.id}, external_id={inviter.external_id}, current_total_invited={old_count}, updating total_invited")
                         # Ensure DB sees the new log before counting
                         db.flush()
                         logger.info(f"DB flushed, calling update_total_invited for inviter user_id={inviter.id}")
                         updated_user = referral_service.update_total_invited(inviter.id)
-                        # Note: update_total_invited already commits, but we refresh to ensure we see the latest value
-                        db.refresh(updated_user)
+                        # Note: update_total_invited already commits and refreshes, so we get the latest value
                         new_count = updated_user.custom_data.get('total_invited', 0) if updated_user.custom_data else 0
-                        old_count = inviter.custom_data.get('total_invited', 'N/A') if inviter.custom_data else 'N/A'
                         logger.info(f"Inviter total_invited updated successfully: new_count={new_count} (was {old_count}), user_id={inviter.id}, external_id={inviter.external_id}")
                     else:
                         logger.warning(f"Inviter not found for external_id={inviter_external_id_for_update}, bot_id={bot_id}. Checking all users with this external_id...")
