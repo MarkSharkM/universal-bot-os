@@ -319,7 +319,8 @@ class ReferralService:
     def get_total_invited(self, user_id: UUID) -> int:
         """
         Get user's total invited count.
-        Always recounts to ensure accuracy (count_referrals is now fast).
+        Uses cached value for speed, recounts only if cache is missing.
+        Cache is updated by update_total_invited() when new referral is logged.
         
         Args:
             user_id: User UUID
@@ -327,11 +328,6 @@ class ReferralService:
         Returns:
             Number of invited users
         """
-        # Always recount for accuracy - count_referrals is now optimized and fast
-        # It filters in SQL, so it's efficient even with many logs
-        total_invited = self.count_referrals(user_id)
-        
-        # Update cache for consistency (but we always recount)
         user = self.db.query(User).filter(
             and_(
                 User.id == user_id,
@@ -339,15 +335,23 @@ class ReferralService:
             )
         ).first()
         
-        if user:
-            if not user.custom_data:
-                user.custom_data = {}
-            user.custom_data['total_invited'] = total_invited
-            
-            from sqlalchemy.orm.attributes import flag_modified
-            flag_modified(user, 'custom_data')
-            # Don't commit here - let caller commit if needed
-            # This avoids unnecessary commits on every read
+        if not user:
+            return 0
+        
+        # Use cached value if available (fast)
+        if user.custom_data and 'total_invited' in user.custom_data:
+            return user.custom_data.get('total_invited', 0)
+        
+        # If no cache, recount and update cache (happens only once per user)
+        total_invited = self.count_referrals(user_id)
+        
+        if not user.custom_data:
+            user.custom_data = {}
+        user.custom_data['total_invited'] = total_invited
+        
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(user, 'custom_data')
+        self.db.commit()
         
         return total_invited
     
