@@ -316,6 +316,7 @@ class CommandService:
                         'ru': 'Запустить',
                     }
                     launch_label = launch_label_map.get(lang, 'Launch')
+                # Use partner link as-is from database (no personalization)
                 line = f"⭐ <b>{i}. {partner['bot_name']}</b>\n{partner['description']}\n🔗 <a href=\"{partner['referral_link']}\">{launch_label}</a>"
                 partner_lines.append(line)
             

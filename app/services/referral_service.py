@@ -28,7 +28,7 @@ class ReferralService:
     def generate_referral_tag(self, user_id: UUID) -> str:
         """
         Generate referral tag for user.
-        Format: _tgr_{userId}
+        Format: {userId} (changed from _tgr_{userId})
         
         Args:
             user_id: User UUID
@@ -46,7 +46,7 @@ class ReferralService:
         if not user:
             raise ValueError(f"User {user_id} not found")
         
-        return f"_tgr_{user.external_id}"
+        return str(user.external_id)
     
     def generate_referral_link(
         self,
@@ -104,20 +104,31 @@ class ReferralService:
         if ref_param.lower() in reserved:
             return False, None, None
         
-        # Special case: GPT Store traffic
-        if ref_param.lower() in ['_tgr_gptstore', 'tgr_gptstore']:
+        # Special case: GPT Store traffic (keep old format support)
+        if ref_param.lower() in ['_tgr_gptstore', 'tgr_gptstore', 'gptstore']:
             return False, None, 'gptstore'
         
-        # Validate format: _tgr_{userId} or tgr_{userId}
+        # Support both old format (_tgr_{userId}) and new format ({userId})
         import re
+        
+        # New format: just {userId} (numeric or alphanumeric)
+        # Check if it's a simple user ID (not a reserved command)
+        if ref_param and not ref_param.lower() in reserved:
+            # Try to match as direct user ID (numeric Telegram user ID)
+            # Telegram user IDs are typically numeric, but can be alphanumeric
+            if re.match(r'^[a-z0-9_-]+$', ref_param, re.IGNORECASE):
+                # This looks like a user ID - treat as referral
+                return True, ref_param, ref_param
+        
+        # Old format support: _tgr_{userId} or tgr_{userId} (for backward compatibility)
         pattern = r'^_?tgr_([a-z0-9-]+)$'
         match = re.match(pattern, ref_param, re.IGNORECASE)
         
-        if not match:
-            return False, None, None
+        if match:
+            inviter_external_id = match.group(1)
+            return True, inviter_external_id, ref_param
         
-        inviter_external_id = match.group(1)
-        return True, inviter_external_id, ref_param
+        return False, None, None
     
     def log_referral_event(
         self,

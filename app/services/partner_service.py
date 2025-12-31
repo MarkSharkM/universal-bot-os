@@ -210,9 +210,12 @@ class PartnerService:
         Personalize referral link with user's tag.
         Replaces personalizeReferral logic from Format_TopBots_Message.
         
+        IMPORTANT: For partner links, we use _tgr_{userId} format (not just {userId}).
+        This is different from main referral links which use {userId} format.
+        
         Args:
-            referral_link: Base referral link
-            referral_tag: User's referral tag (e.g., '_tgr_123456')
+            referral_link: Base referral link (from partner)
+            referral_tag: User's referral tag (now just {userId}, but we add _tgr_ for partners)
         
         Returns:
             Personalized referral link
@@ -222,27 +225,41 @@ class PartnerService:
         
         import re
         
-        # If already has _tgr_ or tgr_ tag, keep it
-        if re.search(r'(\?|&)start=(?:_?tgr_)', referral_link, re.IGNORECASE):
-            return referral_link
+        # For partner links, we use _tgr_{userId} format
+        # Convert referral_tag (which is now just {userId}) to _tgr_{userId} for partners
+        partner_tag = f"_tgr_{referral_tag}" if not referral_tag.startswith('_tgr_') else referral_tag
         
-        # Replace placeholders
+        # Replace placeholders first
         link = referral_link
-        link = link.replace('{TGR}', referral_tag)
-        link = link.replace('_tgr_', referral_tag)
+        link = link.replace('{TGR}', partner_tag)
         
-        # Replace start=share with user's tag
+        # Replace existing _tgr_XXX with new partner_tag (personalize the link)
+        # This handles cases like: https://t.me/boinker_bot?start=_tgr_qEfhJpQxZGQy
+        # Will become: https://t.me/boinker_bot?start=_tgr_{userId}
         link = re.sub(
-            r'(\?|&)(start|payload)=share\b',
-            f'\\1\\2={referral_tag}',
+            r'(\?|&)start=_?tgr_[^&]*',
+            f'\\1start={partner_tag}',
             link,
             flags=re.IGNORECASE
         )
         
-        # If no start parameter, add it
+        # Also replace any remaining _tgr_ in the link (for placeholders)
+        if '{TGR}' not in link and '_tgr_' in link:
+            # Only replace if it's not already replaced above
+            link = link.replace('_tgr_', partner_tag)
+        
+        # Replace start=share with user's tag (use _tgr_ format for partners)
+        link = re.sub(
+            r'(\?|&)(start|payload)=share\b',
+            f'\\1\\2={partner_tag}',
+            link,
+            flags=re.IGNORECASE
+        )
+        
+        # If no start parameter, add it (use _tgr_ format for partners)
         if not re.search(r'(\?|&)start=', link):
             separator = '&' if '?' in link else '?'
-            link = f"{link}{separator}start={referral_tag}"
+            link = f"{link}{separator}start={partner_tag}"
         
         return link
     
@@ -282,10 +299,8 @@ class PartnerService:
             name = partner['bot_name']
             desc = partner['description']
             commission = partner['commission']
-            link = self.personalize_referral_link(
-                partner['referral_link'],
-                referral_tag
-            )
+            # Use partner link as-is from database (no personalization)
+            link = partner['referral_link']
             
             # Format partner block
             block = f"🤖 <b>{name}</b>\n{desc}\n🪙 Bonus program: {commission}%\n👉 <a href=\"{link}\">Open</a>"
