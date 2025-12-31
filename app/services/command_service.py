@@ -416,7 +416,15 @@ class CommandService:
         start_param: Optional[str]
     ) -> Dict[str, Any]:
         """Handle /earnings command"""
-        earnings_data = self.earnings_service.build_earnings_message(user_id, user_lang)
+        logger.info(f"_handle_earnings: user_id={user_id}, lang={user_lang}")
+        
+        try:
+            logger.info(f"_handle_earnings: calling build_earnings_message")
+            earnings_data = self.earnings_service.build_earnings_message(user_id, user_lang)
+            logger.info(f"_handle_earnings: build_earnings_message completed, has_text={bool(earnings_data.get('text'))}")
+        except Exception as e:
+            logger.error(f"_handle_earnings: error in build_earnings_message: {e}", exc_info=True)
+            raise
         
         # Get language from earnings_data (now included in response)
         lang = earnings_data.get('lang', user_lang or 'en')

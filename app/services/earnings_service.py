@@ -5,10 +5,13 @@ Handles earnings display, progress tracking, 7% program info
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
+import logging
 
 from app.services.user_service import UserService
 from app.services.referral_service import ReferralService
 from app.services.translation_service import TranslationService
+
+logger = logging.getLogger(__name__)
 
 
 class EarningsService:
@@ -49,25 +52,39 @@ class EarningsService:
         Returns:
             Dictionary with message text, referral_link, and metadata
         """
-        user = self.user_service.get_user_by_id(user_id)
-        if not user:
-            raise ValueError(f"User {user_id} not found")
+        logger.info(f"build_earnings_message: user_id={user_id}, user_lang={user_lang}")
         
-        lang = user_lang or user.language_code or 'en'
-        lang = self.translation_service.detect_language(lang)
-        
-        # Get user data
-        wallet = self.user_service.get_wallet(user_id)
-        earned = float(user.balance) if user.balance else 0.0
-        total_invited = self.referral_service.get_total_invited(user_id)
-        top_status = self.user_service.get_top_status(user_id)
-        
-        # Generate referral link
-        referral_tag = self.referral_service.generate_referral_tag(user_id)
-        referral_link = self.referral_service.generate_referral_link(user_id)
-        
-        # Check TOP unlock eligibility
-        can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
+        try:
+            user = self.user_service.get_user_by_id(user_id)
+            if not user:
+                logger.error(f"build_earnings_message: User {user_id} not found")
+                raise ValueError(f"User {user_id} not found")
+            
+            lang = user_lang or user.language_code or 'en'
+            lang = self.translation_service.detect_language(lang)
+            logger.info(f"build_earnings_message: detected lang={lang}")
+            
+            # Get user data
+            logger.info(f"build_earnings_message: getting wallet")
+            wallet = self.user_service.get_wallet(user_id)
+            earned = float(user.balance) if user.balance else 0.0
+            logger.info(f"build_earnings_message: getting total_invited")
+            total_invited = self.referral_service.get_total_invited(user_id)
+            logger.info(f"build_earnings_message: getting top_status")
+            top_status = self.user_service.get_top_status(user_id)
+            
+            # Generate referral link
+            logger.info(f"build_earnings_message: generating referral link")
+            referral_tag = self.referral_service.generate_referral_tag(user_id)
+            referral_link = self.referral_service.generate_referral_link(user_id)
+            
+            # Check TOP unlock eligibility
+            logger.info(f"build_earnings_message: checking top unlock eligibility")
+            can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
+            logger.info(f"build_earnings_message: can_unlock={can_unlock}, invites_needed={invites_needed}")
+        except Exception as e:
+            logger.error(f"build_earnings_message: error getting user data: {e}", exc_info=True)
+            raise
         
         # Build message parts
         message_parts = []
