@@ -144,29 +144,28 @@ class UserService:
     
     def get_wallet(self, user_id: UUID) -> Optional[str]:
         """Get user's wallet address"""
-        # Query all wallets, filter in Python to avoid JSONB query issues
-        all_wallets = self.db.query(BusinessData).filter(
+        # First check user custom_data (fastest, no DB query needed if user already loaded)
+        user = self.get_user_by_id(user_id)
+        if user and user.custom_data:
+            wallet = user.custom_data.get('wallet_address')
+            if wallet:
+                return wallet
+        
+        # If not in custom_data, check business_data (wallet records)
+        # Optimized: query with JSONB filter to avoid loading all wallets
+        from sqlalchemy import cast, String
+        from sqlalchemy.dialects.postgresql import JSONB
+        
+        wallet_data = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'wallet'
+                BusinessData.data_type == 'wallet',
+                cast(BusinessData.data['user_id'], String) == str(user_id)
             )
-        ).order_by(BusinessData.created_at.desc()).all()
+        ).order_by(BusinessData.created_at.desc()).first()
         
-        # Find wallet for this user
-        for wallet_data in all_wallets:
-            if (wallet_data.data or {}).get('user_id') == str(user_id):
-                return wallet_data.data.get('wallet_address')
-        
-        # Fallback to user custom_data
-        user = self.db.query(User).filter(
-            and_(
-                User.id == user_id,
-                User.bot_id == self.bot_id
-            )
-        ).first()
-        
-        if user and user.custom_data:
-            return user.custom_data.get('wallet_address')
+        if wallet_data and wallet_data.data:
+            return wallet_data.data.get('wallet_address')
         
         return None
     
