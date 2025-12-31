@@ -240,6 +240,9 @@ async def _handle_message(
         # Store inviter_external_id to update count AFTER sending message (non-blocking)
         if is_referral and inviter_id:
             inviter_external_id_for_update = inviter_id
+            logger.info(f"Will update inviter count for external_id={inviter_id} after sending message")
+        else:
+            logger.info(f"Not a referral or no inviter_id: is_referral={is_referral}, inviter_id={inviter_id}")
     
     # Handle command
     if command:
@@ -295,6 +298,7 @@ async def _handle_message(
                     # This prevents blocking webhook on slow SQL queries
                     if inviter_external_id_for_update:
                         try:
+                            logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}")
                             inviter = db.query(User).filter(
                                 and_(
                                     User.bot_id == bot_id,
@@ -304,14 +308,19 @@ async def _handle_message(
                             ).first()
                             
                             if inviter:
-                                logger.info(f"Updating inviter total_invited for user_id={inviter.id} (non-blocking)")
-                                referral_service.update_total_invited(inviter.id)
-                                logger.info(f"Inviter total_invited updated successfully")
+                                logger.info(f"Found inviter: user_id={inviter.id}, external_id={inviter.external_id}, updating total_invited")
+                                # Ensure DB sees the new log before counting
+                                db.flush()
+                                updated_user = referral_service.update_total_invited(inviter.id)
+                                new_count = updated_user.custom_data.get('total_invited', 0)
+                                logger.info(f"Inviter total_invited updated successfully: new_count={new_count}")
                             else:
-                                logger.warning(f"Inviter not found for external_id={inviter_external_id_for_update}")
+                                logger.warning(f"Inviter not found for external_id={inviter_external_id_for_update}, bot_id={bot_id}")
                         except Exception as update_error:
                             # Don't fail if update fails - message already sent
-                            logger.warning(f"Failed to update inviter total_invited: {update_error}")
+                            logger.error(f"Failed to update inviter total_invited: {update_error}", exc_info=True)
+                    else:
+                        logger.debug(f"No inviter_external_id_for_update to process")
                     
                     # Save bot response to database AFTER successful send (non-blocking)
                     if response.get('message'):

@@ -188,8 +188,13 @@ class ReferralService:
         )
         
         self.db.add(log_data)
+        self.db.flush()  # Flush to make log visible in same transaction
         self.db.commit()  # Commit immediately to save log
         self.db.refresh(log_data)
+        
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"log_referral_event: saved log for user_id={user_id}, inviter_external_id={inviter_external_id}, is_referral={is_referral}")
         
         # Note: update_total_invited() is called AFTER sending message to avoid blocking webhook
         # This is handled in webhook handler to keep /start fast
@@ -279,8 +284,11 @@ class ReferralService:
         if not user:
             raise ValueError(f"User {user_id} not found")
         
+        # Ensure we see latest logs (flush any pending changes)
+        self.db.flush()
+        
         total_invited = self.count_referrals(user_id)
-        logger.info(f"update_total_invited: counted {total_invited} referrals for user_id={user_id}")
+        logger.info(f"update_total_invited: counted {total_invited} referrals for user_id={user_id}, inviter_external_id={user.external_id}")
         
         if not user.custom_data:
             user.custom_data = {}
