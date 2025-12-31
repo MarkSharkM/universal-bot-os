@@ -187,6 +187,10 @@ class ReferralService:
         
         # Update inviter's total_invited count if this is a referral
         if is_referral and inviter_external_id:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"log_referral_event: is_referral=True, inviter_external_id={inviter_external_id}, looking up inviter...")
+            
             inviter = self.db.query(User).filter(
                 and_(
                     User.bot_id == self.bot_id,
@@ -196,8 +200,12 @@ class ReferralService:
             ).first()
             
             if inviter:
+                logger.info(f"log_referral_event: found inviter user_id={inviter.id}, calling update_total_invited...")
                 # Update inviter's total_invited count
-                self.update_total_invited(inviter.id)
+                updated_user = self.update_total_invited(inviter.id)
+                logger.info(f"log_referral_event: update_total_invited completed, new total_invited={updated_user.custom_data.get('total_invited', 0)}")
+            else:
+                logger.warning(f"log_referral_event: inviter not found for external_id={inviter_external_id}")
         
         return log_data
     
@@ -264,6 +272,10 @@ class ReferralService:
         Returns:
             Updated User object
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"update_total_invited: called for user_id={user_id}")
+        
         user = self.db.query(User).filter(
             and_(
                 User.id == user_id,
@@ -275,6 +287,7 @@ class ReferralService:
             raise ValueError(f"User {user_id} not found")
         
         total_invited = self.count_referrals(user_id)
+        logger.info(f"update_total_invited: counted {total_invited} referrals for user_id={user_id}")
         
         if not user.custom_data:
             user.custom_data = {}
