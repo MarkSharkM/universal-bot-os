@@ -11,6 +11,7 @@ import logging
 
 from app.core.database import get_db
 from app.models.bot import Bot
+from app.models.user import User
 from app.adapters.telegram import TelegramAdapter
 from app.services import (
     UserService, TranslationService, CommandService,
