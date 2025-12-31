@@ -426,13 +426,12 @@ class CommandService:
         # This way text is on top ("Ось твоє реферальне посилання:"), preview card with link is below
         message = f"{message_text}\n{referral_link}"
         
-        # For share button text, use text with URL at the end (after empty line) for proper positioning
+        # For share button text, use text WITHOUT URL to avoid duplicate links
+        # URL is already in the 'url' parameter, Telegram will add preview automatically
         # This is the text that appears when user clicks "Поділитись лінкою" button
         share_text_for_button = self.translation_service.get_translation('share_referral', lang, {})
-        # Remove any placeholder
+        # Remove any placeholder - don't add URL, Telegram will add preview from 'url' parameter
         share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
-        # Add URL at the end so it appears below the text
-        share_text_for_button = f"{share_text_for_button}\n{referral_link}"
         
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),
