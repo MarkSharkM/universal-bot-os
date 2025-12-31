@@ -264,18 +264,7 @@ async def _handle_message(
         lang = translation_service.detect_language(user.language_code)
         error_message = translation_service.get_translation('wallet_invalid_format', lang)
         
-        # Save bot response to database
-        bot_message = Message(
-            user_id=user.id,
-            bot_id=bot_id,
-            role='assistant',
-            content=error_message,
-            custom_data={}
-        )
-        db.add(bot_message)
-        db.commit()
-        
-        # Send error message
+        # Send error message FIRST (don't block on DB commit)
         try:
             await adapter.send_message(
                 bot_id,
@@ -283,6 +272,21 @@ async def _handle_message(
                 error_message,
                 parse_mode='HTML'
             )
+            
+            # Save bot response to database AFTER successful send (non-blocking)
+            try:
+                bot_message = Message(
+                    user_id=user.id,
+                    bot_id=bot_id,
+                    role='assistant',
+                    content=error_message,
+                    custom_data={}
+                )
+                db.add(bot_message)
+                db.commit()
+            except Exception as db_error:
+                # Don't fail if DB save fails - message already sent
+                logger.warning(f"Failed to save error message to DB: {db_error}")
         except Exception as e:
             logger.error(f"Error sending error message via Telegram API: {e}", exc_info=True)
 
@@ -396,11 +400,7 @@ async def _handle_payment(
         # Verify it's a buy_top payment
         if invoice_payload.startswith('buy_top_'):
             try:
-                # Unlock TOP (via payment)
-                user_service.update_top_status(user.id, 'open', unlock_method='payment')
-                logger.info(f"TOP unlocked for user {user.id} via payment")
-                
-                # Send confirmation
+                # Send confirmation FIRST (don't block on DB commit)
                 translation_service = TranslationService(db)
                 lang = translation_service.detect_language(user.language_code)
                 message = translation_service.get_translation('top_unlocked', lang)
@@ -411,6 +411,10 @@ async def _handle_payment(
                     message,
                     parse_mode='HTML'
                 )
+                
+                # Unlock TOP (via payment) AFTER sending message (non-blocking)
+                user_service.update_top_status(user.id, 'open', unlock_method='payment')
+                logger.info(f"TOP unlocked for user {user.id} via payment")
             except Exception as e:
                 logger.error(f"Error unlocking TOP: {e}", exc_info=True)
                 # Try to send error message
