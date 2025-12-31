@@ -110,6 +110,11 @@ class CommandService:
         Returns:
             Response dictionary with message, buttons, etc.
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"handle_command: command={command}, user_id={user_id}, lang={user_lang}, start_param={start_param}")
+        
         handlers = {
             'wallet': self._handle_wallet,
             'top': self._handle_top,
@@ -122,9 +127,16 @@ class CommandService:
         
         handler = handlers.get(command)
         if not handler:
+            logger.warning(f"Unknown command: {command}")
             return {'error': f'Unknown command: {command}'}
         
-        return handler(user_id, user_lang, start_param)
+        try:
+            response = handler(user_id, user_lang, start_param)
+            logger.info(f"handle_command: {command} completed successfully, response has message: {bool(response.get('message'))}")
+            return response
+        except Exception as e:
+            logger.error(f"Error handling command {command}: {e}", exc_info=True)
+            return {'error': f'Error processing command: {str(e)}'}
     
     def _handle_wallet(
         self,

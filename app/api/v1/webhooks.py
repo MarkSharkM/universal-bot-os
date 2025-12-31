@@ -165,29 +165,46 @@ async def _handle_message(
     
     # Parse command
     command = command_service.parse_command(text)
+    logger.info(f"Parsed command: '{command}' from text: '{text[:50]}...' (user_id={user.id}, external_id={user.external_id})")
+    
     # Try to get start parameter from metadata first (extracted by adapter)
     start_param = event_data.get('metadata', {}).get('start_parameter')
     # Fallback to extracting from text
     if not start_param:
         start_param = command_service.extract_start_parameter(text)
     
+    if start_param:
+        logger.info(f"Start parameter extracted: '{start_param}'")
+    
     # Log referral if /start with param
     if command == 'start' and start_param:
+        is_referral, inviter_id, ref_tag = referral_service.parse_referral_parameter(start_param)
+        logger.info(f"Start with param: is_referral={is_referral}, inviter_id={inviter_id}, ref_tag={ref_tag}")
         referral_service.log_referral_event(
             user.id,
             start_param,
             event_type='start',
-            click_type='Referral' if referral_service.parse_referral_parameter(start_param)[0] else 'Organic'
+            click_type='Referral' if is_referral else 'Organic'
         )
     
     # Handle command
     if command:
-        response = command_service.handle_command(
-            command,
-            user.id,
-            user_lang=user.language_code,
-            start_param=start_param
-        )
+        logger.info(f"Handling command: {command} for user {user.id}")
+        try:
+            response = command_service.handle_command(
+                command,
+                user.id,
+                user_lang=user.language_code,
+                start_param=start_param
+            )
+            
+            if response.get('error'):
+                logger.error(f"Command {command} returned error: {response.get('error')}")
+            elif not response.get('message'):
+                logger.warning(f"Command {command} returned empty message")
+        except Exception as e:
+            logger.error(f"Exception handling command {command}: {e}", exc_info=True)
+            response = {'error': f'Error processing command: {str(e)}'}
         
         # Save bot response to database
         if response.get('message'):
@@ -203,18 +220,25 @@ async def _handle_message(
         
         # Send response via adapter
         try:
+            message_text = response.get('message', '')
+            message_length = len(message_text) if message_text else 0
+            logger.info(f"Sending response for command {command}: message_length={message_length}, has_buttons={bool(response.get('buttons'))}")
+            
             result = await adapter.send_message(
                 bot_id,
                 user.external_id,
-                response.get('message', ''),
+                message_text,
                 reply_markup=_format_buttons(response.get('buttons', [])),
                 parse_mode=response.get('parse_mode', 'HTML')
             )
+            
             # Check if Telegram API returned error (e.g., timeout)
             if result.get('ok') is False:
-                logger.warning(f"Telegram API returned error: {result.get('error')} - {result.get('description')}")
+                logger.error(f"Telegram API returned error for command {command}: {result.get('error')} - {result.get('description')}")
+            else:
+                logger.info(f"Successfully sent response for command {command}")
         except Exception as e:
-            logger.error(f"Error sending message via Telegram API: {e}", exc_info=True)
+            logger.error(f"Error sending message via Telegram API for command {command}: {e}", exc_info=True)
             # Don't raise - webhook should still return 200 OK to Telegram
     elif text:
         # Not a command, not a wallet - show wallet_invalid_format message (like in production)
