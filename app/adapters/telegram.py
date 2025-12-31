@@ -118,9 +118,31 @@ class TelegramAdapter(BaseAdapter):
                     return {"ok": False, "error": "timeout", "description": "Telegram API timeout after retries"}
                 except httpx.HTTPStatusError as e:
                     # Don't retry on HTTP errors (4xx, 5xx) - these are not network issues
+                    # Exception: retry on 429 (rate limit) and 502/503/504 (server errors)
                     import logging
                     logger = logging.getLogger(__name__)
-                    logger.error(f"Telegram API error for sendMessage: {e.response.status_code} - {e.response.text}")
+                    status_code = e.response.status_code
+                    
+                    # Retry on rate limit (429) and server errors (502, 503, 504)
+                    if status_code == 429 or status_code in [502, 503, 504]:
+                        if attempt < max_retries:
+                            import asyncio
+                            # For rate limit, use longer delay
+                            if status_code == 429:
+                                delay = 10.0 + (attempt * 5.0)  # 10s, 15s, 20s, 25s, 30s
+                            else:
+                                delays = [2.0, 3.0, 5.0, 8.0, 13.0]
+                                delay = delays[min(attempt, len(delays) - 1)]
+                            
+                            logger.warning(f"Telegram API {status_code} for sendMessage (attempt {attempt + 1}/{max_retries + 1}), retrying in {delay}s (chat_id={user_external_id})")
+                            await asyncio.sleep(delay)
+                            continue
+                        else:
+                            logger.error(f"Telegram API {status_code} for sendMessage after {max_retries + 1} attempts (chat_id={user_external_id}): {e.response.text}")
+                            return {"ok": False, "error": f"http_{status_code}", "description": f"Telegram API {status_code} after retries"}
+                    
+                    # Don't retry on client errors (4xx except 429) - these are permanent
+                    logger.error(f"Telegram API error for sendMessage: {status_code} - {e.response.text[:200]}")
                     raise
                 except Exception as e:
                     last_error = e
