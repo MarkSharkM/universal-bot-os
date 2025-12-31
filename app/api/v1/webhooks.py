@@ -176,16 +176,20 @@ async def _handle_message(
     if start_param:
         logger.info(f"Start parameter extracted: '{start_param}'")
     
-    # Log referral if /start with param
+    # Log referral if /start with param (but don't update inviter count yet - do it after sending message)
+    inviter_external_id_for_update = None
     if command == 'start' and start_param:
         is_referral, inviter_id, ref_tag = referral_service.parse_referral_parameter(start_param)
         logger.info(f"Start with param: is_referral={is_referral}, inviter_id={inviter_id}, ref_tag={ref_tag}")
-        referral_service.log_referral_event(
+        log_data = referral_service.log_referral_event(
             user.id,
             start_param,
             event_type='start',
             click_type='Referral' if is_referral else 'Organic'
         )
+        # Store inviter_external_id to update count AFTER sending message (non-blocking)
+        if is_referral and inviter_id:
+            inviter_external_id_for_update = inviter_id
     
     # Handle command
     if command:
@@ -236,6 +240,28 @@ async def _handle_message(
                     logger.error(f"Telegram API returned error for command {command}: {error_type} - {error_desc} (message_size={message_length}, buttons={buttons_count})")
                 else:
                     logger.info(f"Successfully sent response for command {command} (message_size={message_length}, buttons={buttons_count})")
+                    
+                    # Update inviter's total_invited count AFTER sending message (non-blocking)
+                    # This prevents blocking webhook on slow SQL queries
+                    if inviter_external_id_for_update:
+                        try:
+                            inviter = db.query(User).filter(
+                                and_(
+                                    User.bot_id == bot_id,
+                                    User.external_id == inviter_external_id_for_update,
+                                    User.platform == 'telegram'
+                                )
+                            ).first()
+                            
+                            if inviter:
+                                logger.info(f"Updating inviter total_invited for user_id={inviter.id} (non-blocking)")
+                                referral_service.update_total_invited(inviter.id)
+                                logger.info(f"Inviter total_invited updated successfully")
+                            else:
+                                logger.warning(f"Inviter not found for external_id={inviter_external_id_for_update}")
+                        except Exception as update_error:
+                            # Don't fail if update fails - message already sent
+                            logger.warning(f"Failed to update inviter total_invited: {update_error}")
                     
                     # Save bot response to database AFTER successful send (non-blocking)
                     if response.get('message'):

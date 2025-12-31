@@ -188,31 +188,11 @@ class ReferralService:
         )
         
         self.db.add(log_data)
-        self.db.flush()  # Flush to ensure log is visible in same transaction
-        self.db.commit()
+        self.db.commit()  # Commit immediately to save log
         self.db.refresh(log_data)
         
-        # Update inviter's total_invited count if this is a referral
-        if is_referral and inviter_external_id:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.info(f"log_referral_event: is_referral=True, inviter_external_id={inviter_external_id}, looking up inviter...")
-            
-            inviter = self.db.query(User).filter(
-                and_(
-                    User.bot_id == self.bot_id,
-                    User.external_id == inviter_external_id,
-                    User.platform == 'telegram'
-                )
-            ).first()
-            
-            if inviter:
-                logger.info(f"log_referral_event: found inviter user_id={inviter.id}, calling update_total_invited...")
-                # Update inviter's total_invited count
-                updated_user = self.update_total_invited(inviter.id)
-                logger.info(f"log_referral_event: update_total_invited completed, new total_invited={updated_user.custom_data.get('total_invited', 0)}")
-            else:
-                logger.warning(f"log_referral_event: inviter not found for external_id={inviter_external_id}")
+        # Note: update_total_invited() is called AFTER sending message to avoid blocking webhook
+        # This is handled in webhook handler to keep /start fast
         
         return log_data
     
