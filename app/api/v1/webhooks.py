@@ -2,7 +2,7 @@
 Telegram Webhook Endpoints - Multi-tenant
 Handles Telegram webhook updates and routes to command handlers
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from uuid import UUID
@@ -26,6 +26,7 @@ router = APIRouter()
 async def telegram_webhook(
     bot_token: str,
     update: Dict[str, Any],
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
@@ -104,25 +105,24 @@ async def telegram_webhook(
         # Telegram requires webhook response within seconds, otherwise it retries
         event_type = event_data.get('event_type', '')
         
-        # Create background task for message processing (non-blocking)
-        import asyncio
-        from app.core.database import SessionLocal
-        
+        # Add background task for message processing (non-blocking)
+        # FastAPI will execute these after sending response to Telegram
         if event_type == 'message':
             # Create new DB session for background task (current session will close after response)
-            asyncio.create_task(_handle_message_async(
+            background_tasks.add_task(_handle_message_async,
                 update, user.id, bot_id, event_data
-            ))
+            )
         elif event_type == 'callback_query':
-            asyncio.create_task(_handle_callback_async(
+            background_tasks.add_task(_handle_callback_async,
                 update, user.id, bot_id
-            ))
+            )
         elif event_type in ['pre_checkout_query', 'successful_payment']:
-            asyncio.create_task(_handle_payment_async(
+            background_tasks.add_task(_handle_payment_async,
                 update, user.id, bot_id
-            ))
+            )
         
         # Return immediately - don't wait for Telegram API or DB operations
+        # Background tasks will execute after response is sent
         return {"ok": True}
         
     except Exception as e:
