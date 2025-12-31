@@ -422,17 +422,17 @@ class CommandService:
         )
         # Remove any remaining [[referralLink]] placeholder
         message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
-        # Add URL at the end with empty lines before it so it appears lower
-        # This way text is on top ("Ось твоє реферальне посилання:"), URL and preview card are below
-        message = f"{message_text}\n\n{referral_link}"
+        # Add URL at the end so preview card appears below the text
+        # This way text is on top ("Ось твоє реферальне посилання:"), preview card with link is below
+        message = f"{message_text}\n{referral_link}"
         
         # For share button text, use text with URL at the end (after empty line) for proper positioning
         # This is the text that appears when user clicks "Поділитись лінкою" button
         share_text_for_button = self.translation_service.get_translation('share_referral', lang, {})
         # Remove any placeholder
         share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
-        # Add URL at the end with empty line before it so it appears lower
-        share_text_for_button = f"{share_text_for_button}\n\n{referral_link}"
+        # Add URL at the end so it appears below the text
+        share_text_for_button = f"{share_text_for_button}\n{referral_link}"
         
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),
