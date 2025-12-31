@@ -237,7 +237,7 @@ async def _handle_message(
                         reply_markup=_format_buttons(response.get('buttons', [])),
                         parse_mode=response.get('parse_mode', 'HTML')
                     ),
-                    timeout=30.0  # 30 second timeout (should be enough with 20s Telegram API timeout)
+                    timeout=60.0  # 60 second timeout (should be enough with 30s Telegram API timeout + retries)
                 )
                 
                 # Check if Telegram API returned error (e.g., timeout)
