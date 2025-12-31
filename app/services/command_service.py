@@ -185,17 +185,23 @@ class CommandService:
         start_param: Optional[str]
     ) -> Dict[str, Any]:
         """Handle /top command"""
-        user = self.user_service.get_user_by_id(user_id)
-        if not user:
-            raise ValueError(f"User {user_id} not found")
+        logger.info(f"_handle_top: START user_id={user_id}, lang={user_lang}")
         
-        lang = user_lang or user.language_code or 'en'
-        lang = self.translation_service.detect_language(lang)
-        logger.info(f"_handle_top: detected lang={lang}")
-        
-        # Check TOP unlock status
         try:
+            logger.info(f"_handle_top: getting user")
+            user = self.user_service.get_user_by_id(user_id)
+            if not user:
+                logger.error(f"_handle_top: User {user_id} not found")
+                raise ValueError(f"User {user_id} not found")
+            
+            lang = user_lang or user.language_code or 'en'
+            lang = self.translation_service.detect_language(lang)
+            logger.info(f"_handle_top: detected lang={lang}")
+            
+            # Check TOP unlock status
+            logger.info(f"_handle_top: checking top unlock eligibility")
             can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
+            logger.info(f"_handle_top: checking top status")
             top_status = self.user_service.get_top_status(user_id)
             logger.info(f"_handle_top: top_status={top_status}, can_unlock={can_unlock}, invites_needed={invites_needed}")
         except Exception as e:
@@ -204,11 +210,20 @@ class CommandService:
         
         if top_status == 'locked' and not can_unlock:
             # TOP is locked - use translations from database
-            referral_tag = self.referral_service.generate_referral_tag(user_id)
-            referral_link = self.referral_service.generate_referral_link(user_id)
-            
-            # Get total invited count
-            total_invited = self.referral_service.get_total_invited(user_id)
+            logger.info(f"_handle_top: TOP is locked, building locked message")
+            try:
+                referral_tag = self.referral_service.generate_referral_tag(user_id)
+                logger.info(f"_handle_top: generated referral_tag")
+                referral_link = self.referral_service.generate_referral_link(user_id)
+                logger.info(f"_handle_top: generated referral_link")
+                
+                # Get total invited count
+                logger.info(f"_handle_top: getting total_invited")
+                total_invited = self.referral_service.get_total_invited(user_id)
+                logger.info(f"_handle_top: total_invited={total_invited}")
+            except Exception as e:
+                logger.error(f"_handle_top: error in locked branch: {e}", exc_info=True)
+                raise
             
             # Get buy_top_price from translations
             buy_top_price = self.translation_service.get_translation('buy_top_price', lang) or '1'
@@ -258,19 +273,29 @@ class CommandService:
             }
         
         # TOP is open - show partners
+        logger.info(f"_handle_top: TOP is open, getting partners")
         try:
+            logger.info(f"_handle_top: calling get_top_partners")
             partners = self.partner_service.get_top_partners(limit=20, user_lang=lang)
             logger.info(f"_handle_top: found {len(partners) if partners else 0} top partners")
         except Exception as e:
             logger.error(f"_handle_top: error getting top partners: {e}", exc_info=True)
             raise
-        referral_tag = self.referral_service.generate_referral_tag(user_id)
         
-        message = self.partner_service.format_top_message(
-            partners,
-            referral_tag,
-            lang
-        )
+        try:
+            logger.info(f"_handle_top: generating referral_tag")
+            referral_tag = self.referral_service.generate_referral_tag(user_id)
+            
+            logger.info(f"_handle_top: formatting top message")
+            message = self.partner_service.format_top_message(
+                partners,
+                referral_tag,
+                lang
+            )
+            logger.info(f"_handle_top: formatted message, length={len(message) if message else 0}")
+        except Exception as e:
+            logger.error(f"_handle_top: error formatting message: {e}", exc_info=True)
+            raise
         
         if not message:
             # Fallback if translation not found
