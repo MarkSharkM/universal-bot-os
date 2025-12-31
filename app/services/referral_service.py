@@ -182,6 +182,7 @@ class ReferralService:
         )
         
         self.db.add(log_data)
+        self.db.flush()  # Flush to ensure log is visible in same transaction
         self.db.commit()
         self.db.refresh(log_data)
         
@@ -239,7 +240,7 @@ class ReferralService:
         query = text("""
             SELECT COUNT(DISTINCT data->>'external_id') as unique_count
             FROM business_data
-            WHERE bot_id = :bot_id
+            WHERE bot_id = :bot_id::uuid
               AND data_type = 'log'
               AND (data->>'inviter_external_id') = :inviter_external_id
               AND (
@@ -259,7 +260,7 @@ class ReferralService:
             }
         ).first()
         
-        return result.unique_count if result else 0
+        return result.unique_count if result and result.unique_count else 0
     
     def update_total_invited(self, user_id: UUID) -> User:
         """
