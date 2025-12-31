@@ -191,10 +191,16 @@ class CommandService:
         
         lang = user_lang or user.language_code or 'en'
         lang = self.translation_service.detect_language(lang)
+        logger.info(f"_handle_top: detected lang={lang}")
         
         # Check TOP unlock status
-        can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
-        top_status = self.user_service.get_top_status(user_id)
+        try:
+            can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
+            top_status = self.user_service.get_top_status(user_id)
+            logger.info(f"_handle_top: top_status={top_status}, can_unlock={can_unlock}, invites_needed={invites_needed}")
+        except Exception as e:
+            logger.error(f"_handle_top: error checking top status: {e}", exc_info=True)
+            raise
         
         if top_status == 'locked' and not can_unlock:
             # TOP is locked - use translations from database
@@ -252,7 +258,12 @@ class CommandService:
             }
         
         # TOP is open - show partners
-        partners = self.partner_service.get_top_partners(limit=20, user_lang=lang)
+        try:
+            partners = self.partner_service.get_top_partners(limit=20, user_lang=lang)
+            logger.info(f"_handle_top: found {len(partners) if partners else 0} top partners")
+        except Exception as e:
+            logger.error(f"_handle_top: error getting top partners: {e}", exc_info=True)
+            raise
         referral_tag = self.referral_service.generate_referral_tag(user_id)
         
         message = self.partner_service.format_top_message(
@@ -293,14 +304,25 @@ class CommandService:
         start_param: Optional[str]
     ) -> Dict[str, Any]:
         """Handle /partners command"""
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"_handle_partners: user_id={user_id}, lang={user_lang}")
+        
         user = self.user_service.get_user_by_id(user_id)
         if not user:
+            logger.error(f"User {user_id} not found in _handle_partners")
             raise ValueError(f"User {user_id} not found")
         
         lang = user_lang or user.language_code or 'en'
         lang = self.translation_service.detect_language(lang)
+        logger.info(f"_handle_partners: detected lang={lang}")
         
-        partners = self.partner_service.get_partners(limit=50, user_lang=lang)
+        try:
+            partners = self.partner_service.get_partners(limit=50, user_lang=lang)
+            logger.info(f"_handle_partners: found {len(partners) if partners else 0} partners")
+        except Exception as e:
+            logger.error(f"_handle_partners: error getting partners: {e}", exc_info=True)
+            raise
         
         # Build message
         intro = self.translation_service.get_translation('partners_intro', lang)
