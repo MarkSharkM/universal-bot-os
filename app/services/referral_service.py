@@ -231,41 +231,35 @@ class ReferralService:
         if not inviter:
             return 0
         
-        # Simple and fast: Use SQLAlchemy with JSONB filters
-        # Load only logs for this inviter, then count unique external_ids in Python
-        # This is faster than loading ALL logs, and simpler than raw SQL
-        from sqlalchemy import text
+        # Optimized: Use SQL DISTINCT to count unique external_ids directly in database
+        # Much faster than loading all logs and counting in Python
+        from sqlalchemy import text, func
         
-        # Filter logs in SQL by inviter_external_id
-        # We'll filter is_referral in Python to handle both boolean and string types
-        logs = self.db.query(BusinessData).filter(
-            and_(
-                BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'log',
-                text(f"(data->>'inviter_external_id') = '{inviter.external_id}'")
-            )
-        ).all()
+        # Use raw SQL with DISTINCT for maximum performance
+        query = text("""
+            SELECT COUNT(DISTINCT data->>'external_id') as count
+            FROM business_data
+            WHERE bot_id = CAST(:bot_id AS uuid)
+              AND data_type = 'log'
+              AND (data->>'inviter_external_id') = :inviter_external_id
+              AND (
+                (data->>'is_referral') = 'true' 
+                OR (data->>'is_referral') = 'True'
+                OR (data->>'is_referral')::boolean = true
+              )
+              AND (data->>'external_id') IS NOT NULL
+              AND (data->>'external_id') != ''
+        """)
         
-        # Filter and count unique external_ids in Python
-        # Handle both boolean True and string 'true'/'True' for is_referral
-        unique_external_ids = set()
-        for log in logs:
-            data = log.data or {}
-            
-            # Check if this is a valid referral
-            is_referral_value = data.get('is_referral')
-            is_valid_referral = (
-                is_referral_value == True or
-                is_referral_value == 'true' or
-                is_referral_value == 'True'
-            )
-            
-            if is_valid_referral:
-                external_id = data.get('external_id', '')
-                if external_id:  # Only count non-empty external_ids
-                    unique_external_ids.add(external_id)
+        result = self.db.execute(
+            query,
+            {
+                'bot_id': str(self.bot_id),
+                'inviter_external_id': str(inviter.external_id)
+            }
+        ).first()
         
-        return len(unique_external_ids)
+        return result.count if result and result.count else 0
     
     def update_total_invited(self, user_id: UUID) -> User:
         """
