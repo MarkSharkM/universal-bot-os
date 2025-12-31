@@ -414,14 +414,16 @@ class CommandService:
         
         referral_link = self.referral_service.generate_referral_link(user_id)
         
-        # Get message text without URL (just the description)
+        # Get message text (without URL placeholder, we'll add it at the end)
         message_text = self.translation_service.get_translation(
             'share_referral',
             lang,
             {}
         )
+        # Remove any remaining [[referralLink]] placeholder
+        message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
         # Add URL at the end so preview card appears below the text
-        # This way text is on top, preview card with link is below
+        # This way text is on top ("Ось твоє реферальне посилання:"), preview card with link is below
         message = f"{message_text}\n{referral_link}"
         
         # For share button text, use text WITHOUT URL to avoid duplicate links
