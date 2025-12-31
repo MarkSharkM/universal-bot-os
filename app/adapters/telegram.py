@@ -16,11 +16,12 @@ class TelegramAdapter(BaseAdapter):
     BASE_URL = "https://api.telegram.org/bot"
     
     # Timeout settings for Telegram API requests
-    # Connect timeout: 10s (time to establish connection)
-    # Read timeout: 30s (time to read response)
-    # Increased to 30s to handle large messages with buttons/reply_markup
+    # Connect timeout: 15s (time to establish connection)
+    # Read timeout: 60s (time to read response)
+    # Increased to 60s to handle large messages with buttons/reply_markup
     # Telegram API can be slow during high load or with large payloads
-    TIMEOUT = httpx.Timeout(10.0, connect=10.0, read=30.0)
+    # Also increased connect timeout to handle network delays from Railway
+    TIMEOUT = httpx.Timeout(60.0, connect=15.0, read=60.0)
     
     @property
     def platform_name(self) -> str:
@@ -64,10 +65,11 @@ class TelegramAdapter(BaseAdapter):
             }
             
             # Retry logic for network issues
-            # 3 retries for network timeouts (max 4 attempts total)
+            # 5 retries for network timeouts (max 6 attempts total)
             # This helps with temporary network issues between Railway and Telegram API
             # Increased retries because Telegram API can be slow during high load
-            max_retries = 3
+            # With 60s read timeout, we give Telegram API more time to respond
+            max_retries = 5
             last_error = None
             
             for attempt in range(max_retries + 1):
@@ -85,11 +87,13 @@ class TelegramAdapter(BaseAdapter):
                 except (httpx.ConnectTimeout, httpx.ReadTimeout) as e:
                     last_error = e
                     if attempt < max_retries:
-                        # Exponential backoff: 1s, 2s, 3s
+                        # Exponential backoff: 2s, 3s, 5s, 8s, 13s
                         import asyncio
                         import logging
                         logger = logging.getLogger(__name__)
-                        delay = 1.0 * (attempt + 1)
+                        # Fibonacci-like backoff for better spacing
+                        delays = [2.0, 3.0, 5.0, 8.0, 13.0]
+                        delay = delays[min(attempt, len(delays) - 1)]
                         logger.warning(f"Telegram API timeout for sendMessage (attempt {attempt + 1}/{max_retries + 1}), retrying in {delay}s (chat_id={user_external_id})")
                         await asyncio.sleep(delay)
                         continue
