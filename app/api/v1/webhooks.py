@@ -308,7 +308,7 @@ async def _handle_message(
             # This prevents blocking webhook on slow SQL queries
             logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update} (type={type(inviter_external_id_for_update)})")
             if inviter_external_id_for_update:
-                        try:
+                try:
                             logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}, bot_id={bot_id}")
                             inviter = db.query(User).filter(
                                 and_(
@@ -332,11 +332,11 @@ async def _handle_message(
                                 # Debug: check if user exists with different platform
                                 all_users = db.query(User).filter(User.external_id == str(inviter_external_id_for_update)).all()
                                 logger.warning(f"Found {len(all_users)} users with external_id={inviter_external_id_for_update}: {[(u.id, u.bot_id, u.platform) for u in all_users]}")
-                        except Exception as update_error:
-                            # Don't fail if update fails - message already sent
-                            logger.error(f"Failed to update inviter total_invited: {update_error}", exc_info=True)
-                    else:
-                        logger.debug(f"No inviter_external_id_for_update to process")
+                except Exception as update_error:
+                    # Don't fail if update fails - message already sent
+                    logger.error(f"Failed to update inviter total_invited: {update_error}", exc_info=True)
+            else:
+                logger.debug(f"No inviter_external_id_for_update to process")
                     
             # Save bot response to database AFTER attempting to send (non-blocking)
             if response.get('message'):
