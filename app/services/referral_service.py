@@ -161,23 +161,29 @@ class ReferralService:
         if not user:
             raise ValueError(f"User {user_id} not found")
         
-        # Check if this user already has a referral log (to avoid duplicates)
-        existing_log = self.db.query(BusinessData).filter(
-            and_(
-                BusinessData.bot_id == self.bot_id,
-                BusinessData.data_type == 'log',
-                BusinessData.data['external_id'].astext == user.external_id
-            )
-        ).first()
-        
-        if existing_log:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.info(f"log_referral_event: user {user.external_id} already has a log, skipping duplicate")
-            return None  # Already logged, don't create duplicate
-        
-        # Parse referral
+        # Parse referral first to check if it's a referral
         is_referral, inviter_external_id, referral_tag = self.parse_referral_parameter(ref_param)
+        
+        # Only check for duplicates if this is a referral
+        # Check if this user already has a referral log for this specific inviter
+        # This prevents counting the same user multiple times for the same inviter
+        if is_referral and inviter_external_id:
+            from sqlalchemy import text
+            existing_log = self.db.query(BusinessData).filter(
+                and_(
+                    BusinessData.bot_id == self.bot_id,
+                    BusinessData.data_type == 'log',
+                    text(f"(data->>'external_id') = '{user.external_id}'"),
+                    text(f"(data->>'inviter_external_id') = '{inviter_external_id}'"),
+                    text("((data->>'is_referral') = 'true' OR (data->>'is_referral') = 'True' OR (data->>'is_referral')::boolean = true)")
+                )
+            ).first()
+            
+            if existing_log:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"log_referral_event: user {user.external_id} already has referral log for inviter {inviter_external_id}, skipping duplicate")
+                return None  # Already logged for this inviter, don't create duplicate
         
         if is_referral:
             click_type = "Referral"
