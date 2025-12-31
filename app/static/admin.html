@@ -13,26 +13,41 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: #333;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 30px 20px;
         }
         
         header {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
         }
         
         h1 {
-            color: #2563eb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        h2 {
+            color: #1e293b;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
         }
         
         .tabs {
@@ -69,13 +84,25 @@
         .tab-content {
             display: none;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease-in;
         }
         
         .tab-content.active {
             display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .database-tab-content {
@@ -98,36 +125,57 @@
         
         input, select, textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input:hover, select:hover, textarea:hover {
+            border-color: #cbd5e1;
         }
         
         button {
-            background: #2563eb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white !important;
             border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
             opacity: 1 !important;
             visibility: visible !important;
             display: inline-block !important;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
         
         button:hover {
-            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
         }
         
         .btn-danger {
-            background: #dc2626;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white !important;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
         
         .btn-danger:hover {
-            background: #b91c1c;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
         }
         
         td button {
@@ -136,19 +184,41 @@
         
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         
         th, td {
-            padding: 12px;
+            padding: 16px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #e2e8f0;
         }
         
         th {
-            background: #f9fafb;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.01);
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
         }
         
         .stats-grid {
@@ -177,19 +247,25 @@
         }
         
         .error {
-            background: #fee2e2;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #991b1b;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc2626;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+            font-weight: 500;
         }
         
         .success {
-            background: #d1fae5;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #065f46;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+            font-weight: 500;
         }
     </style>
 </head>
@@ -203,7 +279,7 @@
                 </div>
                 <div style="min-width: 300px;">
                     <label style="display: block; margin-bottom: 5px; font-weight: 500;">Selected Bot:</label>
-                    <select id="global-bot-select" onchange="onGlobalBotChange()" style="width: 100%; padding: 10px; border: 2px solid #2563eb; border-radius: 4px; font-size: 14px; font-weight: 500;">
+                    <select id="global-bot-select" onchange="onGlobalBotChange()" style="width: 100%; padding: 12px 16px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; font-weight: 500; background: white; cursor: pointer; transition: all 0.3s ease;">
                         <option value="">Loading...</option>
                     </select>
                 </div>
@@ -274,14 +350,14 @@
             
             <div class="form-group">
                 <label>Select Bot</label>
-                <select id="partners-bot-select" onchange="loadPartners()"></select>
+                <select id="partners-bot-select" onchange="loadPartners()" style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; transition: all 0.3s ease;"></select>
             </div>
             
-            <button onclick="showCreatePartnerForm()" style="margin-bottom: 20px;">+ Add Partner</button>
+            <button onclick="showCreatePartnerForm()" style="margin-bottom: 20px; font-size: 16px; padding: 14px 28px;">✨ + Add Partner</button>
             
-            <div id="create-partner-form" style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div id="create-partner-form" style="display: none; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
                 <h3>Add New Partner</h3>
-                <div class="form-group" style="background: #e0f2fe; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 2px dashed #0284c7;">
+                <div class="form-group" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px dashed #0284c7; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);">
                     <label style="font-weight: 600; color: #0c4a6e; margin-bottom: 8px; display: block;">📋 Paste from Google Sheets (optional)</label>
                     <textarea id="partner-paste-data" rows="3" placeholder="Paste row from Google Sheets here (tab-separated) - will auto-parse:&#10;Boinkers	Мем-батли за зірки 💩💎	💩💎 Meme battles for stars	..." style="width: 100%; padding: 8px; border: 1px solid #0284c7; border-radius: 4px; font-family: monospace; font-size: 12px; transition: background-color 0.3s ease, border-color 0.3s ease;" onpaste="setTimeout(() => parsePastedData(), 100)"></textarea>
                     <button type="button" onclick="parsePastedData()" style="background: #0284c7; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 12px;">Parse & Fill Form</button>
@@ -289,7 +365,7 @@
                 </div>
                 
                 <!-- Preview Card -->
-                <div id="partner-preview-card" style="display: none; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div id="partner-preview-card" style="display: none; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #22c55e; border-radius: 16px; padding: 25px; margin-bottom: 25px; box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2);">
                     <h4 style="margin-top: 0; color: #15803d; display: flex; align-items: center; gap: 8px;">
                         <span>✅</span> Preview - Review before adding
                     </h4>
@@ -364,11 +440,11 @@
                     <input type="number" id="partner-duration" placeholder="9999" min="0" step="1">
                     <p style="font-size: 11px; color: #666; margin-top: 4px;">How many days the partnership is valid</p>
                 </div>
-                <button onclick="createPartner()">Add Partner</button>
-                <button onclick="hideCreatePartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
+                <button onclick="createPartner()" style="font-size: 16px; padding: 14px 28px;">✅ Add Partner</button>
+                <button onclick="hideCreatePartnerForm()" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); margin-left: 10px; font-size: 16px; padding: 14px 28px;">❌ Cancel</button>
             </div>
             
-            <div id="edit-partner-form" style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #2563eb;">
+            <div id="edit-partner-form" style="display: none; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid #667eea;">
                 <h3>Edit Partner</h3>
                 <input type="hidden" id="edit-partner-id">
                 <div class="form-group">
@@ -433,18 +509,18 @@
                     <input type="number" id="edit-partner-duration" placeholder="9999" min="0" step="1">
                     <p style="font-size: 11px; color: #666; margin-top: 4px;">How many days the partnership is valid</p>
                 </div>
-                <button onclick="updatePartner()">Save Changes</button>
-                <button onclick="hideEditPartnerForm()" style="background: #666; margin-left: 10px;">Cancel</button>
+                <button onclick="updatePartner()" style="font-size: 16px; padding: 14px 28px;">💾 Save Changes</button>
+                <button onclick="hideEditPartnerForm()" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); margin-left: 10px; font-size: 16px; padding: 14px 28px;">❌ Cancel</button>
             </div>
             
             <div style="margin-bottom: 20px;">
-                <button onclick="showDeletedPartners()" style="background: #ef4444;">🗑️ Show Deleted Partners</button>
+                <button onclick="showDeletedPartners()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); font-size: 16px; padding: 14px 28px;">🗑️ Show Deleted Partners</button>
             </div>
             
-            <div style="margin-bottom: 10px;">
-                <label style="margin-right: 10px;">
-                    <input type="checkbox" id="show-inactive-partners" onchange="loadPartners()" style="margin-right: 5px;">
-                    Show inactive partners
+            <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; border: 2px solid #bae6fd;">
+                <label style="display: flex; align-items: center; cursor: pointer; font-weight: 500; color: #0c4a6e;">
+                    <input type="checkbox" id="show-inactive-partners" onchange="loadPartners()" style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer; accent-color: #667eea;">
+                    <span>👁️ Show inactive partners</span>
                 </label>
             </div>
             <table id="partners-table">
