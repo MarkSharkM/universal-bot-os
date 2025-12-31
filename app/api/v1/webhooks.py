@@ -698,6 +698,118 @@ async def _handle_activate_7(
 
 
 
+@router.post("/telegram-sync-test/{bot_id}")
+async def telegram_webhook_sync_test(
+    bot_id: UUID,
+    update: Dict[str, Any],
+    db: Session = Depends(get_db)
+):
+    """
+    Synchronous test endpoint - waits for Telegram API response.
+    Useful for performance testing with real Telegram API calls.
+    
+    Args:
+        bot_id: Bot UUID
+        update: Telegram update object
+        db: Database session
+    
+    Returns:
+        Response with timing info and Telegram API result
+    """
+    import time
+    start_time = time.time()
+    
+    try:
+        # Get bot by ID
+        bot = db.query(Bot).filter(Bot.id == bot_id).first()
+        if not bot:
+            logger.warning(f"Bot not found for id: {bot_id}")
+            return {"ok": False, "error": "Bot not found", "elapsed": time.time() - start_time}
+        if not bot.is_active:
+            logger.warning(f"Bot {bot.id} is inactive")
+            return {"ok": False, "error": "Bot is inactive", "elapsed": time.time() - start_time}
+        
+        # Initialize services
+        user_service = UserService(db, bot_id)
+        translation_service = TranslationService(db)
+        referral_service = ReferralService(db, bot_id)
+        partner_service = PartnerService(db, bot_id)
+        earnings_service = EarningsService(
+            db, bot_id, user_service, referral_service, translation_service
+        )
+        command_service = CommandService(
+            db, bot_id, user_service, translation_service,
+            partner_service, referral_service, earnings_service
+        )
+        
+        # Initialize adapter
+        adapter = TelegramAdapter()
+        
+        # Handle webhook
+        event_data = await adapter.handle_webhook(bot_id, update)
+        
+        # Extract user info
+        user_external_id = event_data.get('user_external_id', '')
+        if not user_external_id:
+            logger.warning("No user_external_id in webhook")
+            return {"ok": True, "elapsed": time.time() - start_time, "note": "No user_external_id"}
+        
+        # Get or create user
+        from_user = update.get('message', {}).get('from') or \
+                   update.get('callback_query', {}).get('from') or \
+                   update.get('pre_checkout_query', {}).get('from') or {}
+        
+        user = user_service.get_or_create_user(
+            external_id=user_external_id,
+            platform="telegram",
+            language_code=from_user.get('language_code'),
+            username=from_user.get('username'),
+            first_name=from_user.get('first_name'),
+            last_name=from_user.get('last_name')
+        )
+        
+        # Update last_activity
+        from datetime import datetime
+        user.updated_at = datetime.now()
+        db.commit()
+        db.refresh(user)
+        
+        # Process message SYNCHRONOUSLY (wait for Telegram API)
+        event_type = event_data.get('event_type', '')
+        
+        telegram_start_time = time.time()
+        
+        if event_type == 'message':
+            await _handle_message(
+                update, user, bot_id, command_service,
+                referral_service, user_service, adapter, db, event_data
+            )
+        elif event_type == 'callback_query':
+            await _handle_callback(
+                update, user, bot_id, command_service,
+                referral_service, user_service, adapter, db
+            )
+        elif event_type in ['pre_checkout_query', 'successful_payment']:
+            await _handle_payment(
+                update, user, bot_id, user_service, adapter, db
+            )
+        
+        telegram_elapsed = time.time() - telegram_start_time
+        total_elapsed = time.time() - start_time
+        
+        return {
+            "ok": True,
+            "elapsed": total_elapsed,
+            "telegram_api_elapsed": telegram_elapsed,
+            "event_type": event_type
+        }
+        
+    except Exception as e:
+        elapsed = time.time() - start_time
+        logger.error(f"Sync webhook test error: {e}", exc_info=True)
+        return {"ok": False, "error": str(e), "elapsed": elapsed}
+
+
 @router.post("/telegram-test/{bot_id}")
 async def telegram_webhook_test(
     bot_id: UUID,
