@@ -39,37 +39,23 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
-        # Query all partners (exclude soft-deleted), filter in Python to avoid JSONB query issues
-        all_partners = self.db.query(BusinessData).filter(
+        # Optimized: Filter in SQL using JSONB operators (PostgreSQL)
+        # This avoids loading all partners and filtering in Python
+        from sqlalchemy import text
+        
+        partners = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
                 BusinessData.data_type == 'partner',
-                BusinessData.deleted_at.is_(None)  # Exclude soft-deleted
+                BusinessData.deleted_at.is_(None),  # Exclude soft-deleted
+                # Filter by JSONB fields directly in SQL using PostgreSQL JSONB operators
+                text("(data->>'category') = 'TOP'"),
+                text("(data->>'active') = 'Yes'"),
+                text("(data->>'verified') = 'Yes'")
             )
-        ).all()
+        ).limit(limit * 2).all()  # Get a bit more for sorting, then limit
         
-        # Filter in Python
-        partners = []
-        for p in all_partners:
-            data = p.data or {}
-            category = data.get('category', '')
-            active = data.get('active', '')
-            verified = data.get('verified', '')
-            
-            # Log filtering for debugging
-            if category != 'TOP':
-                logger.debug(f"TOP Partner {data.get('bot_name', 'Unknown')} filtered: category={category} (not TOP)")
-            elif active != 'Yes':
-                logger.debug(f"TOP Partner {data.get('bot_name', 'Unknown')} filtered: active={active}")
-            elif verified != 'Yes':
-                logger.debug(f"TOP Partner {data.get('bot_name', 'Unknown')} filtered: verified={verified}")
-            
-            if (category == 'TOP' and 
-                active == 'Yes' and 
-                verified == 'Yes'):
-                partners.append(p)
-        
-        logger.info(f"get_top_partners: Found {len(partners)} TOP partners (from {len(all_partners)} total) for bot {self.bot_id}")
+        logger.info(f"get_top_partners: Found {len(partners)} TOP partners (filtered in SQL) for bot {self.bot_id}")
         
         # Convert to dicts and sort by ROI Score
         partner_list = []
@@ -110,37 +96,27 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
-        # Query all partners (exclude soft-deleted), filter in Python to avoid JSONB query issues
-        all_partners = self.db.query(BusinessData).filter(
+        # Optimized: Filter in SQL using JSONB operators (PostgreSQL)
+        # This avoids loading all partners and filtering in Python
+        from sqlalchemy import text, or_
+        
+        partners = self.db.query(BusinessData).filter(
             and_(
                 BusinessData.bot_id == self.bot_id,
                 BusinessData.data_type == 'partner',
-                BusinessData.deleted_at.is_(None)  # Exclude soft-deleted
+                BusinessData.deleted_at.is_(None),  # Exclude soft-deleted
+                # Filter by JSONB fields directly in SQL using PostgreSQL JSONB operators
+                # category != 'TOP' OR category is NULL (for old records)
+                or_(
+                    text("(data->>'category') != 'TOP'"),
+                    text("(data->>'category') IS NULL")
+                ),
+                text("(data->>'active') = 'Yes'"),
+                text("(data->>'verified') = 'Yes'")
             )
-        ).all()
+        ).limit(limit * 2).all()  # Get a bit more for sorting, then limit
         
-        # Filter in Python
-        partners = []
-        for p in all_partners:
-            data = p.data or {}
-            category = data.get('category', '')
-            active = data.get('active', '')
-            verified = data.get('verified', '')
-            
-            # Log filtering for debugging
-            if category == 'TOP':
-                logger.debug(f"Partner {data.get('bot_name', 'Unknown')} filtered: category=TOP")
-            elif active != 'Yes':
-                logger.debug(f"Partner {data.get('bot_name', 'Unknown')} filtered: active={active}")
-            elif verified != 'Yes':
-                logger.debug(f"Partner {data.get('bot_name', 'Unknown')} filtered: verified={verified}")
-            
-            if (category != 'TOP' and 
-                active == 'Yes' and 
-                verified == 'Yes'):
-                partners.append(p)
-        
-        logger.info(f"get_partners: Found {len(partners)} partners (from {len(all_partners)} total) for bot {self.bot_id}")
+        logger.info(f"get_partners: Found {len(partners)} partners (filtered in SQL) for bot {self.bot_id}")
         
         partner_list = []
         for partner in partners:
