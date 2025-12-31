@@ -324,6 +324,7 @@ class ReferralService:
         Returns:
             Tuple of (can_unlock, invites_needed)
         """
+        # Single query instead of duplicate
         user = self.db.query(User).filter(
             and_(
                 User.id == user_id,
@@ -335,15 +336,8 @@ class ReferralService:
             return False, self.REQUIRED_INVITES
         
         # Check if already unlocked
-        top_status = self.db.query(User).filter(
-            and_(
-                User.id == user_id,
-                User.bot_id == self.bot_id
-            )
-        ).first()
-        
-        if top_status and top_status.custom_data:
-            if top_status.custom_data.get('top_status') == 'open':
+        if user.custom_data:
+            if user.custom_data.get('top_status') == 'open':
                 return True, 0
         
         # Check invites
