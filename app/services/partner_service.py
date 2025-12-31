@@ -52,10 +52,24 @@ class PartnerService:
         partners = []
         for p in all_partners:
             data = p.data or {}
-            if (data.get('category') == 'TOP' and 
-                data.get('active') == 'Yes' and 
-                data.get('verified') == 'Yes'):
+            category = data.get('category', '')
+            active = data.get('active', '')
+            verified = data.get('verified', '')
+            
+            # Log filtering for debugging
+            if category != 'TOP':
+                logger.debug(f"TOP Partner {data.get('bot_name', 'Unknown')} filtered: category={category} (not TOP)")
+            elif active != 'Yes':
+                logger.debug(f"TOP Partner {data.get('bot_name', 'Unknown')} filtered: active={active}")
+            elif verified != 'Yes':
+                logger.debug(f"TOP Partner {data.get('bot_name', 'Unknown')} filtered: verified={verified}")
+            
+            if (category == 'TOP' and 
+                active == 'Yes' and 
+                verified == 'Yes'):
                 partners.append(p)
+        
+        logger.info(f"get_top_partners: Found {len(partners)} TOP partners (from {len(all_partners)} total) for bot {self.bot_id}")
         
         # Convert to dicts and sort by ROI Score
         partner_list = []
