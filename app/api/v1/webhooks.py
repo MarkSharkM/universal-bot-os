@@ -206,19 +206,8 @@ async def _handle_message(
             logger.error(f"Exception handling command {command}: {e}", exc_info=True)
             response = {'error': f'Error processing command: {str(e)}'}
         
-        # Save bot response to database
-        if response.get('message'):
-            bot_message = Message(
-                user_id=user.id,
-                bot_id=bot_id,
-                role='assistant',
-                content=response.get('message', ''),
-                custom_data={}
-            )
-            db.add(bot_message)
-            db.commit()
-        
-        # Send response via adapter
+        # Send response via adapter FIRST (don't block on DB commit)
+        # Save bot response to database AFTER sending (async, non-blocking)
         try:
             message_text = response.get('message', '')
             message_length = len(message_text) if message_text else 0
@@ -247,8 +236,24 @@ async def _handle_message(
                     logger.error(f"Telegram API returned error for command {command}: {error_type} - {error_desc} (message_size={message_length}, buttons={buttons_count})")
                 else:
                     logger.info(f"Successfully sent response for command {command} (message_size={message_length}, buttons={buttons_count})")
+                    
+                    # Save bot response to database AFTER successful send (non-blocking)
+                    if response.get('message'):
+                        try:
+                            bot_message = Message(
+                                user_id=user.id,
+                                bot_id=bot_id,
+                                role='assistant',
+                                content=response.get('message', ''),
+                                custom_data={}
+                            )
+                            db.add(bot_message)
+                            db.commit()
+                        except Exception as db_error:
+                            # Don't fail if DB save fails - message already sent
+                            logger.warning(f"Failed to save bot message to DB: {db_error}")
             except asyncio.TimeoutError:
-                logger.error(f"Timeout sending message for command {command} after 30s (message_size={message_length}, buttons={buttons_count})")
+                logger.error(f"Timeout sending message for command {command} after 60s (message_size={message_length}, buttons={buttons_count})")
                 # Don't raise - webhook should still return 200 OK to Telegram
         except Exception as e:
             logger.error(f"Error sending message via Telegram API for command {command}: {e}", exc_info=True)
