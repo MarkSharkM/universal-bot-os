@@ -17,10 +17,10 @@ class TelegramAdapter(BaseAdapter):
     
     # Timeout settings for Telegram API requests
     # Connect timeout: 5s (time to establish connection)
-    # Read timeout: 10s (time to read response)
-    # Reduced from 30s to prevent long delays - Telegram API usually responds in <1s
-    # If it takes longer, it's likely a network issue and retry won't help
-    TIMEOUT = httpx.Timeout(5.0, connect=5.0, read=10.0)
+    # Read timeout: 20s (time to read response)
+    # Increased to 20s to handle large messages with buttons/reply_markup
+    # Telegram API usually responds in <1s, but large payloads can take longer
+    TIMEOUT = httpx.Timeout(5.0, connect=5.0, read=20.0)
     
     @property
     def platform_name(self) -> str:
@@ -64,8 +64,9 @@ class TelegramAdapter(BaseAdapter):
             }
             
             # Retry logic for network issues
-            # Reduced to 1 retry to prevent long delays (max 2 attempts total)
-            max_retries = 1
+            # 2 retries for network timeouts (max 3 attempts total)
+            # This helps with temporary network issues between Railway and Telegram API
+            max_retries = 2
             last_error = None
             
             for attempt in range(max_retries + 1):
@@ -73,18 +74,28 @@ class TelegramAdapter(BaseAdapter):
                     async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
                         response = await client.post(url, json=payload)
                         response.raise_for_status()
-                        return response.json()
+                        result = response.json()
+                        # Log success on retry
+                        if attempt > 0:
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.info(f"Telegram API sendMessage succeeded on retry {attempt} (chat_id={user_external_id})")
+                        return result
                 except (httpx.ConnectTimeout, httpx.ReadTimeout) as e:
                     last_error = e
                     if attempt < max_retries:
-                        # Quick retry with minimal delay (0.3s)
+                        # Exponential backoff: 0.5s, 1s
                         import asyncio
-                        await asyncio.sleep(0.3)
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        delay = 0.5 * (attempt + 1)
+                        logger.warning(f"Telegram API timeout for sendMessage (attempt {attempt + 1}/{max_retries + 1}), retrying in {delay}s (chat_id={user_external_id})")
+                        await asyncio.sleep(delay)
                         continue
                     # Log timeout after all retries
                     import logging
                     logger = logging.getLogger(__name__)
-                    logger.warning(f"Telegram API timeout for sendMessage after {max_retries + 1} attempts (chat_id={user_external_id}): {e}")
+                    logger.error(f"Telegram API timeout for sendMessage after {max_retries + 1} attempts (chat_id={user_external_id}): {e}")
                     # Return error response instead of raising - don't block webhook
                     return {"ok": False, "error": "timeout", "description": "Telegram API timeout after retries"}
                 except httpx.HTTPStatusError as e:

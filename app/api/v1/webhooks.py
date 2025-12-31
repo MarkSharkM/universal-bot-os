@@ -222,10 +222,12 @@ async def _handle_message(
         try:
             message_text = response.get('message', '')
             message_length = len(message_text) if message_text else 0
-            logger.info(f"Sending response for command {command}: message_length={message_length}, has_buttons={bool(response.get('buttons'))}")
+            buttons_count = len(response.get('buttons', []))
+            logger.info(f"Sending response for command {command}: message_length={message_length}, buttons={buttons_count}")
             
-            # Add timeout protection - if earnings command takes too long, log it
+            # Add timeout protection - if command takes too long, log it
             import asyncio
+            
             try:
                 result = await asyncio.wait_for(
                     adapter.send_message(
@@ -235,16 +237,18 @@ async def _handle_message(
                         reply_markup=_format_buttons(response.get('buttons', [])),
                         parse_mode=response.get('parse_mode', 'HTML')
                     ),
-                    timeout=30.0  # 30 second timeout
+                    timeout=30.0  # 30 second timeout (should be enough with 20s Telegram API timeout)
                 )
                 
                 # Check if Telegram API returned error (e.g., timeout)
                 if result.get('ok') is False:
-                    logger.error(f"Telegram API returned error for command {command}: {result.get('error')} - {result.get('description')}")
+                    error_type = result.get('error', 'unknown')
+                    error_desc = result.get('description', '')
+                    logger.error(f"Telegram API returned error for command {command}: {error_type} - {error_desc} (message_size={message_length}, buttons={buttons_count})")
                 else:
-                    logger.info(f"Successfully sent response for command {command}")
+                    logger.info(f"Successfully sent response for command {command} (message_size={message_length}, buttons={buttons_count})")
             except asyncio.TimeoutError:
-                logger.error(f"Timeout sending message for command {command} after 30 seconds")
+                logger.error(f"Timeout sending message for command {command} after 30s (message_size={message_length}, buttons={buttons_count})")
                 # Don't raise - webhook should still return 200 OK to Telegram
         except Exception as e:
             logger.error(f"Error sending message via Telegram API for command {command}: {e}", exc_info=True)
