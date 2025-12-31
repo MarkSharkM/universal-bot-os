@@ -650,7 +650,10 @@ async def update_partner(
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     
-    partner.data.update(partner_data)
+    # Update partner data - merge with existing data
+    current_data = partner.data.copy() if partner.data else {}
+    current_data.update(partner_data)
+    partner.data = current_data
     db.commit()
     db.refresh(partner)
     

@@ -1182,8 +1182,18 @@
                 // Check if we should show inactive partners
                 const showInactive = document.getElementById('show-inactive-partners')?.checked || false;
                 const activeOnly = !showInactive;
-                const res = await fetch(`${API_BASE}/bots/${botId}/partners?active_only=${activeOnly}`);
+                const url = `${API_BASE}/bots/${botId}/partners?active_only=${activeOnly}`;
+                console.log('Loading partners from:', url);
+                const res = await fetch(url);
+                
+                if (!res.ok) {
+                    const error = await res.json().catch(() => ({ detail: 'Failed to load partners' }));
+                    showMessage('partners-message', 'Error loading partners: ' + (error.detail || 'Unknown error'), 'error');
+                    return;
+                }
+                
                 const partners = await res.json();
+                console.log('Loaded partners:', partners.length);
                 
                 // Sort by ROI Score
                 partners.sort((a, b) => {
@@ -1358,12 +1368,21 @@
                 });
                 
                 if (res.ok) {
+                    const result = await res.json();
                     showMessage('partners-message', 'Partner updated successfully!', 'success');
                     hideEditPartnerForm();
-                    loadPartners();
+                    // Force reload partners - check if we need to show inactive
+                    const showInactive = document.getElementById('show-inactive-partners')?.checked || false;
+                    // If partner became active, make sure we can see it
+                    if (data.active === 'Yes' && !showInactive) {
+                        // Partner is now active, will show in list
+                    }
+                    // Reload with current filter settings
+                    await loadPartners();
                 } else {
-                    const error = await res.json();
+                    const error = await res.json().catch(() => ({ detail: 'Unknown error' }));
                     showMessage('partners-message', 'Error: ' + (error.detail || 'Unknown error'), 'error');
+                    console.error('Update error:', error);
                 }
             } catch (error) {
                 showMessage('partners-message', 'Error updating partner: ' + error.message, 'error');
@@ -1426,13 +1445,22 @@
             
             try {
                 // Soft delete by default
-                const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}?hard_delete=false`, {method: 'DELETE'});
+                const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}?hard_delete=false`, {
+                    method: 'DELETE'
+                });
+                
                 if (res.ok) {
                     showMessage('partners-message', 'Partner deleted (can be restored)', 'success');
-                    loadPartners();
+                    // Reload partners list
+                    await loadPartners();
+                } else {
+                    const error = await res.json().catch(() => ({ detail: 'Unknown error' }));
+                    showMessage('partners-message', 'Error deleting partner: ' + (error.detail || 'Unknown error'), 'error');
+                    console.error('Delete error:', error);
                 }
             } catch (error) {
                 showMessage('partners-message', 'Error: ' + error.message, 'error');
+                console.error('Delete exception:', error);
             }
         }
         
