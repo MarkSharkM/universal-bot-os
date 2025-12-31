@@ -414,12 +414,16 @@ class CommandService:
         
         referral_link = self.referral_service.generate_referral_link(user_id)
         
-        # Get message text with URL for /share command (as it was before)
-        message = self.translation_service.get_translation(
+        # Get message text for /share command
+        message_text = self.translation_service.get_translation(
             'share_referral',
             lang,
-            {'referralLink': referral_link}
+            {}
         )
+        # Remove placeholder and add URL at the end
+        message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
+        # Add URL to message so it appears in /share
+        message = f"{message_text}\n{referral_link}"
         
         # For share button text, use text WITHOUT URL to avoid duplicate links
         # URL is already in the 'url' parameter, Telegram will add preview automatically
