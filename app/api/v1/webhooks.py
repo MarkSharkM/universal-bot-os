@@ -304,9 +304,11 @@ async def _handle_message(
                 if result.get('ok') is False:
                     error_type = result.get('error', 'unknown')
                     error_desc = result.get('description', '')
-                    logger.error(f"Telegram API returned error for command {command}: {error_type} - {error_desc} (message_size={message_length}, buttons={buttons_count})")
+                    logger.error(f"Telegram API returned error for command {command}: {error_type} - {error_desc} (message_size={message_length}, buttons={buttons_count}, chat_id={user.external_id})")
                 else:
-                    logger.info(f"Successfully sent response for command {command} (message_size={message_length}, buttons={buttons_count})")
+                    # Log success with message_id if available
+                    message_id = result.get('result', {}).get('message_id', 'N/A') if isinstance(result.get('result'), dict) else 'N/A'
+                    logger.info(f"Successfully sent response for command {command} (message_size={message_length}, buttons={buttons_count}, chat_id={user.external_id}, telegram_message_id={message_id})")
             except asyncio.TimeoutError:
                 send_elapsed = time.time() - send_start_time
                 logger.error(f"Timeout sending message for command {command} after {send_elapsed:.2f}s (timeout=180s, message_size={message_length}, buttons={buttons_count})")
