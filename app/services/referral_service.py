@@ -252,14 +252,19 @@ class ReferralService:
                 is_valid_referral):
                 referral_logs.append(log)
         
-        # Get unique referred users by ref_parameter
-        unique_refs = set()
+        # Get unique referred users by external_id (not ref_parameter!)
+        # Each user should be counted only once, even if they clicked the link multiple times
+        unique_referred_users = set()
         for log in referral_logs:
-            ref_param = log.data.get('ref_parameter', '')
-            if ref_param and ref_param.upper() != 'NO_REF':
-                unique_refs.add(ref_param)
+            external_id = log.data.get('external_id', '')
+            user_id = log.data.get('user_id', '')
+            # Use external_id if available, fallback to user_id
+            if external_id:
+                unique_referred_users.add(external_id)
+            elif user_id:
+                unique_referred_users.add(user_id)
         
-        return len(unique_refs)
+        return len(unique_referred_users)
     
     def update_total_invited(self, user_id: UUID) -> User:
         """

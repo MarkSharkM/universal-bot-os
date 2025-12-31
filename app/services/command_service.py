@@ -510,17 +510,8 @@ class CommandService:
         lang = user_lang or user.language_code or 'en'
         lang = self.translation_service.detect_language(lang)
         
-        # If has start_param, might be referral
-        if start_param:
-            is_referral, inviter_external_id, ref_tag = self.referral_service.parse_referral_parameter(start_param)
-            if is_referral:
-                # Log referral event
-                self.referral_service.log_referral_event(
-                    user_id,
-                    start_param,
-                    event_type='start',
-                    click_type='Referral'
-                )
+        # Note: Referral logging is handled in webhook handler (_handle_message)
+        # to avoid double logging when /start command is processed
         
         message = self.translation_service.get_translation('welcome', lang)
         
