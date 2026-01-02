@@ -332,18 +332,32 @@ function switchTab(tabName) {
         targetPage.classList.add('active');
         currentPage = tabName;
         
-        // Load content if not loaded yet
-        if (tabName === 'partners') {
-            renderPartners();
-            setupSearchAndFilters();
-        } else if (tabName === 'top') {
-            renderTop();
-        } else if (tabName === 'earnings') {
-            renderEarnings();
-        } else if (tabName === 'wallet') {
-            renderWallet();
-        } else if (tabName === 'info') {
-            renderInfo();
+        // Reload data when switching to tabs that need fresh data
+        // This ensures counters and stats are up-to-date
+        if (tabName === 'earnings' || tabName === 'top') {
+            // Reload app data to get fresh counters
+            loadAppData(false).then(() => {
+                // Render after data is loaded
+                if (tabName === 'earnings') {
+                    renderEarnings();
+                } else if (tabName === 'top') {
+                    renderTop();
+                }
+            });
+        } else {
+            // Load content if not loaded yet (no refresh needed)
+            if (tabName === 'partners') {
+                renderPartners();
+                setupSearchAndFilters();
+            } else if (tabName === 'top') {
+                renderTop();
+            } else if (tabName === 'earnings') {
+                renderEarnings();
+            } else if (tabName === 'wallet') {
+                renderWallet();
+            } else if (tabName === 'info') {
+                renderInfo();
+            }
         }
     }
 }
@@ -420,7 +434,11 @@ async function loadAppData(showRefreshIndicator = false) {
             if (!hasSeenWelcome) {
                 showWelcomeScreen();
             } else {
+                // Show Earnings tab first (it has instructions on what to do)
+                // This helps users understand what the bot does
                 renderApp();
+                // Switch to Earnings tab first (instead of Partners)
+                switchTab('earnings');
                 showLoading(false);
             }
             
@@ -457,8 +475,9 @@ function renderApp() {
         botNameEl.textContent = appData.config?.name || 'Mini App';
     }
     
-    // Render initial tab (partners)
-    switchTab('partners');
+    // Render initial tab (earnings - has instructions on what to do)
+    // This helps users understand what the bot does
+    switchTab('earnings');
 }
 
 // Filtered partners cache
@@ -926,11 +945,23 @@ function openPartner(referralLink, partnerId) {
         }, initData).catch(err => console.error('Error logging partner click:', err));
     }
     
-    // Open link
-    if (tg?.openLink) {
-        tg.openLink(referralLink);
+    // Open link in Telegram (not in browser)
+    // Use openTelegramLink for t.me links to open within Telegram
+    if (referralLink.startsWith('https://t.me/') || referralLink.startsWith('tg://')) {
+        if (tg?.openTelegramLink) {
+            tg.openTelegramLink(referralLink);
+        } else if (tg?.openLink) {
+            tg.openLink(referralLink);
+        } else {
+            window.open(referralLink, '_blank');
+        }
     } else {
-        window.open(referralLink, '_blank');
+        // For non-Telegram links, use openLink
+        if (tg?.openLink) {
+            tg.openLink(referralLink);
+        } else {
+            window.open(referralLink, '_blank');
+        }
     }
 }
 
@@ -970,14 +1001,21 @@ async function handleWalletSubmit(event) {
         
         if (result && result.ok !== false) {
             showWalletMessage('✅ Гаманець збережено успішно!', 'success');
+            
+            // Reload app data to sync with server (in case admin deleted it)
+            await loadAppData(false);
+            
             // Update app data
             if (appData && appData.user) {
                 appData.user.wallet = walletAddress;
             }
-            // Clear input after successful save
+            // Update input after successful save
             if (input) {
                 input.value = walletAddress;
             }
+            
+            // Re-render wallet section to show updated data
+            renderWallet();
         } else {
             throw new Error(result?.detail || 'Failed to save wallet');
         }
@@ -1063,7 +1101,7 @@ function showWelcomeScreen() {
         welcomeCloseBtn.onclick = () => {
             welcomeScreen.style.display = 'none';
             localStorage.setItem('mini_app_welcome_seen', 'true');
-            renderApp();
+            renderApp(); // This will show Earnings tab first
             showLoading(false);
         };
     }
