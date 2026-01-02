@@ -1566,24 +1566,7 @@ body {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-.steps-list {
-    color: var(--tg-theme-text-color);
-    line-height: 1.8;
-    margin: var(--spacing-md) 0;
-    padding-left: var(--spacing-lg);
-}
-
-.steps-list li {
-    margin-bottom: var(--spacing-sm);
-}
-
-.auto-stats {
-    color: var(--tg-theme-hint-color);
-    font-size: var(--font-size-sm);
-    font-style: italic;
-    margin-top: var(--spacing-md);
-    text-align: center;
-}
+/* Steps list is now defined earlier in the file */
 
 .earnings-actions {
     display: flex;
