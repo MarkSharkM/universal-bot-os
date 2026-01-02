@@ -10,6 +10,7 @@ import logging
 from app.services.user_service import UserService
 from app.services.referral_service import ReferralService
 from app.services.translation_service import TranslationService
+from app.models.bot import Bot
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class EarningsService:
     Builds earnings center messages with progress, TOP status, 7% info.
     """
     
-    REQUIRED_INVITES = 5
+    REQUIRED_INVITES_DEFAULT = 5
     
     def __init__(
         self,
@@ -35,6 +36,61 @@ class EarningsService:
         self.user_service = user_service
         self.referral_service = referral_service
         self.translation_service = translation_service
+        self._bot_config = None  # Lazy load bot.config
+    
+    def _get_bot_config(self) -> dict:
+        """
+        Get bot configuration (lazy load).
+        
+        Returns:
+            Bot config dictionary
+        """
+        if self._bot_config is None:
+            bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+            if bot:
+                self._bot_config = bot.config or {}
+            else:
+                self._bot_config = {}
+        return self._bot_config
+    
+    def _get_required_invites(self) -> int:
+        """
+        Get required invites from bot.config or use default.
+        
+        Returns:
+            Number of required invites
+        """
+        config = self._get_bot_config()
+        referral_config = config.get('referral', {})
+        return referral_config.get('required_invites', self.REQUIRED_INVITES_DEFAULT)
+    
+    def _get_commission_rate(self) -> float:
+        """
+        Get commission rate from bot.config or use default (7%).
+        
+        Returns:
+            Commission rate as float (e.g., 0.07 for 7%)
+        """
+        config = self._get_bot_config()
+        earnings_config = config.get('earnings', {})
+        return earnings_config.get('commission_rate', 0.07)
+    
+    def _get_buy_top_price_from_config(self) -> int:
+        """
+        Get buy TOP price from bot.config or use default (1).
+        
+        Returns:
+            Buy TOP price in stars
+        """
+        config = self._get_bot_config()
+        earnings_config = config.get('earnings', {})
+        buy_top_price = earnings_config.get('buy_top_price')
+        if buy_top_price is not None:
+            try:
+                return int(buy_top_price)
+            except:
+                pass
+        return 1  # Default
     
     def build_earnings_message(
         self,
@@ -150,7 +206,7 @@ class EarningsService:
         block_title = self.translation_service.get_translation('earnings_block1_title', lang)
         
         # Progress bar
-        total_steps = self.REQUIRED_INVITES
+        total_steps = self._get_required_invites()
         filled = min(total_invited, total_steps)
         bar_filled = '🟩' * filled
         bar_empty = '⬜️' * (total_steps - filled)
@@ -195,7 +251,7 @@ class EarningsService:
 
 👥 {total_invited} / {total_steps} {friends_label}
 {bar}  +{invites_needed} {to_top_label}
-({self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': 1})})
+({self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': self._get_buy_top_price_from_config()})})
 
 {ref_label}
 {referral_link}
@@ -208,12 +264,20 @@ class EarningsService:
         return block
     
     def _build_7percent_block(self, lang: str) -> str:
-        """Build 7% Telegram partner program block"""
+        """Build commission program block (configurable %)"""
+        commission_rate = self._get_commission_rate()
+        commission_percent = int(commission_rate * 100)  # Convert 0.07 to 7
+        
         block_title = self.translation_service.get_translation('earnings_block2_title', lang)
         how_it_works = self.translation_service.get_translation('earnings_block2_how_it_works', lang)
         examples = self.translation_service.get_translation('earnings_block2_examples', lang)
         enable_title = self.translation_service.get_translation('earnings_enable_7_title', lang)
         enable_steps = self.translation_service.get_translation('earnings_enable_7_steps', lang)
+        
+        # Replace commission rate in translations if they contain placeholders
+        # Note: Translations should use {{commission}} or [[commission]] placeholder
+        how_it_works = how_it_works.replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent))
+        examples = examples.replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent))
         
         block = f"""━━━━━━━━━━
 <b>{block_title}</b>

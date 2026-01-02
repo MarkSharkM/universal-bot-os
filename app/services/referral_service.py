@@ -6,11 +6,14 @@ from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func, distinct
 from uuid import UUID
+import logging
 
 from app.models.user import User
 from app.models.message import Message
 from app.models.business_data import BusinessData
 from app.models.bot import Bot
+
+logger = logging.getLogger(__name__)
 
 
 class ReferralService:
@@ -19,11 +22,12 @@ class ReferralService:
     Handles referral tracking, counting, and validation.
     """
     
-    REQUIRED_INVITES = 5  # Can be configured per bot
+    REQUIRED_INVITES_DEFAULT = 5  # Default value if not in bot.config
     
     def __init__(self, db: Session, bot_id: UUID):
         self.db = db
         self.bot_id = bot_id
+        self._bot_config = None  # Lazy load bot.config
     
     def generate_referral_tag(self, user_id: UUID) -> str:
         """
@@ -46,7 +50,55 @@ class ReferralService:
         if not user:
             raise ValueError(f"User {user_id} not found")
         
+        # Get tag prefix from bot.config
+        config = self._get_bot_config()
+        referral_config = config.get('referral', {})
+        tag_prefix = referral_config.get('tag_prefix', '')
+        
+        if tag_prefix:
+            return f"{tag_prefix}{user.external_id}"
         return str(user.external_id)
+    
+    def _get_bot_config(self) -> dict:
+        """
+        Get bot configuration (lazy load).
+        
+        Returns:
+            Bot config dictionary
+        """
+        if self._bot_config is None:
+            bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+            if bot:
+                self._bot_config = bot.config or {}
+            else:
+                self._bot_config = {}
+        return self._bot_config
+    
+    def _get_required_invites(self) -> int:
+        """
+        Get required invites from bot.config or use default.
+        
+        Returns:
+            Number of required invites
+        """
+        config = self._get_bot_config()
+        referral_config = config.get('referral', {})
+        return referral_config.get('required_invites', self.REQUIRED_INVITES_DEFAULT)
+    
+    def _get_referral_config(self) -> dict:
+        """
+        Get referral configuration from bot.config with defaults.
+        
+        Returns:
+            Referral config dictionary
+        """
+        config = self._get_bot_config()
+        referral_config = config.get('referral', {})
+        return {
+            'allow_self_referral': referral_config.get('allow_self_referral', False),
+            'min_invites_for_bonus': referral_config.get('min_invites_for_bonus', 1),
+            'bonus_per_invite': referral_config.get('bonus_per_invite', 0.0),
+        }
     
     def generate_referral_link(
         self,
@@ -65,17 +117,23 @@ class ReferralService:
         """
         tag = self.generate_referral_tag(user_id)
         
-        # Get bot username from config if not provided
+        # Get bot username and link format from config
+        config = self._get_bot_config()
+        referral_config = config.get('referral', {})
+        
+        # Get username
         if not bot_username:
-            bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
-            if bot and bot.config and bot.config.get('username'):
-                bot_username = bot.config['username']
+            if config.get('username'):
+                bot_username = config['username']
             else:
                 # Fallback: use correct production username
-                # This should not happen if sync-username was called
                 bot_username = "HubAggregatorBot"
         
-        return f"https://t.me/{bot_username}?start={tag}"
+        # Get link format
+        link_format = referral_config.get('link_format', 'https://t.me/{username}?start={tag}')
+        
+        # Replace placeholders
+        return link_format.replace('{username}', bot_username).replace('{tag}', tag)
     
     def parse_referral_parameter(
         self,
@@ -164,6 +222,19 @@ class ReferralService:
         # Parse referral
         is_referral, inviter_external_id, referral_tag = self.parse_referral_parameter(ref_param)
         
+        # Validate referral (check self-referral if not allowed)
+        if is_referral and inviter_external_id:
+            referral_config = self._get_referral_config()
+            allow_self_referral = referral_config.get('allow_self_referral', False)
+            
+            # Check if user is trying to refer themselves
+            if not allow_self_referral and str(user.external_id) == str(inviter_external_id):
+                logger.info(f"log_referral_event: self-referral blocked for user_id={user_id}, external_id={user.external_id}")
+                is_referral = False
+                inviter_external_id = None
+                referral_tag = None
+                click_type = "Organic"  # Treat as organic, not referral
+        
         if is_referral:
             click_type = "Referral"
         
@@ -192,8 +263,6 @@ class ReferralService:
         self.db.commit()  # Commit immediately to save log
         self.db.refresh(log_data)
         
-        import logging
-        logger = logging.getLogger(__name__)
         logger.info(f"log_referral_event: saved log for user_id={user_id}, external_id={user.external_id}, inviter_external_id={inviter_external_id}, is_referral={is_referral}, log_id={log_data.id}, data={log_data.data}")
         
         # Note: update_total_invited() is called AFTER sending message to avoid blocking webhook
@@ -324,8 +393,9 @@ class ReferralService:
         
         user.custom_data['total_invited'] = total_invited
         
-        # Auto-unlock TOP if user invited 5+ friends and TOP is still locked
-        if total_invited >= self.REQUIRED_INVITES:
+        # Auto-unlock TOP if user invited required number of friends and TOP is still locked
+        required_invites = self._get_required_invites()
+        if total_invited >= required_invites:
             current_top_status = user.custom_data.get('top_status', 'locked')
             if current_top_status != 'open':
                 # Unlock TOP via invites - update directly to avoid circular import
@@ -397,8 +467,10 @@ class ReferralService:
             )
         ).first()
         
+        required_invites = self._get_required_invites()
+        
         if not user:
-            return False, self.REQUIRED_INVITES
+            return False, required_invites
         
         # Check if already unlocked
         if user.custom_data:
@@ -408,9 +480,9 @@ class ReferralService:
         # Check invites
         total_invited = self.get_total_invited(user_id)
         
-        if total_invited >= self.REQUIRED_INVITES:
+        if total_invited >= required_invites:
             return True, 0
         
-        invites_needed = self.REQUIRED_INVITES - total_invited
+        invites_needed = required_invites - total_invited
         return False, invites_needed
 

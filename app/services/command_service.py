@@ -2,7 +2,7 @@
 Command Service - Multi-tenant command router
 Routes bot commands to appropriate handlers (replaces Switch_Commands logic)
 """
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Optional, Callable, List
 from sqlalchemy.orm import Session
 from uuid import UUID
 import re
@@ -14,6 +14,7 @@ from app.services.translation_service import TranslationService
 from app.services.partner_service import PartnerService
 from app.services.referral_service import ReferralService
 from app.services.earnings_service import EarningsService
+from app.models.bot import Bot
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ class CommandService:
         self.partner_service = partner_service
         self.referral_service = referral_service
         self.earnings_service = earnings_service
+        self._bot_config = None  # Lazy load bot.config
     
     def parse_command(self, text: Optional[str]) -> Optional[str]:
         """
@@ -68,12 +70,39 @@ class CommandService:
         
         text = text.strip()
         
+        # Get command patterns (from bot.config or default)
+        patterns = self._get_command_patterns()
+        
         # Check each pattern
-        for cmd, pattern in self.COMMAND_PATTERNS.items():
+        for cmd, pattern in patterns.items():
+            # Skip disabled commands
+            if not self._is_command_enabled(cmd):
+                continue
             if re.match(pattern, text, re.IGNORECASE):
                 return cmd
         
         return None
+    
+    def _get_command_patterns(self) -> Dict[str, str]:
+        """
+        Get command patterns from bot.config or use defaults.
+        
+        Returns:
+            Dictionary of command patterns
+        """
+        config = self._get_bot_config()
+        commands_config = config.get('commands', {})
+        
+        # If custom patterns are defined, use them
+        custom_patterns = commands_config.get('patterns', {})
+        if custom_patterns:
+            # Merge with defaults (custom overrides defaults)
+            patterns = self.COMMAND_PATTERNS.copy()
+            patterns.update(custom_patterns)
+            return patterns
+        
+        # Default: use hardcoded patterns
+        return self.COMMAND_PATTERNS
     
     def extract_start_parameter(self, text: Optional[str]) -> Optional[str]:
         """
@@ -93,6 +122,149 @@ class CommandService:
             return match.group(1).strip()
         
         return None
+    
+    def _get_bot_config(self) -> Dict[str, Any]:
+        """
+        Get bot configuration (lazy load).
+        
+        Returns:
+            Bot config dictionary
+        """
+        if self._bot_config is None:
+            bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+            if bot:
+                self._bot_config = bot.config or {}
+            else:
+                self._bot_config = {}
+        return self._bot_config
+    
+    def _get_buy_top_price(self, lang: str) -> int:
+        """
+        Get buy TOP price from bot.config or translations.
+        
+        Args:
+            lang: User's language code
+            
+        Returns:
+            Buy TOP price in stars
+        """
+        config = self._get_bot_config()
+        earnings_config = config.get('earnings', {})
+        
+        # Try bot.config first
+        buy_top_price = earnings_config.get('buy_top_price')
+        if buy_top_price is not None:
+            try:
+                return int(buy_top_price)
+            except:
+                pass
+        
+        # Fallback to translation
+        buy_top_price_str = self.translation_service.get_translation('buy_top_price', lang) or '1'
+        try:
+            return int(buy_top_price_str)
+        except:
+            return 1
+    
+    def _get_buttons_for_command(self, command: str, lang: str, **kwargs) -> Optional[List[List[Dict[str, Any]]]]:
+        """
+        Get buttons for command from bot.config or return None to use defaults.
+        
+        Args:
+            command: Command name (wallet, top, share, etc.)
+            lang: User's language code
+            **kwargs: Additional context (referral_link, etc.)
+        
+        Returns:
+            List of button rows, or None to use default buttons
+        """
+        config = self._get_bot_config()
+        ui_config = config.get('ui', {})
+        buttons_config = ui_config.get('buttons', {})
+        command_buttons = buttons_config.get(command, [])
+        
+        if not command_buttons:
+            return None  # Use default buttons
+        
+        # Build buttons from config
+        buttons = []
+        for row in command_buttons:
+            if not row.get('enabled', True):
+                continue  # Skip disabled buttons
+            
+            button_row = []
+            for button_config in row.get('buttons', []):
+                if not button_config.get('enabled', True):
+                    continue
+                
+                # Get button text (from translation key or direct text)
+                text_key = button_config.get('text_key')
+                if text_key:
+                    text = self.translation_service.get_translation(text_key, lang)
+                    if not text or text == text_key:
+                        text = button_config.get('text', text_key)  # Fallback to direct text
+                else:
+                    text = button_config.get('text', 'Button')
+                
+                # Build button based on type
+                button = {'text': text}
+                
+                # URL button
+                if button_config.get('url'):
+                    url = button_config['url']
+                    # Replace placeholders
+                    for key, value in kwargs.items():
+                        url = url.replace(f'{{{key}}}', str(value))
+                    button['url'] = url
+                
+                # Callback button
+                elif button_config.get('callback_data'):
+                    button['callback_data'] = button_config['callback_data']
+                
+                # Action button (special handling)
+                elif button_config.get('action'):
+                    action = button_config['action']
+                    if action == 'share':
+                        # Generate share URL
+                        referral_link = kwargs.get('referral_link', '')
+                        share_text = kwargs.get('share_text', '')
+                        from urllib.parse import quote
+                        button['url'] = f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"
+                    elif action == 'wallet':
+                        button['url'] = 'tg://resolve?domain=wallet'
+                
+                button_row.append(button)
+            
+            if button_row:
+                buttons.append(button_row)
+        
+        return buttons if buttons else None
+    
+    def _is_command_enabled(self, command: str) -> bool:
+        """
+        Check if command is enabled for this bot.
+        
+        Args:
+            command: Command name
+            
+        Returns:
+            True if command is enabled, False otherwise
+        """
+        config = self._get_bot_config()
+        commands_config = config.get('commands', {})
+        
+        # Check disabled list first
+        disabled = commands_config.get('disabled', [])
+        if command in disabled:
+            return False
+        
+        # Check enabled list (if exists, only these are allowed)
+        enabled = commands_config.get('enabled', [])
+        if enabled:  # If enabled list exists, only these commands are allowed
+            return command in enabled
+        
+        # Default: all commands enabled
+        return True
     
     def handle_command(
         self,
@@ -114,6 +286,14 @@ class CommandService:
             Response dictionary with message, buttons, etc.
         """
         logger.info(f"handle_command: command={command}, user_id={user_id}, lang={user_lang}, start_param={start_param}")
+        
+        # Check if command is enabled for this bot
+        if not self._is_command_enabled(command):
+            logger.warning(f"Command {command} is disabled for bot {self.bot_id}")
+            disabled_msg = self.translation_service.get_translation('command_disabled', user_lang or 'en')
+            if not disabled_msg or disabled_msg == 'command_disabled':
+                disabled_msg = "Ця команда недоступна для цього бота." if (user_lang or 'en') == 'uk' else "This command is not available for this bot."
+            return {'error': disabled_msg}
         
         handlers = {
             'wallet': self._handle_wallet,
@@ -231,12 +411,8 @@ class CommandService:
                 logger.error(f"_handle_top: error in locked branch: {e}", exc_info=True)
                 raise
             
-            # Get buy_top_price from translations
-            buy_top_price = self.translation_service.get_translation('buy_top_price', lang) or '1'
-            try:
-                buy_top_price = int(buy_top_price)
-            except:
-                buy_top_price = 1
+            # Get buy_top_price from bot.config or translations
+            buy_top_price = self._get_buy_top_price(lang)
             
             # Use translation key for locked message (with needed parameter)
             # Use top_locked_message for /top command (full message with share prompt)
@@ -260,16 +436,20 @@ class CommandService:
                 'referralLink': referral_link
             })
             
-            buttons = [[
-                {
-                    'text': self.translation_service.get_translation('share_button', lang),
-                    'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"
-                },
-                {
-                    'text': self.translation_service.get_translation('unlock_top_paid', lang, {'buy_top_price': buy_top_price}),
-                    'callback_data': '/buy_top'
-                }
-            ]]
+            # Get buttons from bot.config or use defaults
+            buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link, share_text=share_text, buy_top_price=buy_top_price)
+            if not buttons:
+                # Default buttons
+                buttons = [[
+                    {
+                        'text': self.translation_service.get_translation('share_button', lang),
+                        'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"
+                    },
+                    {
+                        'text': self.translation_service.get_translation('unlock_top_paid', lang, {'buy_top_price': buy_top_price}),
+                        'callback_data': '/buy_top'
+                    }
+                ]]
             
             return {
                 'message': message,
@@ -319,10 +499,14 @@ class CommandService:
             message = error_msg
         
         referral_link = self.referral_service.generate_referral_link(user_id)
-        buttons = [[{
-            'text': self.translation_service.get_translation('share_button', lang),
-            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}"
-        }]]
+        # Get buttons from bot.config or use defaults
+        buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link)
+        if not buttons:
+            # Default buttons
+            buttons = [[{
+                'text': self.translation_service.get_translation('share_button', lang),
+                'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}"
+            }]]
         
         return {
             'message': message,
@@ -403,11 +587,15 @@ class CommandService:
             'referralLink': referral_link
         })
         
-        buttons = [
-            [{'text': self.translation_service.get_translation('share_button', lang), 'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"}],
-            [{'text': self.translation_service.get_translation('partners_btn_top_partners', lang), 'callback_data': '/top'}],
-            [{'text': self.translation_service.get_translation('partners_btn_earnings', lang), 'callback_data': '/earnings'}],
-        ]
+        # Get buttons from bot.config or use defaults
+        buttons = self._get_buttons_for_command('partners', lang, referral_link=referral_link, share_text=share_text)
+        if not buttons:
+            # Default buttons
+            buttons = [
+                [{'text': self.translation_service.get_translation('share_button', lang), 'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"}],
+                [{'text': self.translation_service.get_translation('partners_btn_top_partners', lang), 'callback_data': '/top'}],
+                [{'text': self.translation_service.get_translation('partners_btn_earnings', lang), 'callback_data': '/earnings'}],
+            ]
         
         return {
             'message': message,
@@ -452,10 +640,14 @@ class CommandService:
         # Remove any placeholder and clean up - don't add URL, Telegram will add preview from 'url' parameter
         share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
         
-        buttons = [[{
-            'text': self.translation_service.get_translation('share_button', lang),
-            'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text_for_button, safe='')}"
-        }]]
+        # Get buttons from bot.config or use defaults
+        buttons = self._get_buttons_for_command('share', lang, referral_link=referral_link, share_text=share_text_for_button)
+        if not buttons:
+            # Default buttons
+            buttons = [[{
+                'text': self.translation_service.get_translation('share_button', lang),
+                'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text_for_button, safe='')}"
+            }]]
         
         return {
             'message': message,
@@ -489,14 +681,19 @@ class CommandService:
             'referralLink': referral_link
         })
         
-        buttons = [
-            [{'text': self.translation_service.get_translation('share_button', lang), 'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"}],
-            [
-                {'text': self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': 1}), 'callback_data': 'buy_top'},
-                {'text': self.translation_service.get_translation('earnings_btn_top_partners', lang), 'callback_data': '=/top'}
-            ],
-            [{'text': self.translation_service.get_translation('earnings_btn_activate_7', lang), 'callback_data': 'activate_7'}],
-        ]
+        # Get buttons from bot.config or use defaults
+        buy_top_price = self._get_buy_top_price(lang)
+        buttons = self._get_buttons_for_command('earnings', lang, referral_link=referral_link, share_text=share_text, buy_top_price=buy_top_price)
+        if not buttons:
+            # Default buttons
+            buttons = [
+                [{'text': self.translation_service.get_translation('share_button', lang), 'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"}],
+                [
+                    {'text': self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': buy_top_price}), 'callback_data': 'buy_top'},
+                    {'text': self.translation_service.get_translation('earnings_btn_top_partners', lang), 'callback_data': '=/top'}
+                ],
+                [{'text': self.translation_service.get_translation('earnings_btn_activate_7', lang), 'callback_data': 'activate_7'}],
+            ]
         
         return {
             'message': earnings_data['text'],

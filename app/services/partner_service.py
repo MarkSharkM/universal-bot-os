@@ -9,6 +9,7 @@ from uuid import UUID
 import logging
 
 from app.models.business_data import BusinessData
+from app.models.bot import Bot
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,33 @@ class PartnerService:
     def __init__(self, db: Session, bot_id: UUID):
         self.db = db
         self.bot_id = bot_id
+        self._bot_config = None  # Lazy load bot.config
+    
+    def _get_bot_config(self) -> dict:
+        """
+        Get bot configuration (lazy load).
+        
+        Returns:
+            Bot config dictionary
+        """
+        if self._bot_config is None:
+            bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+            if bot:
+                self._bot_config = bot.config or {}
+            else:
+                self._bot_config = {}
+        return self._bot_config
+    
+    def _is_partners_enabled(self) -> bool:
+        """
+        Check if partners are enabled for this bot.
+        
+        Returns:
+            True if partners are enabled, False otherwise
+        """
+        config = self._get_bot_config()
+        partners_config = config.get('partners', {})
+        return partners_config.get('enabled', True)  # Default: enabled
     
     def get_top_partners(
         self,
@@ -33,12 +61,27 @@ class PartnerService:
         Replaces /top Google Sheets query + Format_TopBots_Message.
         
         Args:
-            limit: Maximum number of partners to return
+            limit: Maximum number of partners to return (overridden by bot.config if set)
             user_lang: User's language for descriptions
         
         Returns:
             List of partner dictionaries
         """
+        # Check if partners are enabled
+        if not self._is_partners_enabled():
+            logger.info(f"get_top_partners: Partners disabled for bot {self.bot_id}")
+            return []
+        
+        # Get limit from bot.config or use provided
+        config = self._get_bot_config()
+        partners_config = config.get('partners', {})
+        top_config = partners_config.get('top', {})
+        if top_config.get('limit'):
+            limit = int(top_config['limit'])
+        
+        # Get min_commission filter
+        min_commission = top_config.get('min_commission', 0)
+        
         # Optimized: Filter in SQL using JSONB operators (PostgreSQL)
         # This avoids loading all partners and filtering in Python
         from sqlalchemy import text
@@ -90,12 +133,23 @@ class PartnerService:
         Replaces /partners Google Sheets query.
         
         Args:
-            limit: Maximum number of partners
+            limit: Maximum number of partners (overridden by bot.config if set)
             user_lang: User's language for descriptions
         
         Returns:
             List of partner dictionaries
         """
+        # Check if partners are enabled
+        if not self._is_partners_enabled():
+            logger.info(f"get_partners: Partners disabled for bot {self.bot_id}")
+            return []
+        
+        # Get limit from bot.config or use provided
+        config = self._get_bot_config()
+        partners_config = config.get('partners', {})
+        if partners_config.get('max_partners'):
+            limit = int(partners_config['max_partners'])
+        
         # Optimized: Filter in SQL using JSONB operators (PostgreSQL)
         # This avoids loading all partners and filtering in Python
         from sqlalchemy import text, or_
