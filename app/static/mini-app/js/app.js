@@ -34,12 +34,17 @@ async function initMiniApp() {
         const user = initDataUnsafe?.user;
         userId = user?.id?.toString();
         
+        // Warn if userId is missing (but continue - API can use initData)
+        if (!userId) {
+            console.warn('User ID not found in initData, will use initData for validation');
+        }
+        
         // Get bot_id from URL or initData (async)
         botId = await getBotIdFromUrl();
         
         if (!botId) {
             console.error('Bot ID not found');
-            showError('Bot ID не знайдено');
+            showError('Bot ID не знайдено. Перевірте URL або налаштування бота.');
             return;
         }
         
@@ -314,6 +319,11 @@ function switchTab(tabName) {
  * Navigate to partner detail page
  */
 function showPartnerDetail(partnerId) {
+    if (!partnerId) {
+        console.error('Partner ID is required');
+        return;
+    }
+    
     navigationHistory.push(currentPage);
     
     // Hide current page
@@ -326,7 +336,7 @@ function showPartnerDetail(partnerId) {
     if (detailPage) {
         detailPage.classList.add('active');
         currentPage = 'partner-detail';
-        renderPartnerDetail(partnerId);
+        renderPartnerDetail(String(partnerId));
     }
 }
 
@@ -354,7 +364,12 @@ async function loadAppData(showRefreshIndicator = false) {
         // Get initData for validation
         const initData = tg?.initData || null;
         
-        // Fetch data
+        // Validate we have botId before making request
+        if (!botId) {
+            throw new Error('Bot ID is required');
+        }
+        
+        // Fetch data (userId can be null if initData is provided)
         const data = await getMiniAppData(botId, userId, initData);
         
         // Check if data is valid
@@ -552,19 +567,21 @@ function renderPartnersList(partners) {
     }
     
     container.innerHTML = partners.map((partner, index) => {
-        const partnerId = partner.id || index;
-        const isTop = (appData.top_partners || []).some(p => p.id === partner.id);
+        const partnerId = partner.id || `temp-${index}`;
+        const partnerIdStr = typeof partnerId === 'string' ? partnerId : String(partnerId);
+        const isTop = (appData.top_partners || []).some(p => String(p.id) === String(partner.id));
+        const referralLink = partner.referral_link || '';
         
         return `
             <div class="partner-card ${isTop ? 'top-partner' : ''}" 
-                 data-partner-id="${partnerId}"
-                 onclick="showPartnerDetail(${partnerId})">
+                 data-partner-id="${escapeHtml(partnerIdStr)}"
+                 onclick="showPartnerDetail('${escapeHtml(partnerIdStr)}')">
                 <div class="partner-header">
                     <h3 class="partner-name">${escapeHtml(partner.name || 'Unknown')}</h3>
                     <span class="commission-badge ${isTop ? 'top-badge' : ''}">${partner.commission || 0}%</span>
                 </div>
                 <p class="partner-description">${escapeHtml((partner.description || '').substring(0, 100))}${partner.description && partner.description.length > 100 ? '...' : ''}</p>
-                <button class="partner-btn" onclick="event.stopPropagation(); openPartner('${partner.referral_link || ''}', ${partnerId})">
+                <button class="partner-btn" onclick="event.stopPropagation(); openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')">
                     Перейти →
                 </button>
             </div>
@@ -576,10 +593,11 @@ function renderPartnersList(partners) {
  * Render partner detail page
  */
 function renderPartnerDetail(partnerId) {
-    if (!appData) return;
+    if (!appData || !partnerId) return;
     
     const allPartners = [...(appData.partners || []), ...(appData.top_partners || [])];
-    const partner = allPartners.find(p => (p.id || 0) === partnerId);
+    // Compare as strings to handle UUIDs correctly
+    const partner = allPartners.find(p => String(p.id) === String(partnerId));
     
     if (!partner) {
         const content = document.getElementById('partner-detail-content');
@@ -649,18 +667,24 @@ function renderTop() {
         if (topPartners.length === 0) {
             container.innerHTML = '<p class="empty-state">TOP партнерів поки немає</p>';
         } else {
-            container.innerHTML = topPartners.map((partner, index) => `
-                <div class="partner-card top-partner" data-partner-id="${partner.id || index}">
+            container.innerHTML = topPartners.map((partner, index) => {
+                const partnerId = partner.id || `temp-top-${index}`;
+                const partnerIdStr = typeof partnerId === 'string' ? partnerId : String(partnerId);
+                const referralLink = partner.referral_link || '';
+                
+                return `
+                <div class="partner-card top-partner" data-partner-id="${escapeHtml(partnerIdStr)}">
                     <div class="partner-header">
                         <h3 class="partner-name">${escapeHtml(partner.name || 'Unknown')}</h3>
                         <span class="commission-badge top-badge">${partner.commission || 0}%</span>
                     </div>
                     <p class="partner-description">${escapeHtml(partner.description || '')}</p>
-                    <button class="partner-btn" onclick="openPartner('${partner.referral_link || ''}', ${partner.id || index})">
+                    <button class="partner-btn" onclick="openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')">
                         Перейти →
                     </button>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
     }
 }
@@ -689,21 +713,35 @@ function renderEarnings() {
             
             <!-- Progress Section -->
             <div class="progress-section">
-                <p class="progress-label">Інвайтів: ${user.total_invited || 0} / ${earnings.required_invites || 5}</p>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${Math.min(((user.total_invited || 0) / (earnings.required_invites || 5)) * 100, 100)}%"></div>
-                </div>
-                ${earnings.can_unlock_top ? '<p class="progress-hint">✅ Можна розблокувати TOP!</p>' : `<p class="progress-hint">Потрібно ще ${earnings.invites_needed || 0} інвайтів</p>`}
+                ${(() => {
+                    const totalInvited = user.total_invited || 0;
+                    const requiredInvites = earnings.required_invites || 5;
+                    const progress = requiredInvites > 0 ? Math.min((totalInvited / requiredInvites) * 100, 100) : 0;
+                    return `
+                    <p class="progress-label">Інвайтів: ${totalInvited} / ${requiredInvites}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    ${earnings.can_unlock_top ? '<p class="progress-hint">✅ Можна розблокувати TOP!</p>' : `<p class="progress-hint">Потрібно ще ${earnings.invites_needed || 0} інвайтів</p>`}
+                    `;
+                })()}
             </div>
             
             <!-- Referral Link -->
+            ${user.referral_link ? `
             <div class="referral-section">
                 <p class="section-label">Реферальна лінка:</p>
                 <div class="referral-link-box">
-                    <code>${user.referral_link || ''}</code>
+                    <code>${user.referral_link}</code>
                     <button class="copy-btn" onclick="copyReferralLink()">Копіювати</button>
                 </div>
             </div>
+            ` : `
+            <div class="referral-section">
+                <p class="section-label">Реферальна лінка:</p>
+                <p class="empty-state">Реферальна лінка генерується...</p>
+            </div>
+            `}
             
             <!-- 7% Program Block -->
             <div class="commission-section">
@@ -789,14 +827,20 @@ function renderWallet() {
  * Open partner link
  */
 function openPartner(referralLink, partnerId) {
-    if (!referralLink) return;
+    if (!referralLink || !referralLink.trim()) {
+        console.warn('Referral link is empty');
+        if (tg?.showAlert) {
+            tg.showAlert('Реферальна лінка відсутня');
+        }
+        return;
+    }
     
     // Log partner click
     if (botId) {
         const initData = tg?.initData || null;
         sendCallback(botId, {
             action: 'partner_click',
-            partner_id: partnerId
+            partner_id: partnerId || null
         }, initData).catch(err => console.error('Error logging partner click:', err));
     }
     
@@ -830,24 +874,35 @@ async function handleWalletSubmit(event) {
         return;
     }
     
+    // Validate botId before making request
+    if (!botId) {
+        showWalletMessage('Помилка: Bot ID не знайдено', 'error');
+        return;
+    }
+    
     try {
         showWalletMessage('Збереження...', 'info');
         
         const initData = tg?.initData || null;
         const result = await saveWallet(botId, walletAddress, userId, initData);
         
-        if (result.ok) {
-            showWalletMessage('Гаманець збережено успішно!', 'success');
+        if (result && result.ok !== false) {
+            showWalletMessage('✅ Гаманець збережено успішно!', 'success');
             // Update app data
             if (appData && appData.user) {
                 appData.user.wallet = walletAddress;
             }
+            // Clear input after successful save
+            if (input) {
+                input.value = walletAddress;
+            }
         } else {
-            throw new Error(result.detail || 'Failed to save wallet');
+            throw new Error(result?.detail || 'Failed to save wallet');
         }
     } catch (error) {
         console.error('Error saving wallet:', error);
-        showWalletMessage('Помилка збереження: ' + error.message, 'error');
+        const errorMsg = error.message || 'Невідома помилка';
+        showWalletMessage('❌ Помилка збереження: ' + errorMsg, 'error');
     }
 }
 
@@ -922,18 +977,77 @@ function renderInfo() {
  * Copy referral link
  */
 function copyReferralLink() {
-    if (!appData || !appData.user || !appData.user.referral_link) return;
-    
-    navigator.clipboard.writeText(appData.user.referral_link).then(() => {
-        // Show success message
+    if (!appData || !appData.user || !appData.user.referral_link) {
         if (tg?.showAlert) {
-            tg.showAlert('Лінк скопійовано!');
-        } else {
-            alert('Лінк скопійовано!');
+            tg.showAlert('Реферальна лінка відсутня');
         }
-    }).catch(err => {
-        console.error('Error copying link:', err);
-    });
+        return;
+    }
+    
+    const link = appData.user.referral_link;
+    
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+            showCopySuccess();
+        }).catch(err => {
+            console.error('Error copying link:', err);
+            // Fallback to old method
+            fallbackCopyText(link);
+        });
+    } else {
+        // Fallback for older browsers
+        fallbackCopyText(link);
+    }
+}
+
+/**
+ * Fallback copy method for older browsers
+ */
+function fallbackCopyText(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showCopySuccess();
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        if (tg?.showAlert) {
+            tg.showAlert('Не вдалося скопіювати лінк');
+        }
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+/**
+ * Show copy success message
+ */
+function showCopySuccess() {
+    if (tg?.showAlert) {
+        tg.showAlert('✅ Лінк скопійовано!');
+    } else if (tg?.HapticFeedback?.impactOccurred) {
+        // Haptic feedback if available
+        tg.HapticFeedback.impactOccurred('light');
+    }
+    
+    // Visual feedback on button
+    const copyBtn = document.querySelector('.copy-btn');
+    if (copyBtn) {
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '✅ Скопійовано!';
+        copyBtn.style.background = 'var(--success-color)';
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.style.background = '';
+        }, 2000);
+    }
 }
 
 /**
@@ -1164,13 +1278,23 @@ function showActivate7Instructions() {
  * Open Telegram bot
  */
 function openTelegramBot() {
+    // Get bot username from config or use default
+    const botName = appData?.config?.name || 'EarnHubAggregatorBot';
+    // Remove @ if present and extract username if it's a full URL
+    let cleanBotName = botName.replace('@', '').trim();
+    // If it's a full URL, extract username
+    if (cleanBotName.includes('t.me/')) {
+        cleanBotName = cleanBotName.split('t.me/')[1].split('/')[0];
+    }
+    const botUrl = `https://t.me/${cleanBotName}`;
+    
     if (tg && tg.openTelegramLink) {
-        // Get bot username from config or use default
-        const botName = appData?.config?.name || 'EarnHubAggregatorBot';
-        tg.openTelegramLink(`https://t.me/${botName}`);
+        tg.openTelegramLink(botUrl);
+    } else if (tg && tg.openLink) {
+        tg.openLink(botUrl);
     } else {
         // Fallback: open in new window
-        window.open(`https://t.me/EarnHubAggregatorBot`, '_blank');
+        window.open(botUrl, '_blank');
     }
 }
 
