@@ -384,7 +384,7 @@ async function loadAppData(showRefreshIndicator = false) {
             
             // Show welcome screen on first visit (check localStorage)
             const hasSeenWelcome = localStorage.getItem('mini_app_welcome_seen');
-            if (!hasSeenWelcome && appData.welcome?.message) {
+            if (!hasSeenWelcome) {
                 showWelcomeScreen();
             } else {
                 renderApp();
