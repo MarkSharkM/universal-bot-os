@@ -324,84 +324,84 @@ async def get_mini_app_data(
             platform="telegram"
         )
     
-        # Get all data
-        try:
-            # Get user language for localization
-            user_lang = user.language_code or 'en'
-            user_lang = translation_service.detect_language(user_lang)
-            
-            # Earnings data
-            earnings_data = earnings_service.get_earnings_data(user.id)
-            
-            # Partners (with user language for localized descriptions)
-            partners = partner_service.get_partners(user_lang=user_lang)
-            
-            # TOP partners (with user language for localized descriptions)
-            top_partners = partner_service.get_top_partners(user_lang=user_lang)
-            
-            # User wallet
-            wallet = user_service.get_wallet(user.id)
-            
-            # Bot config
-            bot_config = bot.config or {}
-            
-            # Get info and welcome messages (user_lang already detected above)
-            info_message = translation_service.get_translation('info_main', user_lang)
-            welcome_message = translation_service.get_translation('welcome', user_lang)
-            
-            # Get 7% program translations for earnings
-            commission_percent = int(earnings_data["commission_rate"] * 100)
-            earnings_translations = {
-                "block2_title": translation_service.get_translation('earnings_block2_title', user_lang),
-                "block2_how_it_works": translation_service.get_translation('earnings_block2_how_it_works', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
-                "block2_examples": translation_service.get_translation('earnings_block2_examples', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
-                "block2_enable_title": translation_service.get_translation('earnings_enable_7_title', user_lang),
-                "block2_enable_steps": translation_service.get_translation('earnings_enable_7_steps', user_lang),
-                "block3_title": translation_service.get_translation('earnings_block3_title', user_lang),
-                "step1": translation_service.get_translation('earnings_step1_open' if earnings_data["can_unlock_top"] else 'earnings_step1_locked', user_lang, {'needed': earnings_data["invites_needed"]} if not earnings_data["can_unlock_top"] else {}),
-                "step2": translation_service.get_translation('earnings_step2', user_lang),
-                "step3": translation_service.get_translation('earnings_step3', user_lang),
-                "step4": translation_service.get_translation('earnings_step4', user_lang),
-                "auto_stats": translation_service.get_translation('earnings_auto_stats', user_lang),
-                "btn_unlock_top": translation_service.get_translation('earnings_btn_unlock_top', user_lang, {'buy_top_price': earnings_data["buy_top_price"]}),
-                "btn_top_partners": translation_service.get_translation('earnings_btn_top_partners', user_lang),
-                "btn_activate_7": translation_service.get_translation('earnings_btn_activate_7', user_lang),
+    # Get all data
+    try:
+        # Get user language for localization
+        user_lang = user.language_code or 'en'
+        user_lang = translation_service.detect_language(user_lang)
+        
+        # Earnings data
+        earnings_data = earnings_service.get_earnings_data(user.id)
+        
+        # Partners (with user language for localized descriptions)
+        partners = partner_service.get_partners(user_lang=user_lang)
+        
+        # TOP partners (with user language for localized descriptions)
+        top_partners = partner_service.get_top_partners(user_lang=user_lang)
+        
+        # User wallet
+        wallet = user_service.get_wallet(user.id)
+        
+        # Bot config
+        bot_config = bot.config or {}
+        
+        # Get info and welcome messages (user_lang already detected above)
+        info_message = translation_service.get_translation('info_main', user_lang)
+        welcome_message = translation_service.get_translation('welcome', user_lang)
+        
+        # Get 7% program translations for earnings
+        commission_percent = int(earnings_data["commission_rate"] * 100)
+        earnings_translations = {
+            "block2_title": translation_service.get_translation('earnings_block2_title', user_lang),
+            "block2_how_it_works": translation_service.get_translation('earnings_block2_how_it_works', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
+            "block2_examples": translation_service.get_translation('earnings_block2_examples', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
+            "block2_enable_title": translation_service.get_translation('earnings_enable_7_title', user_lang),
+            "block2_enable_steps": translation_service.get_translation('earnings_enable_7_steps', user_lang),
+            "block3_title": translation_service.get_translation('earnings_block3_title', user_lang),
+            "step1": translation_service.get_translation('earnings_step1_open' if earnings_data["can_unlock_top"] else 'earnings_step1_locked', user_lang, {'needed': earnings_data["invites_needed"]} if not earnings_data["can_unlock_top"] else {}),
+            "step2": translation_service.get_translation('earnings_step2', user_lang),
+            "step3": translation_service.get_translation('earnings_step3', user_lang),
+            "step4": translation_service.get_translation('earnings_step4', user_lang),
+            "auto_stats": translation_service.get_translation('earnings_auto_stats', user_lang),
+            "btn_unlock_top": translation_service.get_translation('earnings_btn_unlock_top', user_lang, {'buy_top_price': earnings_data["buy_top_price"]}),
+            "btn_top_partners": translation_service.get_translation('earnings_btn_top_partners', user_lang),
+            "btn_activate_7": translation_service.get_translation('earnings_btn_activate_7', user_lang),
+        }
+        
+        return {
+            "ok": True,
+            "user": {
+                "wallet": wallet or "",
+                "balance": float(user.balance) if user.balance else 0.0,
+                "total_invited": earnings_data["total_invited"],
+                "top_status": earnings_data["top_status"],
+                "referral_link": earnings_data["referral_link"],
+            },
+            "earnings": {
+                "earned": earnings_data["earned"],
+                "can_unlock_top": earnings_data["can_unlock_top"],
+                "invites_needed": earnings_data["invites_needed"],
+                "required_invites": earnings_data["required_invites"],
+                "commission_rate": earnings_data["commission_rate"],
+                "buy_top_price": earnings_data["buy_top_price"],
+                "translations": earnings_translations,
+            },
+            "partners": partners,
+            "top_partners": top_partners,
+            "info": {
+                "message": info_message or "",
+            },
+            "welcome": {
+                "message": welcome_message or "",
+            },
+            "config": {
+                "theme": bot_config.get("ui", {}).get("theme", "dark"),
+                "colors": bot_config.get("ui", {}).get("colors", {}),
+                "features": bot_config.get("ui", {}).get("features", {}),
+                "name": bot_config.get("name", bot.name or "Bot"),
             }
-            
-            return {
-                "ok": True,
-                "user": {
-                    "wallet": wallet or "",
-                    "balance": float(user.balance) if user.balance else 0.0,
-                    "total_invited": earnings_data["total_invited"],
-                    "top_status": earnings_data["top_status"],
-                    "referral_link": earnings_data["referral_link"],
-                },
-                "earnings": {
-                    "earned": earnings_data["earned"],
-                    "can_unlock_top": earnings_data["can_unlock_top"],
-                    "invites_needed": earnings_data["invites_needed"],
-                    "required_invites": earnings_data["required_invites"],
-                    "commission_rate": earnings_data["commission_rate"],
-                    "buy_top_price": earnings_data["buy_top_price"],
-                    "translations": earnings_translations,
-                },
-                "partners": partners,
-                "top_partners": top_partners,
-                "info": {
-                    "message": info_message or "",
-                },
-                "welcome": {
-                    "message": welcome_message or "",
-                },
-                "config": {
-                    "theme": bot_config.get("ui", {}).get("theme", "dark"),
-                    "colors": bot_config.get("ui", {}).get("colors", {}),
-                    "features": bot_config.get("ui", {}).get("features", {}),
-                    "name": bot_config.get("name", bot.name or "Bot"),
-                }
-            }
-        except Exception as e:
-            logger.error(f"Error getting Mini App data: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+        }
+    except Exception as e:
+        logger.error(f"Error getting Mini App data: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
 

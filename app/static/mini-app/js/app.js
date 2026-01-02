@@ -357,7 +357,14 @@ async function loadAppData(showRefreshIndicator = false) {
         // Fetch data
         const data = await getMiniAppData(botId, userId, initData);
         
-        if (data.ok) {
+        // Check if data is valid
+        if (!data) {
+            throw new Error('No data received from server');
+        }
+        
+        // API returns {ok: true, ...} or throws error
+        if (data.ok === true || data.ok === undefined) {
+            // If ok is undefined, assume success (backward compatibility)
             appData = data;
             
             // Show welcome screen on first visit (check localStorage)
