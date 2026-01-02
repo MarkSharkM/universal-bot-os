@@ -157,6 +157,18 @@ function applyBotConfig(config) {
             document.body.setAttribute('data-theme', theme);
         }
     }
+
+    // Optional: force Hub-like dark UI regardless of Telegram theme
+    // Usage in bot.config:
+    // {
+    //   "ui": { "force_dark": true, "theme": "dark" }
+    // }
+    const forceDark = Boolean(config?.ui?.force_dark);
+    if (forceDark) {
+        document.body.setAttribute('data-theme', 'dark');
+    }
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.classList.toggle('hub-dark', isDark || forceDark);
     
     // Show/hide features based on bot.config.ui.features
     if (config.ui && config.ui.features) {
@@ -764,25 +776,30 @@ function renderEarnings() {
                 <div class="section-header">
                     <h3 class="section-title">${commissionPercent}% від Telegram</h3>
                 </div>
-                <div class="commission-info">
-                    <p class="info-text">Офіційна партнерська програма Telegram. Коли люди переходять по твоїй лінці, запускають бота та купують зірки — Telegram ділиться з тобою доходом (~${commissionPercent}%).</p>
-                    <div class="commission-example-box">
-                        <p class="example-label">Скільки може приносити один юзер:</p>
-                        <ul class="example-list">
-                            <li>1 юзер → ~0.35-0.70€</li>
-                            <li>10 юзерів → ~3.5-7€</li>
-                            <li>100 юзерів → ~35-70€</li>
-                        </ul>
+                <details class="accordion" open>
+                    <summary class="accordion-summary">Деталі та інструкції</summary>
+                    <div class="accordion-body">
+                        <div class="commission-info">
+                            <p class="info-text">Офіційна партнерська програма Telegram. Коли люди переходять по твоїй лінці, запускають бота та купують зірки — Telegram ділиться з тобою доходом (~${commissionPercent}%).</p>
+                            <div class="commission-example-box">
+                                <p class="example-label">Скільки може приносити один юзер:</p>
+                                <ul class="example-list">
+                                    <li>1 юзер → ~0.35-0.70€</li>
+                                    <li>10 юзерів → ~3.5-7€</li>
+                                    <li>100 юзерів → ~35-70€</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="commission-activate">
+                            <h4 class="activate-title">Як активувати ${commissionPercent}% (1 раз назавжди):</h4>
+                            <div class="activate-steps">
+                                <div class="activate-step">Відкрий @HubAggregatorBot</div>
+                                <div class="activate-step">«Партнерська програма»</div>
+                                <div class="activate-step">«Під'єднатись» → ${commissionPercent}% активуються назавжди</div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="commission-activate">
-                    <h4 class="activate-title">Як активувати ${commissionPercent}% (1 раз назавжди):</h4>
-                    <div class="activate-steps">
-                        <div class="activate-step">Відкрий @HubAggregatorBot</div>
-                        <div class="activate-step">«Партнерська програма»</div>
-                        <div class="activate-step">«Під'єднатись» → ${commissionPercent}% активуються назавжди</div>
-                    </div>
-                </div>
+                </details>
             </div>
             
             <!-- What to do next Card -->
@@ -790,21 +807,26 @@ function renderEarnings() {
                 <div class="section-header">
                     <h3 class="section-title">Що зробити прямо зараз</h3>
                 </div>
-                <div class="action-steps-simple">
-                    <div class="action-step-item">
-                        <span class="action-step-text">Додай ще ${earnings.invites_needed || 0} друзів → TOP відкриється</span>
+                <details class="accordion" open>
+                    <summary class="accordion-summary">План дій</summary>
+                    <div class="accordion-body">
+                        <div class="action-steps-simple">
+                            <div class="action-step-item">
+                                <span class="action-step-text">Додай ще ${earnings.invites_needed || 0} друзів → TOP відкриється</span>
+                            </div>
+                            <div class="action-step-item">
+                                <span class="action-step-text">Активуй свої ${commissionPercent}%</span>
+                            </div>
+                            <div class="action-step-item">
+                                <span class="action-step-text">Кинь цю лінку в 1-2 "живі" чати або друзів — кожен юзер може приносити тобі €</span>
+                            </div>
+                            <div class="action-step-item">
+                                <span class="action-step-text">Запускай TOP-партнерів</span>
+                            </div>
+                        </div>
+                        <p class="auto-stats">Статистика оновлюється автоматично</p>
                     </div>
-                    <div class="action-step-item">
-                        <span class="action-step-text">Активуй свої ${commissionPercent}%</span>
-                    </div>
-                    <div class="action-step-item">
-                        <span class="action-step-text">Кинь цю лінку в 1-2 "живі" чати або друзів — кожен юзер може приносити тобі €</span>
-                    </div>
-                    <div class="action-step-item">
-                        <span class="action-step-text">Запускай TOP-партнерів</span>
-                    </div>
-                </div>
-                <p class="auto-stats">Статистика оновлюється автоматично</p>
+                </details>
             </div>
             
             <!-- Action Buttons -->
