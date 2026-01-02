@@ -369,38 +369,38 @@ async def get_mini_app_data(
             }
             
             return {
-            "ok": True,
-            "user": {
-                "wallet": wallet or "",
-                "balance": float(user.balance) if user.balance else 0.0,
-                "total_invited": earnings_data["total_invited"],
-                "top_status": earnings_data["top_status"],
-                "referral_link": earnings_data["referral_link"],
-            },
-            "earnings": {
-                "earned": earnings_data["earned"],
-                "can_unlock_top": earnings_data["can_unlock_top"],
-                "invites_needed": earnings_data["invites_needed"],
-                "required_invites": earnings_data["required_invites"],
-                "commission_rate": earnings_data["commission_rate"],
-                "buy_top_price": earnings_data["buy_top_price"],
-                "translations": earnings_translations,
-            },
-            "partners": partners,
-            "top_partners": top_partners,
-            "info": {
-                "message": info_message or "",
-            },
-            "welcome": {
-                "message": welcome_message or "",
-            },
-            "config": {
-                "theme": bot_config.get("ui", {}).get("theme", "dark"),
-                "colors": bot_config.get("ui", {}).get("colors", {}),
-                "features": bot_config.get("ui", {}).get("features", {}),
-                "name": bot_config.get("name", bot.name or "Bot"),
+                "ok": True,
+                "user": {
+                    "wallet": wallet or "",
+                    "balance": float(user.balance) if user.balance else 0.0,
+                    "total_invited": earnings_data["total_invited"],
+                    "top_status": earnings_data["top_status"],
+                    "referral_link": earnings_data["referral_link"],
+                },
+                "earnings": {
+                    "earned": earnings_data["earned"],
+                    "can_unlock_top": earnings_data["can_unlock_top"],
+                    "invites_needed": earnings_data["invites_needed"],
+                    "required_invites": earnings_data["required_invites"],
+                    "commission_rate": earnings_data["commission_rate"],
+                    "buy_top_price": earnings_data["buy_top_price"],
+                    "translations": earnings_translations,
+                },
+                "partners": partners,
+                "top_partners": top_partners,
+                "info": {
+                    "message": info_message or "",
+                },
+                "welcome": {
+                    "message": welcome_message or "",
+                },
+                "config": {
+                    "theme": bot_config.get("ui", {}).get("theme", "dark"),
+                    "colors": bot_config.get("ui", {}).get("colors", {}),
+                    "features": bot_config.get("ui", {}).get("features", {}),
+                    "name": bot_config.get("name", bot.name or "Bot"),
+                }
             }
-        }
     except Exception as e:
         logger.error(f"Error getting Mini App data: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
