@@ -195,15 +195,20 @@ body::after {
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-md);
-    background-color: var(--tg-theme-bg-color);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="dark"] .app-header {
+    background: rgba(26, 26, 46, 0.85);
     border-bottom-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .app-header h1 {
@@ -238,17 +243,22 @@ body::after {
 /* Navigation Tabs */
 .tabs {
     display: flex;
-    background-color: var(--tg-theme-bg-color);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="dark"] .tabs {
+    background: rgba(26, 26, 46, 0.9);
     border-top-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .tab {
