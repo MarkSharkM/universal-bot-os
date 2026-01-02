@@ -973,7 +973,7 @@ async def test_command(
     
     # Initialize services
     user_service = UserService(db, bot_id)
-    translation_service = TranslationService(db)
+    translation_service = TranslationService(db, bot_id)
     referral_service = ReferralService(db, bot_id)
     partner_service = PartnerService(db, bot_id)
     earnings_service = EarningsService(
