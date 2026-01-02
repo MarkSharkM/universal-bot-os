@@ -244,7 +244,8 @@ class PartnerService:
         partners: List[Dict[str, Any]],
         referral_tag: str,
         user_lang: str = 'en',
-        max_length: int = 3900
+        max_length: int = 3900,
+        translation_service = None
     ) -> str:
         """
         Format TOP partners list as message.
@@ -255,6 +256,7 @@ class PartnerService:
             referral_tag: User's referral tag
             user_lang: User's language
             max_length: Maximum message length
+            translation_service: TranslationService instance for getting translations
         
         Returns:
             Formatted message text
@@ -264,9 +266,49 @@ class PartnerService:
             # Return empty message (will be handled by caller)
             return ''
         
-        # Intro text (will be from translations)
-        # For now, placeholder
-        intro = "🔥 TOP partners with the best earning potential:\n\n"
+        # Get intro text from translations
+        if translation_service:
+            intro = translation_service.get_translation('top_partners_intro', user_lang)
+            if not intro or intro == 'top_partners_intro':
+                # Fallback if translation not found
+                intro_map = {
+                    'uk': '🔥 ТОП партнери з найкращим заробітком:\n\n',
+                    'en': '🔥 TOP partners with the best earning potential:\n\n',
+                    'ru': '🔥 ТОП партнёры с лучшим заработком:\n\n',
+                    'de': '🔥 TOP-Partner mit dem besten Verdienstpotenzial:\n\n',
+                    'es': '🔥 Socios TOP con el mejor potencial de ganancias:\n\n',
+                }
+                intro = intro_map.get(user_lang, intro_map['en'])
+        else:
+            # Fallback if no translation service
+            intro = "🔥 TOP partners with the best earning potential:\n\n"
+        
+        # Get labels from translations
+        if translation_service:
+            bonus_label = translation_service.get_translation('bonus_program_label', user_lang)
+            if not bonus_label or bonus_label == 'bonus_program_label':
+                bonus_label_map = {
+                    'uk': 'Бонусна програма:',
+                    'en': 'Bonus program:',
+                    'ru': 'Бонусная программа:',
+                    'de': 'Bonusprogramm:',
+                    'es': 'Programa de bonificación:',
+                }
+                bonus_label = bonus_label_map.get(user_lang, bonus_label_map['en'])
+            
+            open_label = translation_service.get_translation('open_label', user_lang)
+            if not open_label or open_label == 'open_label':
+                open_label_map = {
+                    'uk': 'Відкрити',
+                    'en': 'Open',
+                    'ru': 'Открыть',
+                    'de': 'Öffnen',
+                    'es': 'Abrir',
+                }
+                open_label = open_label_map.get(user_lang, open_label_map['en'])
+        else:
+            bonus_label = 'Bonus program:'
+            open_label = 'Open'
         
         message_parts = []
         current_length = len(intro)
@@ -278,8 +320,8 @@ class PartnerService:
             # Use partner link as-is from database (no personalization)
             link = partner['referral_link']
             
-            # Format partner block
-            block = f"🤖 <b>{name}</b>\n{desc}\n🪙 Bonus program: {commission}%\n👉 <a href=\"{link}\">Open</a>"
+            # Format partner block with translations
+            block = f"🤖 <b>{name}</b>\n{desc}\n🪙 {bonus_label} {commission}%\n👉 <a href=\"{link}\">{open_label}</a>"
             
             # Check if adding this block would exceed limit
             block_length = len(block) + 2  # +2 for \n\n

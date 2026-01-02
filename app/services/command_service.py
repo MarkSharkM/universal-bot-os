@@ -296,7 +296,8 @@ class CommandService:
             message = self.partner_service.format_top_message(
                 partners,
                 referral_tag,
-                lang
+                lang,
+                translation_service=self.translation_service
             )
             logger.info(f"_handle_top: formatted message, length={len(message) if message else 0}")
         except Exception as e:
@@ -311,6 +312,8 @@ class CommandService:
                     'uk': 'Поки що немає TOP-партнерів.',
                     'en': 'No TOP partners available yet.',
                     'ru': 'Пока нет TOP-партнёров.',
+                    'de': 'Noch keine TOP-Partner verfügbar.',
+                    'es': 'Aún no hay socios TOP disponibles.',
                 }
                 error_msg = error_msg_map.get(lang, error_msg_map['en'])
             message = error_msg
@@ -360,13 +363,22 @@ class CommandService:
                 'uk': "🤖 <b>Перевірені Telegram-боти, які дають зірки за активність</b>\nОбери будь-який — запускай та прокачуйся! 💪",
                 'en': "🤖 <b>Verified Telegram bots that give you Stars for actions</b>\nPick any — launch and level up! 💪",
                 'ru': "🤖 <b>Проверенные Telegram-боты, которые дают звезды за активность</b>\nВыбери любой — запускай и прокачивайся! 💪",
+                'de': "🤖 <b>Verifizierte Telegram-Bots, die dir Sterne für Aktionen geben</b>\nWähle einen aus — starte und steigere dich! 💪",
+                'es': "🤖 <b>Bots de Telegram verificados que te dan Estrellas por acciones</b>\nElige cualquiera — ¡lanza y sube de nivel! 💪",
             }
             intro = intro_map.get(lang, intro_map['en'])
         
         if not partners:
             empty_msg = self.translation_service.get_translation('partners_empty', lang)
             if not empty_msg or empty_msg == 'partners_empty':
-                empty_msg = "Поки що немає доступних партнерів." if lang == 'uk' else "No partners available yet."
+                empty_msg_map = {
+                    'uk': 'Поки що немає доступних партнерів.',
+                    'en': 'No partners available yet.',
+                    'ru': 'Пока нет доступных партнёров.',
+                    'de': 'Noch keine Partner verfügbar.',
+                    'es': 'Aún no hay socios disponibles.',
+                }
+                empty_msg = empty_msg_map.get(lang, empty_msg_map['en'])
             message = f"{intro}\n\n{empty_msg}"
         else:
             partner_lines = []
