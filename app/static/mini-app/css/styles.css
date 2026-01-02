@@ -34,8 +34,8 @@
     
     /* Background */
     --bg-gradient-light: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
-    --bg-gradient-dark: radial-gradient(1200px 800px at 20% -10%, rgba(47, 128, 237, 0.18), transparent 55%),
-                        radial-gradient(900px 600px at 80% 10%, rgba(108, 92, 231, 0.14), transparent 55%),
+    /* Hub-like dark: subtle top glow, no "banding" */
+    --bg-gradient-dark: radial-gradient(900px 600px at 50% 0%, rgba(47, 128, 237, 0.16), transparent 62%),
                         linear-gradient(180deg, #0b1220 0%, #070b14 100%);
     --bg-gradient-overlay: none;
     
@@ -152,6 +152,11 @@ body {
     position: relative;
 }
 
+/* Avoid background "banding" in some Telegram WebViews */
+body.hub-dark {
+    background-attachment: scroll;
+}
+
 body::before {
     content: '';
     position: fixed;
@@ -265,8 +270,8 @@ body::after {
     left: 0;
     right: 0;
     z-index: 100;
-    box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.08);
-    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.10);
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
 }
 
 [data-theme="dark"] .tabs {
@@ -289,6 +294,9 @@ body::after {
     transition: background-color var(--transition-fast), color var(--transition-fast);
     font-size: var(--font-size-xs);
     position: relative;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    outline: none;
 }
 
 .tab::after {
@@ -299,9 +307,8 @@ body::after {
 .tab.active {
     color: var(--tg-theme-button-color);
     font-weight: 700;
-    background-color: rgba(47, 128, 237, 0.12);
-    border-radius: 14px;
-    margin: 6px 6px calc(6px + env(safe-area-inset-bottom)) 6px;
+    background-color: rgba(47, 128, 237, 0.16);
+    border-color: rgba(47, 128, 237, 0.32);
 }
 
 .tab.active::after {
@@ -310,6 +317,10 @@ body::after {
 
 .tab:active {
     transform: scale(0.98);
+}
+
+.tab:focus-visible {
+    border-color: rgba(47, 128, 237, 0.45);
 }
 
 .tab-icon {
@@ -384,6 +395,17 @@ body::after {
     background-color: var(--tg-theme-bg-color);
     color: var(--tg-theme-text-color);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+[data-theme="dark"] .search-input,
+body.hub-dark .search-input {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-theme="dark"] .search-input::placeholder,
+body.hub-dark .search-input::placeholder {
+    color: rgba(138, 148, 167, 0.9);
 }
 
 [data-theme="dark"] .search-input {
@@ -529,6 +551,16 @@ body::after {
     box-shadow: var(--shadow-elev-1);
 }
 
+body.hub-dark .partner-card,
+body.hub-dark .earnings-section-card,
+body.hub-dark .info-card,
+body.hub-dark .wallet-card,
+body.hub-dark .partner-detail-card {
+    background: var(--surface-1);
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-elev-1);
+}
+
 .partner-card::after {
     content: none; /* v2: remove shimmer */
 }
@@ -653,7 +685,7 @@ body::after {
 
 /* TOP Partners */
 .top-partner {
-    border: 1px solid rgba(47, 128, 237, 0.55);
+    border: 1px solid rgba(47, 128, 237, 0.35);
     background: var(--surface-1);
     position: relative;
 }
