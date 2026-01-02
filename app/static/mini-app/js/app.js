@@ -709,10 +709,10 @@ function renderEarnings() {
         <div class="earnings-container">
             <!-- Header -->
             <div class="earnings-header">
-                <h2>💰 ${translations.block3_title || 'Заробітки'}</h2>
+                <h2>💰 Заробітки</h2>
             </div>
             
-            <!-- 1. Balance Card -->
+            <!-- Balance Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
                     <span class="section-icon">💵</span>
@@ -724,7 +724,7 @@ function renderEarnings() {
                 </div>
             </div>
             
-            <!-- 2. Progress Card -->
+            <!-- Progress Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
                     <span class="section-icon">📊</span>
@@ -742,7 +742,7 @@ function renderEarnings() {
                 </div>
             </div>
             
-            <!-- 3. Referral Link Card -->
+            <!-- Referral Link Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
                     <span class="section-icon">🔗</span>
@@ -763,57 +763,57 @@ function renderEarnings() {
                 `}
             </div>
             
-            <!-- 4. 7% Program Card -->
+            <!-- 7% Program Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
                     <span class="section-icon">💎</span>
-                    <h3 class="section-title">${translations.block2_title || `${commissionPercent}% Програма`}</h3>
+                    <h3 class="section-title">${commissionPercent}% від Telegram</h3>
                 </div>
                 <div class="commission-info">
-                    <p class="info-text">${translations.block2_how_it_works || `Отримуй ${commissionPercent}% комісії з кожного заробітку твоїх рефералів`}</p>
+                    <p class="info-text">Офіційна партнерська програма Telegram. Коли люди переходять по твоїй лінці, запускають бота та купують зірки — Telegram ділиться з тобою доходом (~${commissionPercent}%).</p>
                     <div class="commission-example-box">
-                        <p class="example-label">📌 Приклад:</p>
-                        <p class="example-text">${translations.block2_examples || 'Якщо реферал заробив 100 TON, ти отримаєш 7 TON'}</p>
+                        <p class="example-label">Скільки може приносити один юзер:</p>
+                        <ul class="example-list">
+                            <li>1 юзер → ~0.35-0.70€</li>
+                            <li>10 юзерів → ~3.5-7€</li>
+                            <li>100 юзерів → ~35-70€</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="commission-activate">
-                    <h4 class="activate-title">${translations.block2_enable_title || 'Як активувати:'}</h4>
+                    <h4 class="activate-title">Як активувати ${commissionPercent}% (1 раз назавжди):</h4>
                     <div class="activate-steps">
-                        ${(translations.block2_enable_steps || '1. Запроси друзів\n2. Вони повинні заробити\n3. Ти отримаєш комісію автоматично').split('\n').map((step, i) => 
-                            `<div class="activate-step">${step}</div>`
-                        ).join('')}
+                        <div class="activate-step">Відкрий @HubAggregatorBot</div>
+                        <div class="activate-step">«Партнерська програма»</div>
+                        <div class="activate-step">«Під'єднатись» → ${commissionPercent}% активуються назавжди</div>
                     </div>
                 </div>
             </div>
             
-            <!-- 5. Action Steps Card -->
+            <!-- What to do next Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
                     <span class="section-icon">🚀</span>
-                    <h3 class="section-title">${translations.block3_title || 'Що робити далі'}</h3>
+                    <h3 class="section-title">Що зробити прямо зараз</h3>
                 </div>
-                <ol class="steps-list">
-                    <li class="step-item">
-                        <span class="step-number">1</span>
-                        <span class="step-text">${translations.step1 || 'Запроси друзів'}</span>
-                    </li>
-                    <li class="step-item">
-                        <span class="step-number">2</span>
-                        <span class="step-text">${translations.step2 || 'Вони реєструються'}</span>
-                    </li>
-                    <li class="step-item">
-                        <span class="step-number">3</span>
-                        <span class="step-text">${translations.step3 || 'Вони заробляють'}</span>
-                    </li>
-                    <li class="step-item">
-                        <span class="step-number">4</span>
-                        <span class="step-text">${translations.step4 || 'Ти отримуєш комісію'}</span>
-                    </li>
-                </ol>
-                <p class="auto-stats">${translations.auto_stats || 'Статистика оновлюється автоматично'}</p>
+                <div class="action-steps-simple">
+                    <div class="action-step-item">
+                        <span class="action-step-text">Додай ще ${earnings.invites_needed || 0} друзів → TOP відкриється</span>
+                    </div>
+                    <div class="action-step-item">
+                        <span class="action-step-text">Активуй свої ${commissionPercent}%</span>
+                    </div>
+                    <div class="action-step-item">
+                        <span class="action-step-text">Кинь цю лінку в 1-2 "живі" чати або друзів — кожен юзер може приносити тобі €</span>
+                    </div>
+                    <div class="action-step-item">
+                        <span class="action-step-text">Запускай TOP-партнерів</span>
+                    </div>
+                </div>
+                <p class="auto-stats">Статистика оновлюється автоматично</p>
             </div>
             
-            <!-- 6. Action Buttons -->
+            <!-- Action Buttons -->
             <div class="earnings-actions">
                 ${earnings.can_unlock_top ? `
                     <button class="action-btn unlock-btn" onclick="switchTab('top')">
@@ -970,7 +970,7 @@ function showWalletMessage(message, type = 'info') {
 }
 
 /**
- * Show welcome screen
+ * Show welcome screen with clear instructions
  */
 function showWelcomeScreen() {
     const welcomeScreen = document.getElementById('welcome-screen');
@@ -979,11 +979,44 @@ function showWelcomeScreen() {
     
     if (!welcomeScreen || !appData) return;
     
-    // Parse welcome message (HTML from translations)
-    const welcomeText = appData.welcome?.message || 'Ласкаво просимо до Mini App!';
+    // Create clear onboarding message
+    const botName = appData.config?.name || 'Mini App';
+    const welcomeHTML = `
+        <div class="welcome-steps">
+            <div class="welcome-step">
+                <div class="step-icon">🤝</div>
+                <div class="step-content">
+                    <h3>Партнери</h3>
+                    <p>Обери партнерського бота та отримуй зірки</p>
+                </div>
+            </div>
+            <div class="welcome-step">
+                <div class="step-icon">⭐</div>
+                <div class="step-content">
+                    <h3>TOP партнери</h3>
+                    <p>Найкращі пропозиції з високою комісією</p>
+                </div>
+            </div>
+            <div class="welcome-step">
+                <div class="step-icon">💰</div>
+                <div class="step-content">
+                    <h3>Заробітки</h3>
+                    <p>Переглянь свій баланс та прогрес</p>
+                </div>
+            </div>
+            <div class="welcome-step">
+                <div class="step-icon">👛</div>
+                <div class="step-content">
+                    <h3>Гаманець</h3>
+                    <p>Додай TON гаманець для виведення</p>
+                </div>
+            </div>
+        </div>
+        <p class="welcome-hint">👆 Оберіть розділ внизу екрана</p>
+    `;
     
     if (welcomeMessage) {
-        welcomeMessage.innerHTML = welcomeText;
+        welcomeMessage.innerHTML = welcomeHTML;
     }
     
     welcomeScreen.style.display = 'flex';
