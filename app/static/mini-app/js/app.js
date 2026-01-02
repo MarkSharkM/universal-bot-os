@@ -737,11 +737,11 @@ function renderEarnings() {
                         🔓 ${translations.btn_top_partners || 'Відкрити TOP'}
                     </button>
                 ` : `
-                    <button class="action-btn unlock-btn" onclick="alert('Потрібно ${earnings.invites_needed || 0} інвайтів або ${earnings.buy_top_price || 1} ⭐')">
+                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${earnings.buy_top_price || 1})">
                         🔒 ${translations.btn_unlock_top || `Розблокувати TOP (${earnings.buy_top_price || 1} ⭐)`}
                     </button>
                 `}
-                <button class="action-btn activate-btn" onclick="alert('Функція в розробці')">
+                <button class="action-btn activate-btn" onclick="showActivate7Instructions()">
                     ⚡ ${translations.btn_activate_7 || 'Активувати 7%'}
                 </button>
             </div>
@@ -1105,6 +1105,116 @@ function setupRippleEffects() {
         setTimeout(() => {
             ripple.remove();
         }, 600);
+    });
+}
+
+/**
+ * Show activate 7% instructions
+ */
+function showActivate7Instructions() {
+    if (!appData || !appData.earnings) return;
+    
+    const earnings = appData.earnings || {};
+    const translations = earnings.translations || {};
+    const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
+    
+    // Get instructions from translations or use default
+    const instructions = translations.block2_enable_steps || 
+        `1️⃣ Відкрий @HubAggregatorBot
+2️⃣ «Партнерська програма»
+3️⃣ «Під'єднатись»
+→ ${commissionPercent}% активуються назавжди`;
+    
+    // Show modal with instructions
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>${translations.block2_enable_title || `Як увімкнути ${commissionPercent}% (1 раз назавжди):`}</h2>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="instructions-text">
+                    ${instructions.split('\n').map(line => `<p>${line}</p>`).join('')}
+                </div>
+                <div class="modal-actions">
+                    <button class="action-btn primary" onclick="openTelegramBot()">
+                        Відкрити бота
+                    </button>
+                    <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
+                        Закрити
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on overlay click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+/**
+ * Open Telegram bot
+ */
+function openTelegramBot() {
+    if (tg && tg.openTelegramLink) {
+        // Get bot username from config or use default
+        const botName = appData?.config?.name || 'EarnHubAggregatorBot';
+        tg.openTelegramLink(`https://t.me/${botName}`);
+    } else {
+        // Fallback: open in new window
+        window.open(`https://t.me/EarnHubAggregatorBot`, '_blank');
+    }
+}
+
+/**
+ * Handle buy TOP - open bot to purchase
+ */
+function handleBuyTop(price) {
+    if (!appData || !botId) return;
+    
+    // Show confirmation modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Розблокувати TOP</h2>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="instructions-text">
+                    <p>Для розблокування TOP потрібно:</p>
+                    <p>• Запросити ${appData.earnings?.invites_needed || 0} друзів</p>
+                    <p>• Або купити доступ за ${price} ⭐</p>
+                    <p>Для покупки відкрийте бота та натисніть кнопку "Розблокувати TOP"</p>
+                </div>
+                <div class="modal-actions">
+                    <button class="action-btn primary" onclick="openTelegramBot(); this.closest('.modal-overlay').remove();">
+                        Відкрити бота
+                    </button>
+                    <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
+                        Закрити
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on overlay click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
     });
 }
 
