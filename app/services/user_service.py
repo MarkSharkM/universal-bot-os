@@ -137,6 +137,9 @@ class UserService:
             user.custom_data = {}
         user.custom_data['wallet_address'] = wallet_address
         
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(user, 'custom_data')
+        
         self.db.commit()
         self.db.refresh(user)
         

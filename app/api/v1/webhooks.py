@@ -213,10 +213,14 @@ async def _handle_message(
         # Try to validate as wallet
         import re
         wallet_pattern = r'^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$'
-        if re.match(wallet_pattern, text):
+        # Strip whitespace before checking
+        text_stripped = text.strip()
+        if re.match(wallet_pattern, text_stripped):
             # It's a wallet address
+            logger.info(f"Detected wallet address for user_id={user.id}, external_id={user.external_id}, wallet={text_stripped[:20]}...")
             wallet_service = WalletService(db, bot_id, user_service)
-            await wallet_service.save_wallet(user.id, text, adapter)
+            result = await wallet_service.save_wallet(user.id, text_stripped, adapter)
+            logger.info(f"Wallet save result: {result} for user_id={user.id}")
             return
     
     # Parse command

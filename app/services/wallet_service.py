@@ -63,8 +63,14 @@ class WalletService:
         Returns:
             True if saved successfully
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"save_wallet: user_id={user_id}, wallet_address={wallet_address[:20]}... (length={len(wallet_address)})")
+        
         # Validate format
         if not self.validate_wallet_format(wallet_address):
+            logger.warning(f"save_wallet: Invalid wallet format for user_id={user_id}, wallet={wallet_address[:20]}...")
             # Send error message
             user = self.user_service.get_user_by_id(user_id)
             if user:
@@ -82,7 +88,13 @@ class WalletService:
         
         # Save wallet
         wallet_address = wallet_address.strip()
-        self.user_service.update_wallet(user_id, wallet_address)
+        logger.info(f"save_wallet: Saving wallet for user_id={user_id}, wallet={wallet_address[:20]}...")
+        try:
+            updated_user = self.user_service.update_wallet(user_id, wallet_address)
+            logger.info(f"save_wallet: Wallet saved successfully for user_id={user_id}, external_id={updated_user.external_id}")
+        except Exception as e:
+            logger.error(f"save_wallet: Error saving wallet for user_id={user_id}: {e}", exc_info=True)
+            return False
         
         # Send confirmation
         user = self.user_service.get_user_by_id(user_id)
