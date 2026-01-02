@@ -401,7 +401,7 @@ async def get_mini_app_data(
                     "name": bot_config.get("name", bot.name or "Bot"),
                 }
             }
-    except Exception as e:
-        logger.error(f"Error getting Mini App data: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error getting Mini App data: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
 
