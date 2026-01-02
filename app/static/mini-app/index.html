@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2481cc">
+    <title>Mini App</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/mini-app/css/styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-screen">
+        <div class="spinner"></div>
+        <p>Завантаження...</p>
+    </div>
+
+    <!-- Main App (hidden until ready) -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <h1 id="bot-name">Mini App</h1>
+            <button id="close-btn" class="close-btn" aria-label="Закрити">×</button>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="partners">
+                <span class="tab-icon">🤝</span>
+                <span class="tab-label">Партнери</span>
+            </button>
+            <button class="tab" data-tab="top">
+                <span class="tab-icon">⭐</span>
+                <span class="tab-label">TOP</span>
+            </button>
+            <button class="tab" data-tab="earnings">
+                <span class="tab-icon">💰</span>
+                <span class="tab-label">Заробітки</span>
+            </button>
+            <button class="tab" data-tab="wallet">
+                <span class="tab-icon">👛</span>
+                <span class="tab-label">Гаманець</span>
+            </button>
+        </nav>
+
+        <!-- Content Areas -->
+        <main class="content">
+            <!-- Partners Page -->
+            <section id="partners-page" class="page active">
+                <!-- Search & Filters -->
+                <div class="page-header">
+                    <div class="search-box">
+                        <input type="text" id="partner-search" class="search-input" placeholder="🔍 Пошук партнерів...">
+                        <button class="filter-btn" id="filter-btn" aria-label="Фільтри">⚙️</button>
+                    </div>
+                    <div class="filter-panel" id="filter-panel" style="display: none;">
+                        <div class="filter-group">
+                            <label>Сортування:</label>
+                            <select id="sort-select" class="filter-select">
+                                <option value="name">За назвою</option>
+                                <option value="commission">За комісією</option>
+                                <option value="new">Спочатку нові</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Категорія:</label>
+                            <div class="filter-chips">
+                                <button class="chip active" data-filter="all">Всі</button>
+                                <button class="chip" data-filter="new">NEW</button>
+                                <button class="chip" data-filter="top">TOP</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Partners Grid -->
+                <div class="partners-grid" id="partners-list">
+                    <!-- Partners will be loaded here -->
+                </div>
+                
+                <!-- Loading Skeleton -->
+                <div id="partners-skeleton" class="skeleton-grid" style="display: none;">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </section>
+
+            <!-- TOP Page -->
+            <section id="top-page" class="page">
+                <div id="top-content">
+                    <!-- TOP partners or locked message -->
+                </div>
+            </section>
+
+            <!-- Earnings Page -->
+            <section id="earnings-page" class="page">
+                <div class="earnings-dashboard" id="earnings-dashboard">
+                    <!-- Earnings data will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Wallet Page -->
+            <section id="wallet-page" class="page">
+                <div class="wallet-section" id="wallet-section">
+                    <!-- Wallet form will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Partner Detail Page (hidden by default) -->
+            <section id="partner-detail-page" class="page">
+                <div class="detail-header">
+                    <button class="back-btn" onclick="goBack()">← Назад</button>
+                    <h2 id="partner-detail-name"></h2>
+                </div>
+                <div class="partner-detail-content" id="partner-detail-content">
+                    <!-- Partner details will be loaded here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Error Message (hidden by default) -->
+    <div id="error-message" class="error-message" style="display: none;">
+        <p id="error-text"></p>
+        <button id="retry-btn" class="retry-btn">Спробувати ще раз</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/mini-app/js/api.js"></script>
+    <script src="/static/mini-app/js/app.js"></script>
+</body>
+</html>
+

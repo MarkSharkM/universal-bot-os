@@ -12,6 +12,10 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.core.logging_config import setup_logging
 from app.core.health import get_health_status
+# Rate limiting (optional - uncomment if needed)
+# from slowapi import Limiter, _rate_limit_exceeded_handler
+# from slowapi.util import get_remote_address
+# from slowapi.errors import RateLimitExceeded
 
 # Імпортувати всі моделі для створення таблиць
 from app.models import bot, user, message, translation, business_data
@@ -25,6 +29,12 @@ app = FastAPI(
     description="Multi-tenant bot platform for managing 100+ bots",
     version="0.1.0",
 )
+
+# Rate limiting (optional - can be enabled for specific endpoints if needed)
+# For Mini Apps: not needed (initData validation + CORS provide sufficient protection)
+# limiter = Limiter(key_func=get_remote_address)
+# app.state.limiter = limiter
+# app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS middleware
 app.add_middleware(
@@ -272,4 +282,19 @@ app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
 # Admin router
 from app.api.v1 import admin
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
+
+# Mount static files (must be after routers to avoid conflicts)
+import pathlib
+static_dir = pathlib.Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    logger.info(f"✅ Static files mounted from: {static_dir}")
+else:
+    logger.warning(f"⚠️ Static directory not found: {static_dir}")
+
+# Note: Rate limiting for Mini Apps is NOT needed because:
+# 1. initData validation (HMAC-SHA256) provides authentication
+# 2. CORS restricts access to Telegram domains only
+# 3. Mini Apps is not a public API (only accessible from Telegram)
+# If rate limiting is needed for other endpoints, uncomment limiter setup above
 

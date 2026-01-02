@@ -325,4 +325,62 @@ class EarningsService:
 {auto_stats}"""
         
         return block
+    
+    def get_earnings_data(
+        self,
+        user_id: UUID
+    ) -> Dict[str, Any]:
+        """
+        Get earnings data as structured JSON (for Mini Apps).
+        Unlike build_earnings_message() which returns HTML, this returns clean JSON.
+        
+        Args:
+            user_id: User UUID
+        
+        Returns:
+            Dictionary with earnings data (structured for JSON API)
+        """
+        logger.info(f"get_earnings_data: user_id={user_id}")
+        
+        try:
+            user = self.user_service.get_user_by_id(user_id)
+            if not user:
+                logger.error(f"get_earnings_data: User {user_id} not found")
+                raise ValueError(f"User {user_id} not found")
+            
+            # Get user data
+            wallet = self.user_service.get_wallet(user_id)
+            earned = float(user.balance) if user.balance else 0.0
+            top_status = self.user_service.get_top_status(user_id)
+            
+            # Generate referral link
+            referral_tag = self.referral_service.generate_referral_tag(user_id)
+            referral_link = self.referral_service.generate_referral_link(user_id)
+            
+            # Check TOP unlock eligibility
+            can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
+            total_invited = self.referral_service.get_total_invited(user_id)
+            
+            # Get config values
+            required_invites = self._get_required_invites()
+            commission_rate = self._get_commission_rate()
+            buy_top_price = self._get_buy_top_price_from_config()
+            
+            return {
+                "earned": earned,
+                "wallet": wallet or "",
+                "top_status": top_status,  # "locked" or "open"
+                "can_unlock_top": can_unlock,
+                "invites_needed": invites_needed,
+                "total_invited": total_invited,
+                "required_invites": required_invites,
+                "referral_link": referral_link,
+                "referral_tag": referral_tag,
+                "commission_rate": commission_rate,
+                "buy_top_price": buy_top_price,
+            }
+            
+        except Exception as e:
+            logger.error(f"get_earnings_data: error getting user data: {e}", exc_info=True)
+            raise
 

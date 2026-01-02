@@ -15,7 +15,12 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "production"
     
     # CORS
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: List[str] = [
+        "*",  # Allow all in development
+        "https://web.telegram.org",
+        "https://webk.telegram.org",
+        "https://webz.telegram.org",
+    ]
     
     # Database
     DATABASE_URL: str = Field(..., env="DATABASE_URL")

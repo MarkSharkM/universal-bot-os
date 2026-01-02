@@ -1,0 +1,807 @@
+/**
+ * Main Mini App Logic
+ * Telegram WebApp Integration
+ */
+
+// API Base URL
+const API_BASE = window.location.origin;
+
+// Telegram WebApp instance
+let tg = null;
+let botId = null;
+let userId = null;
+let appData = null;
+
+/**
+ * Initialize Mini App
+ */
+async function initMiniApp() {
+    try {
+        // Get Telegram WebApp instance
+        tg = window.Telegram?.WebApp;
+        
+        if (!tg) {
+            console.error('Telegram WebApp SDK not loaded');
+            showError('Telegram WebApp SDK не завантажено');
+            return;
+        }
+        
+        // Initialize Telegram WebApp
+        tg.ready();
+        tg.expand();
+        
+        // Get user data from initData
+        const initDataUnsafe = tg.initDataUnsafe;
+        const user = initDataUnsafe?.user;
+        userId = user?.id?.toString();
+        
+        // Get bot_id from URL or initData (async)
+        botId = await getBotIdFromUrl();
+        
+        if (!botId) {
+            console.error('Bot ID not found');
+            showError('Bot ID не знайдено');
+            return;
+        }
+        
+        // Apply theme from Telegram
+        applyTheme();
+        
+        // Setup event handlers
+        setupEventHandlers();
+        
+        // Load app data
+        loadAppData();
+        
+    } catch (error) {
+        console.error('Error initializing Mini App:', error);
+        showError('Помилка ініціалізації: ' + error.message);
+    }
+}
+
+/**
+ * Get bot_id from URL or initData
+ * Priority: URL query param > initData API call
+ */
+async function getBotIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    let botId = params.get('bot_id');
+    
+    // If not in URL, try to get from initData via API
+    if (!botId && tg?.initData) {
+        try {
+            const initData = tg.initData;
+            const response = await fetch(`${API_BASE}/api/v1/mini-apps/mini-app/bot-id?init_data=${encodeURIComponent(initData)}`);
+            if (response.ok) {
+                const data = await response.json();
+                botId = data.bot_id;
+                console.log('Got bot_id from initData:', botId);
+            }
+        } catch (error) {
+            console.error('Error getting bot_id from initData:', error);
+        }
+    }
+    
+    return botId;
+}
+
+/**
+ * Apply theme from Telegram and bot.config
+ */
+function applyTheme() {
+    if (!tg) return;
+    
+    const colorScheme = tg.colorScheme; // 'light' or 'dark'
+    const themeColor = tg.themeParams?.bg_color || '#ffffff';
+    
+    // Apply theme to body
+    document.body.setAttribute('data-theme', colorScheme);
+    document.documentElement.style.setProperty('--tg-theme-bg-color', themeColor);
+    
+    // Apply other Telegram theme colors
+    if (tg.themeParams) {
+        const params = tg.themeParams;
+        if (params.text_color) {
+            document.documentElement.style.setProperty('--tg-theme-text-color', params.text_color);
+        }
+        if (params.hint_color) {
+            document.documentElement.style.setProperty('--tg-theme-hint-color', params.hint_color);
+        }
+        if (params.link_color) {
+            document.documentElement.style.setProperty('--tg-theme-link-color', params.link_color);
+        }
+        if (params.button_color) {
+            document.documentElement.style.setProperty('--tg-theme-button-color', params.button_color);
+        }
+        if (params.button_text_color) {
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', params.button_text_color);
+        }
+    }
+    
+    // Apply bot.config customizations (after app data is loaded)
+    if (appData && appData.config) {
+        applyBotConfig(appData.config);
+    }
+}
+
+/**
+ * Apply bot.config customizations
+ */
+function applyBotConfig(config) {
+    // Apply custom colors from bot.config.ui.colors
+    if (config.ui && config.ui.colors) {
+        const colors = config.ui.colors;
+        if (colors.primary) {
+            document.documentElement.style.setProperty('--primary-color', colors.primary);
+            document.documentElement.style.setProperty('--tg-theme-button-color', colors.primary);
+        }
+        if (colors.secondary) {
+            document.documentElement.style.setProperty('--secondary-color', colors.secondary);
+        }
+        if (colors.success) {
+            document.documentElement.style.setProperty('--success-color', colors.success);
+        }
+        if (colors.error) {
+            document.documentElement.style.setProperty('--error-color', colors.error);
+        }
+    }
+    
+    // Apply custom theme from bot.config.ui.theme
+    if (config.ui && config.ui.theme) {
+        const theme = config.ui.theme;
+        if (theme === 'dark' || theme === 'light') {
+            document.body.setAttribute('data-theme', theme);
+        }
+    }
+    
+    // Show/hide features based on bot.config.ui.features
+    if (config.ui && config.ui.features) {
+        const features = config.ui.features;
+        
+        // Hide tabs if features are disabled
+        if (features.partners === false) {
+            const partnersTab = document.querySelector('[data-tab="partners"]');
+            if (partnersTab) partnersTab.style.display = 'none';
+        }
+        if (features.top === false) {
+            const topTab = document.querySelector('[data-tab="top"]');
+            if (topTab) topTab.style.display = 'none';
+        }
+        if (features.earnings === false) {
+            const earningsTab = document.querySelector('[data-tab="earnings"]');
+            if (earningsTab) earningsTab.style.display = 'none';
+        }
+        if (features.wallet === false) {
+            const walletTab = document.querySelector('[data-tab="wallet"]');
+            if (walletTab) walletTab.style.display = 'none';
+        }
+    }
+    
+    // Update bot name from config
+    const botNameEl = document.getElementById('bot-name');
+    if (botNameEl && config.name) {
+        botNameEl.textContent = config.name;
+    }
+}
+
+/**
+ * Setup event handlers
+ */
+function setupEventHandlers() {
+    // Close button
+    const closeBtn = document.getElementById('close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            if (tg) {
+                tg.close();
+            }
+        });
+    }
+    
+    // Tab navigation
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
+    
+    // Back button (if needed)
+    if (tg?.BackButton) {
+        tg.BackButton.onClick(() => {
+            // Handle back button
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) {
+                // Go to first tab or close
+                switchTab('partners');
+            }
+        });
+    }
+}
+
+// Navigation state
+let currentPage = 'partners';
+let navigationHistory = [];
+
+/**
+ * Switch between tabs/pages
+ */
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.getAttribute('data-tab') === tabName) {
+            tab.classList.add('active');
+        }
+    });
+    
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show target page
+    const targetPage = document.getElementById(`${tabName}-page`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        currentPage = tabName;
+        
+        // Load content if not loaded yet
+        if (tabName === 'partners') {
+            renderPartners();
+            setupSearchAndFilters();
+        } else if (tabName === 'top') {
+            renderTop();
+        } else if (tabName === 'earnings') {
+            renderEarnings();
+        } else if (tabName === 'wallet') {
+            renderWallet();
+        }
+    }
+}
+
+/**
+ * Navigate to partner detail page
+ */
+function showPartnerDetail(partnerId) {
+    navigationHistory.push(currentPage);
+    
+    // Hide current page
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show detail page
+    const detailPage = document.getElementById('partner-detail-page');
+    if (detailPage) {
+        detailPage.classList.add('active');
+        currentPage = 'partner-detail';
+        renderPartnerDetail(partnerId);
+    }
+}
+
+/**
+ * Go back in navigation
+ */
+function goBack() {
+    if (navigationHistory.length > 0) {
+        const previousPage = navigationHistory.pop();
+        switchTab(previousPage);
+    } else {
+        switchTab('partners');
+    }
+}
+
+/**
+ * Load app data from backend
+ */
+async function loadAppData() {
+    try {
+        showLoading(true);
+        
+        // Get initData for validation
+        const initData = tg?.initData || null;
+        
+        // Fetch data
+        const data = await getMiniAppData(botId, userId, initData);
+        
+        if (data.ok) {
+            appData = data;
+            renderApp();
+            showLoading(false);
+        } else {
+            throw new Error(data.detail || 'Failed to load data');
+        }
+    } catch (error) {
+        console.error('Error loading app data:', error);
+        showError('Помилка завантаження даних: ' + error.message);
+        showLoading(false);
+    }
+}
+
+/**
+ * Render main app content
+ */
+function renderApp() {
+    if (!appData) return;
+    
+    // Apply bot.config customizations
+    if (appData.config) {
+        applyBotConfig(appData.config);
+    }
+    
+    // Update bot name
+    const botNameEl = document.getElementById('bot-name');
+    if (botNameEl) {
+        botNameEl.textContent = appData.config?.name || 'Mini App';
+    }
+    
+    // Render initial tab (partners)
+    switchTab('partners');
+}
+
+// Filtered partners cache
+let filteredPartners = [];
+let currentSort = 'name';
+let currentFilter = 'all';
+
+/**
+ * Setup search and filters
+ */
+function setupSearchAndFilters() {
+    // Search input
+    const searchInput = document.getElementById('partner-search');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterPartners(e.target.value);
+            }, 300); // Debounce
+        });
+    }
+    
+    // Filter button
+    const filterBtn = document.getElementById('filter-btn');
+    const filterPanel = document.getElementById('filter-panel');
+    if (filterBtn && filterPanel) {
+        filterBtn.addEventListener('click', () => {
+            filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+    
+    // Sort select
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            applyFilters();
+        });
+    }
+    
+    // Filter chips
+    document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            currentFilter = e.target.getAttribute('data-filter');
+            applyFilters();
+        });
+    });
+}
+
+/**
+ * Filter partners by search query
+ */
+function filterPartners(query) {
+    if (!appData) return;
+    
+    const partners = appData.partners || [];
+    const searchQuery = query.toLowerCase().trim();
+    
+    if (searchQuery === '') {
+        filteredPartners = [...partners];
+    } else {
+        filteredPartners = partners.filter(partner => {
+            const name = (partner.name || '').toLowerCase();
+            const description = (partner.description || '').toLowerCase();
+            return name.includes(searchQuery) || description.includes(searchQuery);
+        });
+    }
+    
+    applyFilters();
+}
+
+/**
+ * Apply filters and sorting
+ */
+function applyFilters() {
+    let partners = filteredPartners.length > 0 ? filteredPartners : (appData.partners || []);
+    
+    // Apply category filter
+    if (currentFilter !== 'all') {
+        // TODO: Add category filtering when backend supports it
+        // For now, filter by TOP status
+        if (currentFilter === 'top') {
+            const topPartnerIds = (appData.top_partners || []).map(p => p.id);
+            partners = partners.filter(p => topPartnerIds.includes(p.id));
+        }
+    }
+    
+    // Apply sorting
+    partners.sort((a, b) => {
+        switch (currentSort) {
+            case 'commission':
+                return (b.commission || 0) - (a.commission || 0);
+            case 'name':
+                return (a.name || '').localeCompare(b.name || '');
+            case 'new':
+                // TODO: Add date field when backend supports it
+                return 0;
+            default:
+                return 0;
+        }
+    });
+    
+    renderPartnersList(partners);
+}
+
+/**
+ * Render partners list
+ */
+function renderPartners() {
+    if (!appData) return;
+    
+    filteredPartners = [];
+    const partners = appData.partners || [];
+    
+    if (partners.length === 0) {
+        const container = document.getElementById('partners-list');
+        if (container) {
+            container.innerHTML = '<p class="empty-state">Партнерів поки немає</p>';
+        }
+        return;
+    }
+    
+    applyFilters();
+}
+
+/**
+ * Render partners list (internal)
+ */
+function renderPartnersList(partners) {
+    const container = document.getElementById('partners-list');
+    if (!container) return;
+    
+    if (partners.length === 0) {
+        container.innerHTML = '<p class="empty-state">Партнерів не знайдено</p>';
+        return;
+    }
+    
+    container.innerHTML = partners.map((partner, index) => {
+        const partnerId = partner.id || index;
+        const isTop = (appData.top_partners || []).some(p => p.id === partner.id);
+        
+        return `
+            <div class="partner-card ${isTop ? 'top-partner' : ''}" 
+                 data-partner-id="${partnerId}"
+                 onclick="showPartnerDetail(${partnerId})">
+                <div class="partner-header">
+                    <h3 class="partner-name">${escapeHtml(partner.name || 'Unknown')}</h3>
+                    <span class="commission-badge ${isTop ? 'top-badge' : ''}">${partner.commission || 0}%</span>
+                </div>
+                <p class="partner-description">${escapeHtml((partner.description || '').substring(0, 100))}${partner.description && partner.description.length > 100 ? '...' : ''}</p>
+                <button class="partner-btn" onclick="event.stopPropagation(); openPartner('${partner.referral_link || ''}', ${partnerId})">
+                    Перейти →
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render partner detail page
+ */
+function renderPartnerDetail(partnerId) {
+    if (!appData) return;
+    
+    const allPartners = [...(appData.partners || []), ...(appData.top_partners || [])];
+    const partner = allPartners.find(p => (p.id || 0) === partnerId);
+    
+    if (!partner) {
+        const content = document.getElementById('partner-detail-content');
+        if (content) {
+            content.innerHTML = '<p class="empty-state">Партнер не знайдено</p>';
+        }
+        return;
+    }
+    
+    const nameEl = document.getElementById('partner-detail-name');
+    if (nameEl) {
+        nameEl.textContent = partner.name || 'Unknown';
+    }
+    
+    const content = document.getElementById('partner-detail-content');
+    if (content) {
+        const isTop = (appData.top_partners || []).some(p => p.id === partner.id);
+        
+        content.innerHTML = `
+            <div class="partner-detail-card">
+                <div class="partner-detail-header">
+                    <h2>${escapeHtml(partner.name || 'Unknown')}</h2>
+                    <span class="commission-badge large ${isTop ? 'top-badge' : ''}">${partner.commission || 0}% комісія</span>
+                </div>
+                <div class="partner-detail-body">
+                    <p class="partner-detail-description">${escapeHtml(partner.description || 'Опис відсутній')}</p>
+                    <div class="partner-detail-actions">
+                        <button class="partner-btn large" onclick="openPartner('${partner.referral_link || ''}', ${partnerId})">
+                            🚀 Перейти до партнера
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Render TOP partners
+ */
+function renderTop() {
+    const container = document.getElementById('top-content');
+    if (!container || !appData) return;
+    
+    const topStatus = appData.user?.top_status || 'locked';
+    const topPartners = appData.top_partners || [];
+    
+    if (topStatus === 'locked') {
+        container.innerHTML = `
+            <div class="locked-state">
+                <h2>🔒 TOP закрито</h2>
+                <p>Запроси ${appData.earnings?.invites_needed || 0} друзів щоб розблокувати TOP</p>
+                <p>Або купи доступ за ${appData.earnings?.buy_top_price || 1} ⭐</p>
+            </div>
+        `;
+    } else {
+        if (topPartners.length === 0) {
+            container.innerHTML = '<p class="empty-state">TOP партнерів поки немає</p>';
+        } else {
+            container.innerHTML = topPartners.map((partner, index) => `
+                <div class="partner-card top-partner" data-partner-id="${partner.id || index}">
+                    <div class="partner-header">
+                        <h3 class="partner-name">${escapeHtml(partner.name || 'Unknown')}</h3>
+                        <span class="commission-badge top-badge">${partner.commission || 0}%</span>
+                    </div>
+                    <p class="partner-description">${escapeHtml(partner.description || '')}</p>
+                    <button class="partner-btn" onclick="openPartner('${partner.referral_link || ''}', ${partner.id || index})">
+                        Перейти →
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+/**
+ * Render earnings dashboard
+ */
+function renderEarnings() {
+    const container = document.getElementById('earnings-dashboard');
+    if (!container || !appData) return;
+    
+    const earnings = appData.earnings || {};
+    const user = appData.user || {};
+    
+    container.innerHTML = `
+        <div class="earnings-card">
+            <h2>💰 Заробітки</h2>
+            <div class="balance-display">
+                <span class="balance-amount">${earnings.earned || 0} TON</span>
+            </div>
+            <div class="progress-section">
+                <p>Інвайтів: ${user.total_invited || 0} / ${earnings.required_invites || 5}</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${((user.total_invited || 0) / (earnings.required_invites || 5)) * 100}%"></div>
+                </div>
+            </div>
+            <div class="referral-section">
+                <p>Реферальна лінка:</p>
+                <div class="referral-link-box">
+                    <code>${user.referral_link || ''}</code>
+                    <button class="copy-btn" onclick="copyReferralLink()">Копіювати</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render wallet section
+ */
+function renderWallet() {
+    const container = document.getElementById('wallet-section');
+    if (!container || !appData) return;
+    
+    const wallet = appData.user?.wallet || '';
+    
+    container.innerHTML = `
+        <div class="wallet-card">
+            <h2>👛 TON Гаманець</h2>
+            ${wallet ? `
+                <div class="current-wallet">
+                    <p>Поточний гаманець:</p>
+                    <code class="wallet-address">${wallet}</code>
+                </div>
+            ` : ''}
+            <form id="wallet-form" onsubmit="handleWalletSubmit(event)">
+                <label for="wallet-input">Введіть TON гаманець:</label>
+                <input 
+                    type="text" 
+                    id="wallet-input" 
+                    class="wallet-input" 
+                    placeholder="EQ..."
+                    value="${wallet}"
+                    pattern="^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$"
+                    required
+                />
+                <button type="submit" class="save-btn">Зберегти</button>
+            </form>
+            <div id="wallet-message" class="wallet-message"></div>
+        </div>
+    `;
+}
+
+/**
+ * Open partner link
+ */
+function openPartner(referralLink, partnerId) {
+    if (!referralLink) return;
+    
+    // Log partner click
+    if (botId) {
+        const initData = tg?.initData || null;
+        sendCallback(botId, {
+            action: 'partner_click',
+            partner_id: partnerId
+        }, initData).catch(err => console.error('Error logging partner click:', err));
+    }
+    
+    // Open link
+    if (tg?.openLink) {
+        tg.openLink(referralLink);
+    } else {
+        window.open(referralLink, '_blank');
+    }
+}
+
+/**
+ * Handle wallet form submit
+ */
+async function handleWalletSubmit(event) {
+    event.preventDefault();
+    
+    const input = document.getElementById('wallet-input');
+    const walletAddress = input.value.trim();
+    const messageEl = document.getElementById('wallet-message');
+    
+    if (!walletAddress) {
+        showWalletMessage('Введіть адресу гаманця', 'error');
+        return;
+    }
+    
+    // Validate format
+    const walletPattern = /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/;
+    if (!walletPattern.test(walletAddress)) {
+        showWalletMessage('Невірний формат адреси гаманця', 'error');
+        return;
+    }
+    
+    try {
+        showWalletMessage('Збереження...', 'info');
+        
+        const initData = tg?.initData || null;
+        const result = await saveWallet(botId, walletAddress, userId, initData);
+        
+        if (result.ok) {
+            showWalletMessage('Гаманець збережено успішно!', 'success');
+            // Update app data
+            if (appData && appData.user) {
+                appData.user.wallet = walletAddress;
+            }
+        } else {
+            throw new Error(result.detail || 'Failed to save wallet');
+        }
+    } catch (error) {
+        console.error('Error saving wallet:', error);
+        showWalletMessage('Помилка збереження: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Show wallet message
+ */
+function showWalletMessage(message, type = 'info') {
+    const messageEl = document.getElementById('wallet-message');
+    if (messageEl) {
+        messageEl.textContent = message;
+        messageEl.className = `wallet-message ${type}`;
+        messageEl.style.display = 'block';
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+    }
+}
+
+/**
+ * Copy referral link
+ */
+function copyReferralLink() {
+    if (!appData || !appData.user || !appData.user.referral_link) return;
+    
+    navigator.clipboard.writeText(appData.user.referral_link).then(() => {
+        // Show success message
+        if (tg?.showAlert) {
+            tg.showAlert('Лінк скопійовано!');
+        } else {
+            alert('Лінк скопійовано!');
+        }
+    }).catch(err => {
+        console.error('Error copying link:', err);
+    });
+}
+
+/**
+ * Show loading screen
+ */
+function showLoading(show) {
+    const loading = document.getElementById('loading');
+    const app = document.getElementById('app');
+    
+    if (loading) loading.style.display = show ? 'flex' : 'none';
+    if (app) app.style.display = show ? 'none' : 'block';
+}
+
+/**
+ * Show error message
+ */
+function showError(message) {
+    const errorEl = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    
+    if (errorEl && errorText) {
+        errorText.textContent = message;
+        errorEl.style.display = 'block';
+    }
+    
+    // Retry button
+    const retryBtn = document.getElementById('retry-btn');
+    if (retryBtn) {
+        retryBtn.onclick = () => {
+            errorEl.style.display = 'none';
+            loadAppData();
+        };
+    }
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Initialize when DOM is ready
+(async () => {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initMiniApp());
+    } else {
+        await initMiniApp();
+    }
+})();
+
