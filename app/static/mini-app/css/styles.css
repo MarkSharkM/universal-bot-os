@@ -665,10 +665,22 @@ body {
     margin-top: var(--spacing-lg);
 }
 
-.referral-link-box {
+.referral-actions {
     display: flex;
     gap: var(--spacing-sm);
     margin-top: var(--spacing-sm);
+}
+
+.referral-link-box {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.referral-actions {
+    display: flex;
+    gap: var(--spacing-sm);
 }
 
 .referral-link-box code {
@@ -1152,7 +1164,8 @@ body {
 /* Enhanced Buttons */
 .partner-btn,
 .save-btn,
-.copy-btn {
+.copy-btn,
+.share-btn {
     background: var(--gradient-primary);
     color: white;
     border: none;
@@ -1166,15 +1179,26 @@ body {
 
 .partner-btn:hover,
 .save-btn:hover,
-.copy-btn:hover {
+.copy-btn:hover,
+.share-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
 }
 
 .partner-btn:active,
 .save-btn:active,
-.copy-btn:active {
+.copy-btn:active,
+.share-btn:active {
     transform: translateY(0);
+}
+
+.share-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.share-btn:hover {
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
 }
 
 /* Welcome Screen */

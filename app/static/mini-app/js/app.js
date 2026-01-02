@@ -733,7 +733,10 @@ function renderEarnings() {
                 <p class="section-label">Реферальна лінка:</p>
                 <div class="referral-link-box">
                     <code>${user.referral_link}</code>
-                    <button class="copy-btn" onclick="copyReferralLink()">Копіювати</button>
+                    <div class="referral-actions">
+                        <button class="copy-btn" onclick="copyReferralLink()">📋 Копіювати</button>
+                        <button class="share-btn" onclick="shareReferralLink()">📤 Поділитися</button>
+                    </div>
                 </div>
             </div>
             ` : `
@@ -998,6 +1001,34 @@ function copyReferralLink() {
     } else {
         // Fallback for older browsers
         fallbackCopyText(link);
+    }
+}
+
+/**
+ * Share referral link via Telegram
+ */
+function shareReferralLink() {
+    if (!appData || !appData.user || !appData.user.referral_link) {
+        if (tg?.showAlert) {
+            tg.showAlert('Реферальна лінка відсутня');
+        }
+        return;
+    }
+    
+    const link = appData.user.referral_link;
+    const shareText = '🚀 Долучайся до HubAggregatorBot — отримуй зірки за активність!\nОсь твоє реферальне посилання:';
+    
+    // Use Telegram share URL
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
+    
+    // Try Telegram WebApp API first
+    if (tg?.openTelegramLink) {
+        tg.openTelegramLink(shareUrl);
+    } else if (tg?.openLink) {
+        tg.openLink(shareUrl);
+    } else {
+        // Fallback: open in new window
+        window.open(shareUrl, '_blank');
     }
 }
 
