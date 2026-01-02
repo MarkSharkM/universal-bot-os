@@ -861,6 +861,136 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+/**
+ * Setup pull-to-refresh functionality
+ */
+function setupPullToRefresh() {
+    const content = document.querySelector('.content');
+    if (!content) return;
+    
+    let touchStartY = 0;
+    let touchCurrentY = 0;
+    let isPulling = false;
+    let pullDistance = 0;
+    const pullThreshold = 80;
+    
+    content.addEventListener('touchstart', (e) => {
+        // Only trigger if at top of scroll
+        if (content.scrollTop === 0) {
+            touchStartY = e.touches[0].clientY;
+            isPulling = true;
+        }
+    }, { passive: true });
+    
+    content.addEventListener('touchmove', (e) => {
+        if (!isPulling) return;
+        
+        touchCurrentY = e.touches[0].clientY;
+        pullDistance = touchCurrentY - touchStartY;
+        
+        if (pullDistance > 0 && content.scrollTop === 0) {
+            e.preventDefault();
+            updatePullToRefresh(pullDistance);
+        }
+    }, { passive: false });
+    
+    content.addEventListener('touchend', () => {
+        if (!isPulling) return;
+        
+        if (pullDistance >= pullThreshold) {
+            // Trigger refresh
+            showPullToRefresh();
+            loadAppData(true);
+        } else {
+            hidePullToRefresh();
+        }
+        
+        isPulling = false;
+        pullDistance = 0;
+    }, { passive: true });
+}
+
+/**
+ * Update pull-to-refresh indicator
+ */
+function updatePullToRefresh(distance) {
+    const indicator = document.getElementById('pull-to-refresh');
+    if (!indicator) return;
+    
+    const threshold = 80;
+    const progress = Math.min(distance / threshold, 1);
+    
+    indicator.style.opacity = progress;
+    indicator.style.transform = `translateX(-50%) translateY(${Math.min(distance, threshold) - 100}px)`;
+    
+    if (distance >= threshold) {
+        indicator.classList.add('ready');
+    } else {
+        indicator.classList.remove('ready');
+    }
+}
+
+/**
+ * Show pull-to-refresh indicator
+ */
+function showPullToRefresh() {
+    const indicator = document.getElementById('pull-to-refresh');
+    if (indicator) {
+        indicator.classList.add('active');
+        indicator.querySelector('.pull-to-refresh-icon').textContent = '🔄';
+        indicator.querySelector('.pull-to-refresh-text').textContent = 'Оновлення...';
+    }
+}
+
+/**
+ * Hide pull-to-refresh indicator
+ */
+function hidePullToRefresh() {
+    const indicator = document.getElementById('pull-to-refresh');
+    if (indicator) {
+        indicator.classList.remove('active', 'ready');
+        indicator.style.opacity = '0';
+        indicator.style.transform = 'translateX(-50%) translateY(-100%)';
+        indicator.querySelector('.pull-to-refresh-icon').textContent = '⬇️';
+        indicator.querySelector('.pull-to-refresh-text').textContent = 'Потягніть для оновлення';
+    }
+}
+
+/**
+ * Setup ripple effects for buttons
+ */
+function setupRippleEffects() {
+    // Add ripple to all buttons
+    document.addEventListener('click', (e) => {
+        const button = e.target.closest('button, .partner-btn, .partner-card, .tab');
+        if (!button) return;
+        
+        // Skip if already has ripple
+        if (button.querySelector('.ripple')) return;
+        
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+        
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        
+        button.style.position = 'relative';
+        button.style.overflow = 'hidden';
+        button.appendChild(ripple);
+        
+        // Remove ripple after animation
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    });
+}
+
 // Initialize when DOM is ready
 (async () => {
     if (document.readyState === 'loading') {
