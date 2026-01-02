@@ -324,16 +324,20 @@ async def get_mini_app_data(
             platform="telegram"
         )
     
-    # Get all data
-    try:
-        # Earnings data
-        earnings_data = earnings_service.get_earnings_data(user.id)
-        
-        # Partners
-        partners = partner_service.get_partners()
-        
-        # TOP partners
-        top_partners = partner_service.get_top_partners()
+        # Get all data
+        try:
+            # Get user language for localization
+            user_lang = user.language_code or 'en'
+            user_lang = translation_service.detect_language(user_lang)
+            
+            # Earnings data
+            earnings_data = earnings_service.get_earnings_data(user.id)
+            
+            # Partners (with user language for localized descriptions)
+            partners = partner_service.get_partners(user_lang=user_lang)
+            
+            # TOP partners (with user language for localized descriptions)
+            top_partners = partner_service.get_top_partners(user_lang=user_lang)
         
         # User wallet
         wallet = user_service.get_wallet(user.id)
@@ -359,7 +363,9 @@ async def get_mini_app_data(
                 "earned": earnings_data["earned"],
                 "can_unlock_top": earnings_data["can_unlock_top"],
                 "invites_needed": earnings_data["invites_needed"],
+                "required_invites": earnings_data["required_invites"],
                 "commission_rate": earnings_data["commission_rate"],
+                "buy_top_price": earnings_data["buy_top_price"],
             },
             "partners": partners,
             "top_partners": top_partners,
