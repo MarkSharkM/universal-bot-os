@@ -192,8 +192,12 @@ async def _handle_message(
 ):
     """Handle message event"""
     message = update.get('message', {})
-    text = message.get('text', '').strip()
+    text = message.get('text', '')
+    if text:
+        text = text.strip()
     message_id = message.get('message_id')
+    
+    logger.info(f"_handle_message: text='{text[:50]}...' (length={len(text) if text else 0}), starts_with_slash={text.startswith('/') if text else False}")
     
     # Save user message to database (for future AI and analytics)
     if text:
