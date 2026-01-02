@@ -108,7 +108,8 @@ class PartnerService:
             
             partner_list.append({
                 'id': str(partner.id),
-                'bot_name': data.get('bot_name', 'Bot'),
+                'name': data.get('bot_name', 'Bot'),  # Use 'name' for frontend compatibility
+                'bot_name': data.get('bot_name', 'Bot'),  # Keep for backward compatibility
                 'description': self._get_localized_description(data, user_lang),
                 'referral_link': data.get('referral_link', ''),
                 'commission': float(data.get('commission', 0)),
@@ -178,7 +179,8 @@ class PartnerService:
             
             partner_list.append({
                 'id': str(partner.id),
-                'bot_name': data.get('bot_name', 'Bot'),
+                'name': data.get('bot_name', 'Bot'),  # Use 'name' for frontend compatibility
+                'bot_name': data.get('bot_name', 'Bot'),  # Keep for backward compatibility
                 'description': self._get_localized_description(data, user_lang),
                 'referral_link': data.get('referral_link', ''),
                 'commission': float(data.get('commission', 0)),
