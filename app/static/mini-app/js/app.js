@@ -310,6 +310,7 @@ let currentPage = 'partners';
 let navigationHistory = [];
 let isInitialLoad = true; // Track if this is the first load
 let isLoadingData = false; // Track if data is currently loading (prevent concurrent requests)
+let loadDataTimeout = null; // Debounce timer for loadAppData calls
 
 /**
  * Switch between tabs/pages
@@ -339,7 +340,10 @@ function switchTab(tabName) {
         // BUT: Don't reload on initial load (isInitialLoad = true) to prevent infinite loop
         if ((tabName === 'earnings' || tabName === 'top') && appData && !isInitialLoad) {
             // Reload app data to get fresh counters (only if appData already exists and not initial load)
-            loadAppData(false).then(() => {
+            // Use debounced version to prevent multiple rapid calls
+            loadAppData(false).catch(err => {
+                console.error('Error in loadAppData promise:', err);
+            }).then(() => {
                 // Render after data is loaded
                 if (tabName === 'earnings') {
                     renderEarnings();
@@ -417,9 +421,37 @@ async function loadAppData(showRefreshIndicator = false) {
     // Prevent concurrent requests
     if (isLoadingData && !showRefreshIndicator) {
         console.log('Data already loading, skipping duplicate request');
-        return;
+        return Promise.resolve(); // Return resolved promise to prevent errors
     }
     
+    // Debounce: cancel previous pending request if not a refresh
+    if (!showRefreshIndicator && loadDataTimeout) {
+        clearTimeout(loadDataTimeout);
+        loadDataTimeout = null;
+    }
+    
+    // If not a refresh, debounce the request by 100ms to batch rapid calls
+    if (!showRefreshIndicator && !isLoadingData) {
+        return new Promise((resolve, reject) => {
+            loadDataTimeout = setTimeout(async () => {
+                try {
+                    await loadAppDataInternal(showRefreshIndicator);
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            }, 100);
+        });
+    }
+    
+    // For refresh or if already loading, call directly
+    return loadAppDataInternal(showRefreshIndicator);
+}
+
+/**
+ * Internal function to actually load data (called after debounce)
+ */
+async function loadAppDataInternal(showRefreshIndicator = false) {
     try {
         isLoadingData = true;
         
