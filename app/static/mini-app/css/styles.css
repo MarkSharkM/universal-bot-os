@@ -114,6 +114,20 @@ body.hub-dark {
     background: var(--bg-gradient-dark);
 }
 
+/* HubAggregator-like palette overrides (used when hub-dark class is present) */
+body.hub-dark {
+    --tg-theme-bg-color: #0b1220;
+    --tg-theme-text-color: #eaf1ff;
+    --tg-theme-hint-color: #8a94a7;
+    --primary-color: #2f80ed;
+    --primary-hover: #1f6fd6;
+    --secondary-color: #6c5ce7;
+    --gradient-primary: linear-gradient(90deg, #2f80ed 0%, #6c5ce7 100%);
+    --surface-1: rgba(255, 255, 255, 0.06);
+    --surface-2: rgba(255, 255, 255, 0.10);
+    --border-color: rgba(255, 255, 255, 0.10);
+}
+
 [data-theme="dark"] body::after {
     display: none;
 }
@@ -825,7 +839,7 @@ body::after {
 .accordion {
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    background: var(--surface-2);
+    background: transparent;
     overflow: hidden;
 }
 
@@ -859,6 +873,20 @@ details.accordion[open] > .accordion-summary::after {
 .accordion-body {
     padding: 10px 12px 12px;
     border-top: 1px solid var(--border-color);
+}
+
+/* Make collapsed accordions look like compact inputs (Hub-like) */
+details.accordion:not([open]) > .accordion-summary {
+    background: var(--surface-2);
+    border-radius: 12px;
+}
+
+details.accordion[open] > .accordion-summary {
+    background: var(--surface-2);
+}
+
+details.accordion[open] > .accordion-body {
+    background: var(--surface-1);
 }
 
 [data-theme="dark"] .accordion {
@@ -1625,7 +1653,7 @@ details.accordion[open] > .accordion-summary::after {
 }
 
 .activate-btn {
-    background: var(--gradient-success);
+    background: var(--gradient-primary);
     color: var(--tg-theme-button-text-color);
 }
 

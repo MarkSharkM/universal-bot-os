@@ -166,6 +166,15 @@ function applyBotConfig(config) {
     const forceDark = Boolean(config?.ui?.force_dark);
     if (forceDark) {
         document.body.setAttribute('data-theme', 'dark');
+        // Force Hub-like palette so it matches the HubAggregator look, not Telegram default dark.
+        document.documentElement.style.setProperty('--tg-theme-bg-color', '#0b1220');
+        document.documentElement.style.setProperty('--tg-theme-text-color', '#eaf1ff');
+        document.documentElement.style.setProperty('--tg-theme-hint-color', '#8a94a7');
+        document.documentElement.style.setProperty('--tg-theme-link-color', '#2f80ed');
+        document.documentElement.style.setProperty('--tg-theme-button-color', config?.ui?.colors?.primary || '#2f80ed');
+        document.documentElement.style.setProperty('--tg-theme-button-text-color', '#ffffff');
+        document.documentElement.style.setProperty('--primary-color', config?.ui?.colors?.primary || '#2f80ed');
+        document.documentElement.style.setProperty('--secondary-color', config?.ui?.colors?.secondary || '#6c5ce7');
     }
     const isDark = document.body.getAttribute('data-theme') === 'dark';
     document.body.classList.toggle('hub-dark', isDark || forceDark);
@@ -776,7 +785,7 @@ function renderEarnings() {
                 <div class="section-header">
                     <h3 class="section-title">${commissionPercent}% від Telegram</h3>
                 </div>
-                <details class="accordion" open>
+                <details class="accordion">
                     <summary class="accordion-summary">Деталі та інструкції</summary>
                     <div class="accordion-body">
                         <div class="commission-info">
@@ -807,7 +816,7 @@ function renderEarnings() {
                 <div class="section-header">
                     <h3 class="section-title">Що зробити прямо зараз</h3>
                 </div>
-                <details class="accordion" open>
+                <details class="accordion">
                     <summary class="accordion-summary">План дій</summary>
                     <div class="accordion-body">
                         <div class="action-steps-simple">
@@ -833,15 +842,15 @@ function renderEarnings() {
             <div class="earnings-actions">
                 ${earnings.can_unlock_top ? `
                     <button class="action-btn unlock-btn" onclick="switchTab('top')">
-                        🔓 ${translations.btn_top_partners || 'Відкрити TOP'}
+                        ${translations.btn_top_partners || 'Відкрити TOP'}
                     </button>
                 ` : `
                     <button class="action-btn unlock-btn" onclick="handleBuyTop(${earnings.buy_top_price || 1})">
-                        🔒 ${translations.btn_unlock_top || `Розблокувати TOP (${earnings.buy_top_price || 1} ⭐)`}
+                        ${translations.btn_unlock_top || `Розблокувати TOP (${earnings.buy_top_price || 1} ⭐)`}
                     </button>
                 `}
                 <button class="action-btn activate-btn" onclick="showActivate7Instructions()">
-                    ⚡ ${translations.btn_activate_7 || 'Активувати 7%'}
+                    ${translations.btn_activate_7 || 'Активувати 7%'}
                 </button>
             </div>
         </div>
