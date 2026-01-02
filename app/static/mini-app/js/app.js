@@ -337,9 +337,11 @@ function goBack() {
 /**
  * Load app data from backend
  */
-async function loadAppData() {
+async function loadAppData(showRefreshIndicator = false) {
     try {
-        showLoading(true);
+        if (!showRefreshIndicator) {
+            showLoading(true);
+        }
         
         // Get initData for validation
         const initData = tg?.initData || null;
@@ -351,6 +353,9 @@ async function loadAppData() {
             appData = data;
             renderApp();
             showLoading(false);
+            if (showRefreshIndicator) {
+                hidePullToRefresh();
+            }
         } else {
             throw new Error(data.detail || 'Failed to load data');
         }
@@ -358,6 +363,9 @@ async function loadAppData() {
         console.error('Error loading app data:', error);
         showError('Помилка завантаження даних: ' + error.message);
         showLoading(false);
+        if (showRefreshIndicator) {
+            hidePullToRefresh();
+        }
     }
 }
 
@@ -595,16 +603,26 @@ function renderTop() {
     
     const topStatus = appData.user?.top_status || 'locked';
     const topPartners = appData.top_partners || [];
+    const wasLocked = container.querySelector('.locked-state') !== null;
     
     if (topStatus === 'locked') {
         container.innerHTML = `
             <div class="locked-state">
-                <h2>🔒 TOP закрито</h2>
+                <div class="locked-icon">🔒</div>
+                <h2>TOP закрито</h2>
                 <p>Запроси ${appData.earnings?.invites_needed || 0} друзів щоб розблокувати TOP</p>
                 <p>Або купи доступ за ${appData.earnings?.buy_top_price || 1} ⭐</p>
             </div>
         `;
     } else {
+        // Check if was just unlocked
+        if (wasLocked) {
+            container.classList.add('unlocked');
+            setTimeout(() => {
+                container.classList.remove('unlocked');
+            }, 1000);
+        }
+        
         if (topPartners.length === 0) {
             container.innerHTML = '<p class="empty-state">TOP партнерів поки немає</p>';
         } else {
