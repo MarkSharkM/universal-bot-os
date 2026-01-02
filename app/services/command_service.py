@@ -30,7 +30,7 @@ class CommandService:
         'top': r'^/(?:start\s+)?top\b',
         'partners': r'^/(?:start\s+)?partners\b',
         'share': r'^/(?:start\s+)?share\b',
-        'earnings': r'^/(?:start\s+)?earnings\b',
+        'earnings': r'^/(?:start\s+)?earning(?:s)?\b',  # Support both /earning and /earnings
         'info': r'^/(?:start\s+)?info\b',
         'start': r'^/start\b',
     }
