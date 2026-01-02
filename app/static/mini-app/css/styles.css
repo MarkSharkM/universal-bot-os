@@ -540,7 +540,7 @@ body.hub-dark .search-input::placeholder {
 
 .partner-card {
     background: var(--surface-1);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(47, 128, 237, 0.15);
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
     transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
@@ -766,7 +766,7 @@ body.hub-dark .partner-detail-card {
 
 .earnings-section-card {
     background: var(--surface-1);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(47, 128, 237, 0.12);
     border-radius: var(--radius-lg);
     padding: 16px;
     transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
@@ -781,8 +781,8 @@ body.hub-dark .partner-detail-card {
 .earnings-section-card:nth-child(5) { animation-delay: 0.25s; }
 
 [data-theme="dark"] .earnings-section-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(47, 128, 237, 0.12);
 }
 
 .section-header {
