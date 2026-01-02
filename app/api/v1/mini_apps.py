@@ -370,7 +370,7 @@ async def get_mini_app_data(
                 "theme": bot_config.get("ui", {}).get("theme", "dark"),
                 "colors": bot_config.get("ui", {}).get("colors", {}),
                 "features": bot_config.get("ui", {}).get("features", {}),
-                "name": bot_config.get("name", bot.username or "Bot"),
+                "name": bot_config.get("name", bot.name or "Bot"),
             }
         }
     except Exception as e:
