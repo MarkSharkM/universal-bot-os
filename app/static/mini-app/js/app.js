@@ -334,10 +334,18 @@ function switchTab(tabName) {
         
         // Reload data when switching to tabs that need fresh data
         // This ensures counters and stats are up-to-date
-        if (tabName === 'earnings' || tabName === 'top') {
-            // Reload app data to get fresh counters
+        if ((tabName === 'earnings' || tabName === 'top') && appData) {
+            // Reload app data to get fresh counters (only if appData already exists)
             loadAppData(false).then(() => {
                 // Render after data is loaded
+                if (tabName === 'earnings') {
+                    renderEarnings();
+                } else if (tabName === 'top') {
+                    renderTop();
+                }
+            }).catch(err => {
+                console.error('Error reloading data:', err);
+                // Still render with existing data if reload fails
                 if (tabName === 'earnings') {
                     renderEarnings();
                 } else if (tabName === 'top') {
@@ -745,7 +753,16 @@ function renderTop() {
  */
 function renderEarnings() {
     const container = document.getElementById('earnings-dashboard');
-    if (!container || !appData) return;
+    if (!container) {
+        console.warn('Earnings container not found');
+        return;
+    }
+    
+    if (!appData) {
+        console.warn('appData not loaded yet, showing loading state');
+        container.innerHTML = '<div class="loading-state"><p>Завантаження даних...</p></div>';
+        return;
+    }
     
     const earnings = appData.earnings || {};
     const user = appData.user || {};
@@ -1101,7 +1118,15 @@ function showWelcomeScreen() {
         welcomeCloseBtn.onclick = () => {
             welcomeScreen.style.display = 'none';
             localStorage.setItem('mini_app_welcome_seen', 'true');
-            renderApp(); // This will show Earnings tab first
+            // appData should already be loaded at this point
+            if (appData) {
+                renderApp(); // This will show Earnings tab first
+            } else {
+                // If appData not loaded, load it first
+                loadAppData(false).then(() => {
+                    renderApp();
+                });
+            }
             showLoading(false);
         };
     }
