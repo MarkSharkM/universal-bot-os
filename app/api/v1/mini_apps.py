@@ -367,8 +367,8 @@ async def get_mini_app_data(
                 "btn_top_partners": translation_service.get_translation('earnings_btn_top_partners', user_lang),
                 "btn_activate_7": translation_service.get_translation('earnings_btn_activate_7', user_lang),
             }
-        
-        return {
+            
+            return {
             "ok": True,
             "user": {
                 "wallet": wallet or "",
