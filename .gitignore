@@ -51,6 +51,9 @@ Thumbs.db
 # Railway
 .railway/
 
+# Local/archived docs (keep out of git)
+_archive/
+
 # Testing
 .pytest_cache/
 .coverage

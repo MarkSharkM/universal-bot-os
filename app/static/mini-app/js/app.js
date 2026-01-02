@@ -626,7 +626,7 @@ function renderPartnerDetail(partnerId) {
                     <p class="partner-detail-description">${escapeHtml(partner.description || 'Опис відсутній')}</p>
                     <div class="partner-detail-actions">
                         <button class="partner-btn large" onclick="openPartner('${partner.referral_link || ''}', ${partnerId})">
-                            🚀 Перейти до партнера
+                            Перейти до партнера
                         </button>
                     </div>
                 </div>
@@ -649,7 +649,6 @@ function renderTop() {
     if (topStatus === 'locked') {
         container.innerHTML = `
             <div class="locked-state">
-                <div class="locked-icon">🔒</div>
                 <h2>TOP закрито</h2>
                 <p>Запроси ${appData.earnings?.invites_needed || 0} друзів щоб розблокувати TOP</p>
                 <p>Або купи доступ за ${appData.earnings?.buy_top_price || 1} ⭐</p>
@@ -709,13 +708,12 @@ function renderEarnings() {
         <div class="earnings-container">
             <!-- Header -->
             <div class="earnings-header">
-                <h2>💰 Заробітки</h2>
+                <h2>Заробітки</h2>
             </div>
             
             <!-- Balance Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
-                    <span class="section-icon">💵</span>
                     <h3 class="section-title">Твій баланс</h3>
                 </div>
                 <div class="balance-display">
@@ -727,7 +725,6 @@ function renderEarnings() {
             <!-- Progress Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
-                    <span class="section-icon">📊</span>
                     <h3 class="section-title">Прогрес до TOP</h3>
                 </div>
                 <div class="progress-section">
@@ -745,7 +742,6 @@ function renderEarnings() {
             <!-- Referral Link Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
-                    <span class="section-icon">🔗</span>
                     <h3 class="section-title">Реферальна лінка</h3>
                 </div>
                 ${user.referral_link ? `
@@ -766,7 +762,6 @@ function renderEarnings() {
             <!-- 7% Program Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
-                    <span class="section-icon">💎</span>
                     <h3 class="section-title">${commissionPercent}% від Telegram</h3>
                 </div>
                 <div class="commission-info">
@@ -793,7 +788,6 @@ function renderEarnings() {
             <!-- What to do next Card -->
             <div class="earnings-section-card">
                 <div class="section-header">
-                    <span class="section-icon">🚀</span>
                     <h3 class="section-title">Що зробити прямо зараз</h3>
                 </div>
                 <div class="action-steps-simple">
@@ -843,7 +837,7 @@ function renderWallet() {
     
     container.innerHTML = `
         <div class="wallet-card">
-            <h2>👛 TON Гаманець</h2>
+            <h2>TON Гаманець</h2>
             ${wallet ? `
                 <div class="current-wallet">
                     <p>Поточний гаманець:</p>
@@ -1041,11 +1035,16 @@ function renderInfo() {
     
     const infoMessage = appData.info?.message || '';
     
+    // Fix cases where backend sends literal "\n" sequences instead of newlines
+    const normalized = String(infoMessage || '')
+        .replace(/\\n/g, '\n')
+        .replace(/\n/g, '<br>');
+    
     // Parse HTML from info message (it comes as HTML from translations)
     container.innerHTML = `
         <div class="info-card">
             <div class="info-content">
-                ${infoMessage || '<p>Інформація про бота</p>'}
+                ${normalized || '<p>Інформація про бота</p>'}
             </div>
         </div>
     `;
