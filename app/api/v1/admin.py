@@ -287,7 +287,7 @@ async def test_5_invites_unlock(
         # Initialize services
         referral_service = ReferralService(db, bot_id)
         user_service = UserService(db, bot_id)
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         earnings_service = EarningsService(
             db, bot_id, user_service, referral_service, translation_service
         )

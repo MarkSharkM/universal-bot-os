@@ -55,7 +55,7 @@ async def ai_chat(
             raise HTTPException(status_code=404, detail="Bot not found")
         
         # Initialize services
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         ai_service = AIService(db, bot_id, translation_service)
         
         # Get user UUID

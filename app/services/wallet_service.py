@@ -1,14 +1,16 @@
 """
 Wallet Service - Multi-tenant wallet management
 Handles wallet validation, saving, and display
+Supports custom validation pattern via bot.config.wallet.validation_pattern
 """
-from typing import Optional
+from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
 from uuid import UUID
 import re
 
 from app.services.user_service import UserService
 from app.services.translation_service import TranslationService
+from app.models.bot import Bot
 from app.adapters.base import BaseAdapter
 
 
@@ -16,9 +18,10 @@ class WalletService:
     """
     Multi-tenant wallet service.
     Handles TON wallet validation and saving.
+    Supports custom validation pattern via bot.config.wallet.validation_pattern
     """
     
-    WALLET_PATTERN = r'^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$'
+    WALLET_PATTERN_DEFAULT = r'^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$'
     
     def __init__(
         self,
@@ -29,10 +32,40 @@ class WalletService:
         self.db = db
         self.bot_id = bot_id
         self.user_service = user_service
+        self._bot_config: Optional[Dict[str, Any]] = None  # Cache bot config
+    
+    def _get_bot_config(self) -> Dict[str, Any]:
+        """
+        Get bot configuration (lazy load).
+        
+        Returns:
+            Bot config dictionary
+        """
+        if self._bot_config is None:
+            bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+            if bot:
+                self._bot_config = bot.config or {}
+            else:
+                self._bot_config = {}
+        return self._bot_config
+    
+    def _get_wallet_pattern(self) -> str:
+        """
+        Get wallet validation pattern from bot.config or use default.
+        
+        Returns:
+            Regex pattern for wallet validation
+        """
+        config = self._get_bot_config()
+        wallet_config = config.get('wallet', {})
+        pattern = wallet_config.get('validation_pattern')
+        if pattern:
+            return pattern
+        return self.WALLET_PATTERN_DEFAULT
     
     def validate_wallet_format(self, wallet_address: str) -> bool:
         """
-        Validate TON wallet address format.
+        Validate wallet address format using bot.config.wallet.validation_pattern or default.
         
         Args:
             wallet_address: Wallet address string
@@ -44,7 +77,8 @@ class WalletService:
             return False
         
         wallet_address = wallet_address.strip()
-        return bool(re.match(self.WALLET_PATTERN, wallet_address))
+        pattern = self._get_wallet_pattern()
+        return bool(re.match(pattern, wallet_address))
     
     async def save_wallet(
         self,
@@ -74,7 +108,7 @@ class WalletService:
             # Send error message
             user = self.user_service.get_user_by_id(user_id)
             if user:
-                translation_service = TranslationService(self.db)
+                translation_service = TranslationService(self.db, self.bot_id)
                 lang = translation_service.detect_language(user.language_code)
                 error_msg = translation_service.get_translation('wallet_invalid_format', lang)
                 
@@ -99,7 +133,7 @@ class WalletService:
         # Send confirmation
         user = self.user_service.get_user_by_id(user_id)
         if user:
-            translation_service = TranslationService(self.db)
+            translation_service = TranslationService(self.db, self.bot_id)
             lang = translation_service.detect_language(user.language_code)
             success_msg = translation_service.get_translation('wallet_saved', lang)
             

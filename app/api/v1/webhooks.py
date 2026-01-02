@@ -57,7 +57,7 @@ async def telegram_webhook(
         
         # Initialize services
         user_service = UserService(db, bot_id)
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         referral_service = ReferralService(db, bot_id)
         partner_service = PartnerService(db, bot_id)
         earnings_service = EarningsService(
@@ -155,7 +155,7 @@ async def _handle_message_async(
         
         # Initialize services with new DB session
         user_service = UserService(db, bot_id)
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         referral_service = ReferralService(db, bot_id)
         partner_service = PartnerService(db, bot_id)
         earnings_service = EarningsService(
@@ -214,15 +214,12 @@ async def _handle_message(
     
     # Check if it's a wallet address (not a command)
     if text and not text.startswith('/'):
-        # Try to validate as wallet
-        import re
-        wallet_pattern = r'^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$'
-        # Strip whitespace before checking
+        # Try to validate as wallet using WalletService (supports bot.config)
         text_stripped = text.strip()
-        if re.match(wallet_pattern, text_stripped):
+        wallet_service = WalletService(db, bot_id, user_service)
+        if wallet_service.validate_wallet_format(text_stripped):
             # It's a wallet address
             logger.info(f"Detected wallet address for user_id={user.id}, external_id={user.external_id}, wallet={text_stripped[:20]}...")
-            wallet_service = WalletService(db, bot_id, user_service)
             result = await wallet_service.save_wallet(user.id, text_stripped, adapter)
             logger.info(f"Wallet save result: {result} for user_id={user.id}")
             return
@@ -380,7 +377,7 @@ async def _handle_message(
             # Don't raise - webhook should still return 200 OK to Telegram
     elif text:
         # Not a command, not a wallet - show wallet_invalid_format message (like in production)
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         lang = translation_service.detect_language(user.language_code)
         error_message = translation_service.get_translation('wallet_invalid_format', lang)
         
@@ -430,7 +427,7 @@ async def _handle_callback_async(
         
         # Initialize services with new DB session
         user_service = UserService(db, bot_id)
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         referral_service = ReferralService(db, bot_id)
         partner_service = PartnerService(db, bot_id)
         earnings_service = EarningsService(
@@ -482,7 +479,7 @@ async def _handle_callback(
         except Exception as e:
             logger.error(f"Error handling buy_top: {e}", exc_info=True)
             # Send error message to user
-            translation_service = TranslationService(db)
+            translation_service = TranslationService(db, bot_id)
             lang = translation_service.detect_language(user.language_code)
             error_msg = f"❌ Помилка при відкритті інвойсу. Спробуйте пізніше."
             await adapter.send_message(
@@ -592,7 +589,7 @@ async def _handle_payment(
         if invoice_payload.startswith('buy_top_'):
             try:
                 # Send confirmation FIRST (don't block on DB commit)
-                translation_service = TranslationService(db)
+                translation_service = TranslationService(db, bot_id)
                 lang = translation_service.detect_language(user.language_code)
                 message = translation_service.get_translation('top_unlocked', lang)
                 
@@ -743,7 +740,7 @@ async def telegram_webhook_sync_test(
         
         # Initialize services
         user_service = UserService(db, bot_id)
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         referral_service = ReferralService(db, bot_id)
         partner_service = PartnerService(db, bot_id)
         earnings_service = EarningsService(
@@ -854,7 +851,7 @@ async def telegram_webhook_test(
         
         # Initialize services
         user_service = UserService(db, bot_id)
-        translation_service = TranslationService(db)
+        translation_service = TranslationService(db, bot_id)
         referral_service = ReferralService(db, bot_id)
         partner_service = PartnerService(db, bot_id)
         earnings_service = EarningsService(

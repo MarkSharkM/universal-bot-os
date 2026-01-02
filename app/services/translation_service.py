@@ -1,12 +1,15 @@
 """
 Translation Service - Multi-tenant i18n support
 Supports 5+ languages (uk, en, ru, de, es) with fallback logic
+Supports per-bot custom translations via bot.config
 """
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from uuid import UUID
 
 from app.models.translation import Translation
+from app.models.bot import Bot
 from app.core.database import get_db
 
 
@@ -14,14 +17,17 @@ class TranslationService:
     """
     Multi-tenant translation service.
     Works with bot_id for isolation, supports language detection and fallback.
+    Supports per-bot custom translations via bot.config.translations.custom
     """
     
     SUPPORTED_LANGUAGES = ['uk', 'en', 'ru', 'de', 'es']
     FALLBACK_LANG = 'en'
     DEFAULT_LANG = 'uk'
     
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, bot_id: Optional[UUID] = None):
         self.db = db
+        self.bot_id = bot_id
+        self._bot_config: Optional[Dict[str, Any]] = None  # Cache bot config
     
     def detect_language(
         self,
@@ -62,6 +68,56 @@ class TranslationService:
         
         return normalized
     
+    def _get_bot_config(self) -> Dict[str, Any]:
+        """
+        Get bot configuration (lazy load).
+        
+        Returns:
+            Bot config dictionary
+        """
+        if self._bot_config is None:
+            if self.bot_id:
+                bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+                if bot:
+                    self._bot_config = bot.config or {}
+                else:
+                    self._bot_config = {}
+            else:
+                self._bot_config = {}
+        return self._bot_config
+    
+    def _get_custom_translation(self, key: str, lang: str) -> Optional[str]:
+        """
+        Get custom translation from bot.config if available.
+        
+        Args:
+            key: Translation key
+            lang: Language code
+        
+        Returns:
+            Custom translation text or None
+        """
+        if not self.bot_id:
+            return None
+        
+        config = self._get_bot_config()
+        translations_config = config.get('translations', {})
+        
+        # Check if custom translations are enabled
+        use_custom = translations_config.get('use_custom', False)
+        if not use_custom:
+            return None
+        
+        # Get custom translations
+        custom = translations_config.get('custom', {})
+        lang_translations = custom.get(lang, {})
+        
+        # Return custom translation if exists
+        if key in lang_translations:
+            return lang_translations[key]
+        
+        return None
+    
     def get_translation(
         self,
         key: str,
@@ -70,6 +126,7 @@ class TranslationService:
     ) -> str:
         """
         Get translation by key with variable substitution.
+        Priority: bot.config.translations.custom > database translations
         
         Args:
             key: Translation key (e.g., 'welcome', 'wallet_saved')
@@ -82,36 +139,42 @@ class TranslationService:
         lang = lang or self.FALLBACK_LANG
         variables = variables or {}
         
-        # Try requested language
-        translation = self.db.query(Translation).filter(
-            and_(
-                Translation.key == key,
-                Translation.lang == lang
-            )
-        ).first()
-        
-        # Fallback chain: requested -> en -> uk
-        if not translation:
+        # First, try custom translation from bot.config
+        custom_text = self._get_custom_translation(key, lang)
+        if custom_text:
+            text = custom_text
+        else:
+            # Fallback to database translations
+            # Try requested language
             translation = self.db.query(Translation).filter(
                 and_(
                     Translation.key == key,
-                    Translation.lang == self.FALLBACK_LANG
+                    Translation.lang == lang
                 )
             ).first()
-        
-        if not translation:
-            translation = self.db.query(Translation).filter(
-                and_(
-                    Translation.key == key,
-                    Translation.lang == self.DEFAULT_LANG
-                )
-            ).first()
-        
-        # If still not found, return key
-        if not translation:
-            return key
-        
-        text = translation.text
+            
+            # Fallback chain: requested -> en -> uk
+            if not translation:
+                translation = self.db.query(Translation).filter(
+                    and_(
+                        Translation.key == key,
+                        Translation.lang == self.FALLBACK_LANG
+                    )
+                ).first()
+            
+            if not translation:
+                translation = self.db.query(Translation).filter(
+                    and_(
+                        Translation.key == key,
+                        Translation.lang == self.DEFAULT_LANG
+                    )
+                ).first()
+            
+            # If still not found, return key
+            if not translation:
+                return key
+            
+            text = translation.text
         
         # Substitute variables {{variable}}
         for var_key, var_value in variables.items():
