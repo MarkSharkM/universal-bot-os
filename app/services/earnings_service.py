@@ -68,6 +68,7 @@ class EarningsService:
             logger.info(f"build_earnings_message: getting wallet")
             wallet = self.user_service.get_wallet(user_id)
             earned = float(user.balance) if user.balance else 0.0
+            logger.info(f"build_earnings_message: wallet={wallet}, earned={earned}, balance={user.balance}")
             logger.info(f"build_earnings_message: getting top_status")
             top_status = self.user_service.get_top_status(user_id)
             
@@ -92,18 +93,22 @@ class EarningsService:
         message_parts = []
         
         # Header
-        # Show wallet info if wallet exists OR if earned > 0 (user has earnings even without wallet set)
+        # Show wallet info if wallet exists (non-empty) OR if earned > 0 (user has earnings even without wallet set)
         # Show "no income" only if no wallet AND no earnings
-        if wallet or earned > 0:
+        has_wallet = wallet and wallet.strip()  # Check for non-empty wallet
+        logger.info(f"build_earnings_message: has_wallet={has_wallet}, earned={earned}, condition={has_wallet or earned > 0}")
+        if has_wallet or earned > 0:
             # If wallet exists, show it; otherwise show just earned amount
-            wallet_display = wallet if wallet else 'N/A'
+            wallet_display = wallet if has_wallet else 'N/A'
             header = self.translation_service.get_translation(
                 'earnings_has_income',
                 lang,
                 {'wallet': wallet_display, 'earned': earned}
             )
+            logger.info(f"build_earnings_message: using earnings_has_income header")
         else:
             header = self.translation_service.get_translation('earnings_no_income', lang)
+            logger.info(f"build_earnings_message: using earnings_no_income header")
         
         title = self.translation_service.get_translation('earnings_title', lang)
         message_parts.append(f"<b>{title}</b>\n\n{header}\n")
