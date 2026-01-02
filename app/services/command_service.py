@@ -164,8 +164,13 @@ class CommandService:
             )
             message += f"\n{self.translation_service.get_translation('wallet_info_earnings', lang, {'amount': earned})}"
         else:
-            # No wallet
-            message = self.translation_service.get_translation('wallet_info_empty', lang)
+            # No wallet - show detailed instructions
+            # Try wallet_help first (detailed), fallback to wallet_not_found (short), then wallet_info_empty
+            message = self.translation_service.get_translation('wallet_help', lang)
+            if not message or message == 'wallet_help':  # Translation not found
+                message = self.translation_service.get_translation('wallet_not_found', lang)
+                if not message or message == 'wallet_not_found':  # Still not found
+                    message = self.translation_service.get_translation('wallet_info_empty', lang)
         
         buttons = [[{
             'text': self.translation_service.get_translation('btn_buy_stars', lang),
