@@ -425,17 +425,20 @@ class CommandService:
             lang,
             {}
         )
-        # Remove placeholder and add URL at the end
-        message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
-        # Add URL to message so it appears in /share
+        # Remove placeholder and clean up extra newlines
+        # Replace placeholders first
+        message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '')
+        # Remove trailing newlines and whitespace
+        message_text = message_text.rstrip()
+        # Add URL to message so it appears in /share (single newline)
         message = f"{message_text}\n{referral_link}"
         
         # For share button text, use text WITHOUT URL to avoid duplicate links
         # URL is already in the 'url' parameter, Telegram will add preview automatically
         # This is the text that appears when user clicks "Поділитись лінкою" button
         share_text_for_button = self.translation_service.get_translation('share_referral', lang, {})
-        # Remove any placeholder - don't add URL, Telegram will add preview from 'url' parameter
-        share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').strip()
+        # Remove any placeholder and clean up - don't add URL, Telegram will add preview from 'url' parameter
+        share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
         
         buttons = [[{
             'text': self.translation_service.get_translation('share_button', lang),
