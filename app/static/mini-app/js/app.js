@@ -309,6 +309,7 @@ function setupSwipeGestures() {
 let currentPage = 'partners';
 let navigationHistory = [];
 let isInitialLoad = true; // Track if this is the first load
+let isLoadingData = false; // Track if data is currently loading (prevent concurrent requests)
 
 /**
  * Switch between tabs/pages
@@ -413,7 +414,15 @@ function goBack() {
  * Load app data from backend
  */
 async function loadAppData(showRefreshIndicator = false) {
+    // Prevent concurrent requests
+    if (isLoadingData && !showRefreshIndicator) {
+        console.log('Data already loading, skipping duplicate request');
+        return;
+    }
+    
     try {
+        isLoadingData = true;
+        
         // Don't show loading screen if we're just refreshing data (not initial load)
         // Only show loading on first load or when explicitly requested via showRefreshIndicator
         if (!showRefreshIndicator && isInitialLoad) {
@@ -452,8 +461,12 @@ async function loadAppData(showRefreshIndicator = false) {
                 isInitialLoad = true; // Mark as initial load to prevent reload loop
                 renderApp();
                 // Switch to Earnings tab first (instead of Partners)
+                // Note: switchTab must be called while isInitialLoad = true to prevent reload
                 switchTab('earnings');
-                isInitialLoad = false; // Reset flag after initial render
+                // Reset flag AFTER switchTab completes (use setTimeout to ensure it runs after)
+                setTimeout(() => {
+                    isInitialLoad = false;
+                }, 100);
                 showLoading(false);
             }
             
@@ -470,6 +483,8 @@ async function loadAppData(showRefreshIndicator = false) {
         if (showRefreshIndicator) {
             hidePullToRefresh();
         }
+    } finally {
+        isLoadingData = false; // Always reset loading flag
     }
 }
 
