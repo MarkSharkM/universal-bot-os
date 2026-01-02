@@ -308,6 +308,7 @@ function setupSwipeGestures() {
 // Navigation state
 let currentPage = 'partners';
 let navigationHistory = [];
+let isInitialLoad = true; // Track if this is the first load
 
 /**
  * Switch between tabs/pages
@@ -334,8 +335,9 @@ function switchTab(tabName) {
         
         // Reload data when switching to tabs that need fresh data
         // This ensures counters and stats are up-to-date
-        if ((tabName === 'earnings' || tabName === 'top') && appData) {
-            // Reload app data to get fresh counters (only if appData already exists)
+        // BUT: Don't reload on initial load (isInitialLoad = true) to prevent infinite loop
+        if ((tabName === 'earnings' || tabName === 'top') && appData && !isInitialLoad) {
+            // Reload app data to get fresh counters (only if appData already exists and not initial load)
             loadAppData(false).then(() => {
                 // Render after data is loaded
                 if (tabName === 'earnings') {
@@ -412,9 +414,12 @@ function goBack() {
  */
 async function loadAppData(showRefreshIndicator = false) {
     try {
-        if (!showRefreshIndicator) {
+        // Don't show loading screen if we're just refreshing data (not initial load)
+        // Only show loading on first load or when explicitly requested via showRefreshIndicator
+        if (!showRefreshIndicator && isInitialLoad) {
             showLoading(true);
         }
+        // showRefreshIndicator is handled by pull-to-refresh UI
         
         // Get initData for validation
         const initData = tg?.initData || null;
@@ -444,9 +449,11 @@ async function loadAppData(showRefreshIndicator = false) {
             } else {
                 // Show Earnings tab first (it has instructions on what to do)
                 // This helps users understand what the bot does
+                isInitialLoad = true; // Mark as initial load to prevent reload loop
                 renderApp();
                 // Switch to Earnings tab first (instead of Partners)
                 switchTab('earnings');
+                isInitialLoad = false; // Reset flag after initial render
                 showLoading(false);
             }
             
@@ -485,7 +492,7 @@ function renderApp() {
     
     // Render initial tab (earnings - has instructions on what to do)
     // This helps users understand what the bot does
-    switchTab('earnings');
+    // Note: switchTab is called from loadAppData, not here, to avoid double call
 }
 
 // Filtered partners cache
