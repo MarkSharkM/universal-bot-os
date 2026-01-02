@@ -737,30 +737,117 @@ body {
 }
 
 /* Earnings Dashboard */
-.earnings-card {
-    background-color: var(--tg-theme-bg-color);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+.earnings-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
 }
 
-[data-theme="dark"] .earnings-card {
+.earnings-header {
+    margin-bottom: var(--spacing-sm);
+}
+
+.earnings-header h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--tg-theme-text-color);
+    margin: 0;
+}
+
+.earnings-section-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-normal);
+    animation: fadeIn 0.4s ease-out backwards;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.earnings-section-card:nth-child(1) { animation-delay: 0.05s; }
+.earnings-section-card:nth-child(2) { animation-delay: 0.1s; }
+.earnings-section-card:nth-child(3) { animation-delay: 0.15s; }
+.earnings-section-card:nth-child(4) { animation-delay: 0.2s; }
+.earnings-section-card:nth-child(5) { animation-delay: 0.25s; }
+
+[data-theme="dark"] .earnings-section-card {
+    background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .section-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.section-icon {
+    font-size: 24px;
+}
+
+.section-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--tg-theme-text-color);
+    margin: 0;
 }
 
 .balance-display {
     text-align: center;
-    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-md) 0;
 }
 
 .balance-amount {
-    font-size: 32px;
+    display: block;
+    font-size: 42px;
     font-weight: 700;
     color: var(--tg-theme-button-color);
+    margin-bottom: var(--spacing-xs);
+    text-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.balance-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--tg-theme-hint-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .progress-section {
-    margin: var(--spacing-lg) 0;
+    margin: var(--spacing-md) 0;
+}
+
+.progress-label {
+    font-size: var(--font-size-md);
+    color: var(--tg-theme-text-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.progress-label strong {
+    color: var(--tg-theme-button-color);
+    font-weight: 700;
+}
+
+.progress-hint {
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--tg-theme-hint-color);
+    text-align: center;
+}
+
+.progress-hint.success {
+    color: var(--success-color);
+    font-weight: 600;
 }
 
 .progress-bar {

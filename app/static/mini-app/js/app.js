@@ -701,77 +701,119 @@ function renderEarnings() {
     const translations = earnings.translations || {};
     const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
     
+    const totalInvited = user.total_invited || 0;
+    const requiredInvites = earnings.required_invites || 5;
+    const progress = requiredInvites > 0 ? Math.min((totalInvited / requiredInvites) * 100, 100) : 0;
+    
     container.innerHTML = `
-        <div class="earnings-card">
-            <h2>💰 ${translations.block3_title || 'Заробітки'}</h2>
-            
-            <!-- Balance -->
-            <div class="balance-display">
-                <span class="balance-label">Зароблено:</span>
-                <span class="balance-amount">${earnings.earned || 0} TON</span>
+        <div class="earnings-container">
+            <!-- Header -->
+            <div class="earnings-header">
+                <h2>💰 ${translations.block3_title || 'Заробітки'}</h2>
             </div>
             
-            <!-- Progress Section -->
-            <div class="progress-section">
-                ${(() => {
-                    const totalInvited = user.total_invited || 0;
-                    const requiredInvites = earnings.required_invites || 5;
-                    const progress = requiredInvites > 0 ? Math.min((totalInvited / requiredInvites) * 100, 100) : 0;
-                    return `
-                    <p class="progress-label">Інвайтів: ${totalInvited} / ${requiredInvites}</p>
+            <!-- 1. Balance Card -->
+            <div class="earnings-section-card">
+                <div class="section-header">
+                    <span class="section-icon">💵</span>
+                    <h3 class="section-title">Твій баланс</h3>
+                </div>
+                <div class="balance-display">
+                    <span class="balance-amount">${earnings.earned || 0} TON</span>
+                    <span class="balance-label">Зароблено</span>
+                </div>
+            </div>
+            
+            <!-- 2. Progress Card -->
+            <div class="earnings-section-card">
+                <div class="section-header">
+                    <span class="section-icon">📊</span>
+                    <h3 class="section-title">Прогрес до TOP</h3>
+                </div>
+                <div class="progress-section">
+                    <p class="progress-label">Інвайтів: <strong>${totalInvited} / ${requiredInvites}</strong></p>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: ${progress}%"></div>
                     </div>
-                    ${earnings.can_unlock_top ? '<p class="progress-hint">✅ Можна розблокувати TOP!</p>' : `<p class="progress-hint">Потрібно ще ${earnings.invites_needed || 0} інвайтів</p>`}
-                    `;
-                })()}
+                    ${earnings.can_unlock_top ? 
+                        '<p class="progress-hint success">✅ Можна розблокувати TOP!</p>' : 
+                        `<p class="progress-hint">Потрібно ще <strong>${earnings.invites_needed || 0}</strong> інвайтів</p>`
+                    }
+                </div>
             </div>
             
-            <!-- Referral Link -->
-            ${user.referral_link ? `
-            <div class="referral-section">
-                <p class="section-label">Реферальна лінка:</p>
-                <div class="referral-link-box">
-                    <code>${user.referral_link}</code>
+            <!-- 3. Referral Link Card -->
+            <div class="earnings-section-card">
+                <div class="section-header">
+                    <span class="section-icon">🔗</span>
+                    <h3 class="section-title">Реферальна лінка</h3>
+                </div>
+                ${user.referral_link ? `
+                <div class="referral-section">
+                    <div class="referral-link-box">
+                        <code>${user.referral_link}</code>
+                    </div>
                     <div class="referral-actions">
                         <button class="copy-btn" onclick="copyReferralLink()">📋 Копіювати</button>
                         <button class="share-btn" onclick="shareReferralLink()">📤 Поділитися</button>
                     </div>
                 </div>
-            </div>
-            ` : `
-            <div class="referral-section">
-                <p class="section-label">Реферальна лінка:</p>
+                ` : `
                 <p class="empty-state">Реферальна лінка генерується...</p>
+                `}
             </div>
-            `}
             
-            <!-- 7% Program Block -->
-            <div class="commission-section">
-                <h3 class="section-title">${translations.block2_title || `${commissionPercent}% Програма`}</h3>
+            <!-- 4. 7% Program Card -->
+            <div class="earnings-section-card">
+                <div class="section-header">
+                    <span class="section-icon">💎</span>
+                    <h3 class="section-title">${translations.block2_title || `${commissionPercent}% Програма`}</h3>
+                </div>
                 <div class="commission-info">
-                    <p>${translations.block2_how_it_works || `Отримуй ${commissionPercent}% комісії з кожного заробітку твоїх рефералів`}</p>
-                    <p class="commission-examples">${translations.block2_examples || 'Приклад: якщо реферал заробив 100 TON, ти отримаєш 7 TON'}</p>
+                    <p class="info-text">${translations.block2_how_it_works || `Отримуй ${commissionPercent}% комісії з кожного заробітку твоїх рефералів`}</p>
+                    <div class="commission-example-box">
+                        <p class="example-label">📌 Приклад:</p>
+                        <p class="example-text">${translations.block2_examples || 'Якщо реферал заробив 100 TON, ти отримаєш 7 TON'}</p>
+                    </div>
                 </div>
                 <div class="commission-activate">
-                    <h4>${translations.block2_enable_title || 'Як активувати:'}</h4>
-                    <p>${translations.block2_enable_steps || '1. Запроси друзів\n2. Вони повинні заробити\n3. Ти отримаєш комісію автоматично'}</p>
+                    <h4 class="activate-title">${translations.block2_enable_title || 'Як активувати:'}</h4>
+                    <div class="activate-steps">
+                        ${(translations.block2_enable_steps || '1. Запроси друзів\n2. Вони повинні заробити\n3. Ти отримаєш комісію автоматично').split('\n').map((step, i) => 
+                            `<div class="activate-step">${step}</div>`
+                        ).join('')}
+                    </div>
                 </div>
             </div>
             
-            <!-- Action Steps -->
-            <div class="action-steps">
-                <h3 class="section-title">${translations.block3_title || 'Що робити далі:'}</h3>
+            <!-- 5. Action Steps Card -->
+            <div class="earnings-section-card">
+                <div class="section-header">
+                    <span class="section-icon">🚀</span>
+                    <h3 class="section-title">${translations.block3_title || 'Що робити далі'}</h3>
+                </div>
                 <ol class="steps-list">
-                    <li>${translations.step1 || 'Запроси друзів'}</li>
-                    <li>${translations.step2 || 'Вони реєструються'}</li>
-                    <li>${translations.step3 || 'Вони заробляють'}</li>
-                    <li>${translations.step4 || 'Ти отримуєш комісію'}</li>
+                    <li class="step-item">
+                        <span class="step-number">1</span>
+                        <span class="step-text">${translations.step1 || 'Запроси друзів'}</span>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">2</span>
+                        <span class="step-text">${translations.step2 || 'Вони реєструються'}</span>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">3</span>
+                        <span class="step-text">${translations.step3 || 'Вони заробляють'}</span>
+                    </li>
+                    <li class="step-item">
+                        <span class="step-number">4</span>
+                        <span class="step-text">${translations.step4 || 'Ти отримуєш комісію'}</span>
+                    </li>
                 </ol>
                 <p class="auto-stats">${translations.auto_stats || 'Статистика оновлюється автоматично'}</p>
             </div>
             
-            <!-- Action Buttons -->
+            <!-- 6. Action Buttons -->
             <div class="earnings-actions">
                 ${earnings.can_unlock_top ? `
                     <button class="action-btn unlock-btn" onclick="switchTab('top')">
