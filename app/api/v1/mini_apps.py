@@ -338,17 +338,15 @@ async def get_mini_app_data(
             
             # TOP partners (with user language for localized descriptions)
             top_partners = partner_service.get_top_partners(user_lang=user_lang)
-        
-        # User wallet
-        wallet = user_service.get_wallet(user.id)
-        
-        # Bot config
-        bot_config = bot.config or {}
-        
-        # Get info message
-        user_lang = user.language_code or 'en'
-        user_lang = translation_service.detect_language(user_lang)
-        info_message = translation_service.get_translation('info_main', user_lang)
+            
+            # User wallet
+            wallet = user_service.get_wallet(user.id)
+            
+            # Bot config
+            bot_config = bot.config or {}
+            
+            # Get info message (user_lang already detected above)
+            info_message = translation_service.get_translation('info_main', user_lang)
         
         return {
             "ok": True,
