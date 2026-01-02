@@ -341,6 +341,11 @@ async def get_mini_app_data(
         # Bot config
         bot_config = bot.config or {}
         
+        # Get info message
+        user_lang = user.language_code or 'en'
+        user_lang = translation_service.detect_language(user_lang)
+        info_message = translation_service.get_translation('info_main', user_lang)
+        
         return {
             "ok": True,
             "user": {
@@ -358,10 +363,14 @@ async def get_mini_app_data(
             },
             "partners": partners,
             "top_partners": top_partners,
+            "info": {
+                "message": info_message or "",
+            },
             "config": {
                 "theme": bot_config.get("ui", {}).get("theme", "dark"),
                 "colors": bot_config.get("ui", {}).get("colors", {}),
                 "features": bot_config.get("ui", {}).get("features", {}),
+                "name": bot_config.get("name", bot.username or "Bot"),
             }
         }
     except Exception as e:

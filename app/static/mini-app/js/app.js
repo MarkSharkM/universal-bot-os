@@ -304,6 +304,8 @@ function switchTab(tabName) {
             renderEarnings();
         } else if (tabName === 'wallet') {
             renderWallet();
+        } else if (tabName === 'info') {
+            renderInfo();
         }
     }
 }
@@ -799,6 +801,44 @@ function showWalletMessage(message, type = 'info') {
             }, 3000);
         }
     }
+}
+
+/**
+ * Render Info page
+ */
+function renderInfo() {
+    const container = document.getElementById('info-section');
+    if (!container || !appData) return;
+    
+    const infoMessage = appData.info?.message || '';
+    
+    // Parse HTML from info message (it comes as HTML from translations)
+    container.innerHTML = `
+        <div class="info-card">
+            <div class="info-content">
+                ${infoMessage || '<p>Інформація про бота</p>'}
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render Info page
+ */
+function renderInfo() {
+    const container = document.getElementById('info-section');
+    if (!container || !appData) return;
+    
+    const infoMessage = appData.info?.message || '';
+    
+    // Parse HTML from info message (it comes as HTML from translations)
+    container.innerHTML = `
+        <div class="info-card">
+            <div class="info-content">
+                ${infoMessage || '<p>Інформація про бота</p>'}
+            </div>
+        </div>
+    `;
 }
 
 /**

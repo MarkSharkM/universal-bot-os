@@ -12,12 +12,23 @@
     --tg-theme-button-color: #2481cc;
     --tg-theme-button-text-color: #ffffff;
     
-    /* Custom Colors */
-    --primary-color: #2481cc;
-    --secondary-color: #6c757d;
-    --success-color: #28a745;
-    --error-color: #dc3545;
-    --warning-color: #ffc107;
+    /* Custom Colors - Професійний дизайн */
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary-color: #6366f1;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #06b6d4;
+    
+    /* Subtle Gradients (для акцентів) */
+    --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --gradient-card: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    
+    /* Glass morphism */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.18);
     
     /* Spacing */
     --spacing-xs: 4px;
@@ -408,15 +419,23 @@ body {
 }
 
 .partner-card {
-    background-color: var(--tg-theme-bg-color);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
     transition: all var(--transition-normal);
     cursor: pointer;
     position: relative;
     overflow: hidden;
     animation: cardFadeIn 0.4s ease-out backwards;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .partner-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 @keyframes cardFadeIn {
@@ -458,9 +477,14 @@ body {
 }
 
 .partner-card:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    border-color: var(--tg-theme-button-color);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary-color);
+    background: var(--tg-theme-bg-color);
+}
+
+[data-theme="dark"] .partner-card:hover {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .partner-card:active {
@@ -483,9 +507,11 @@ body {
 }
 
 .commission-badge {
-    background-color: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
+    background: var(--gradient-primary);
+    color: white;
     padding: var(--spacing-xs) var(--spacing-sm);
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
     border-radius: var(--radius-sm);
     font-size: var(--font-size-xs);
     font-weight: 600;
