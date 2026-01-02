@@ -217,6 +217,48 @@ function setupEventHandlers() {
             }
         });
     }
+    
+    // Swipe gestures for mobile navigation
+    setupSwipeGestures();
+}
+
+/**
+ * Setup swipe gestures for tab navigation (mobile)
+ */
+function setupSwipeGestures() {
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const content = document.querySelector('.content');
+    
+    if (!content) return;
+    
+    content.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    content.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+        
+        if (Math.abs(diff) < swipeThreshold) return;
+        
+        const tabs = ['partners', 'top', 'earnings', 'wallet'];
+        const currentTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+        const currentIndex = tabs.indexOf(currentTab);
+        
+        if (diff > 0 && currentIndex < tabs.length - 1) {
+            // Swipe left - next tab
+            switchTab(tabs[currentIndex + 1]);
+        } else if (diff < 0 && currentIndex > 0) {
+            // Swipe right - previous tab
+            switchTab(tabs[currentIndex - 1]);
+        }
+    }
 }
 
 // Navigation state
