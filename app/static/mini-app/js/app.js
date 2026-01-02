@@ -359,8 +359,16 @@ async function loadAppData(showRefreshIndicator = false) {
         
         if (data.ok) {
             appData = data;
-            renderApp();
-            showLoading(false);
+            
+            // Show welcome screen on first visit (check localStorage)
+            const hasSeenWelcome = localStorage.getItem('mini_app_welcome_seen');
+            if (!hasSeenWelcome && appData.welcome?.message) {
+                showWelcomeScreen();
+            } else {
+                renderApp();
+                showLoading(false);
+            }
+            
             if (showRefreshIndicator) {
                 hidePullToRefresh();
             }
@@ -659,25 +667,76 @@ function renderEarnings() {
     
     const earnings = appData.earnings || {};
     const user = appData.user || {};
+    const translations = earnings.translations || {};
+    const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
     
     container.innerHTML = `
         <div class="earnings-card">
-            <h2>💰 Заробітки</h2>
+            <h2>💰 ${translations.block3_title || 'Заробітки'}</h2>
+            
+            <!-- Balance -->
             <div class="balance-display">
+                <span class="balance-label">Зароблено:</span>
                 <span class="balance-amount">${earnings.earned || 0} TON</span>
             </div>
+            
+            <!-- Progress Section -->
             <div class="progress-section">
-                <p>Інвайтів: ${user.total_invited || 0} / ${earnings.required_invites || 5}</p>
+                <p class="progress-label">Інвайтів: ${user.total_invited || 0} / ${earnings.required_invites || 5}</p>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${((user.total_invited || 0) / (earnings.required_invites || 5)) * 100}%"></div>
+                    <div class="progress-fill" style="width: ${Math.min(((user.total_invited || 0) / (earnings.required_invites || 5)) * 100, 100)}%"></div>
                 </div>
+                ${earnings.can_unlock_top ? '<p class="progress-hint">✅ Можна розблокувати TOP!</p>' : `<p class="progress-hint">Потрібно ще ${earnings.invites_needed || 0} інвайтів</p>`}
             </div>
+            
+            <!-- Referral Link -->
             <div class="referral-section">
-                <p>Реферальна лінка:</p>
+                <p class="section-label">Реферальна лінка:</p>
                 <div class="referral-link-box">
                     <code>${user.referral_link || ''}</code>
                     <button class="copy-btn" onclick="copyReferralLink()">Копіювати</button>
                 </div>
+            </div>
+            
+            <!-- 7% Program Block -->
+            <div class="commission-section">
+                <h3 class="section-title">${translations.block2_title || `${commissionPercent}% Програма`}</h3>
+                <div class="commission-info">
+                    <p>${translations.block2_how_it_works || `Отримуй ${commissionPercent}% комісії з кожного заробітку твоїх рефералів`}</p>
+                    <p class="commission-examples">${translations.block2_examples || 'Приклад: якщо реферал заробив 100 TON, ти отримаєш 7 TON'}</p>
+                </div>
+                <div class="commission-activate">
+                    <h4>${translations.block2_enable_title || 'Як активувати:'}</h4>
+                    <p>${translations.block2_enable_steps || '1. Запроси друзів\n2. Вони повинні заробити\n3. Ти отримаєш комісію автоматично'}</p>
+                </div>
+            </div>
+            
+            <!-- Action Steps -->
+            <div class="action-steps">
+                <h3 class="section-title">${translations.block3_title || 'Що робити далі:'}</h3>
+                <ol class="steps-list">
+                    <li>${translations.step1 || 'Запроси друзів'}</li>
+                    <li>${translations.step2 || 'Вони реєструються'}</li>
+                    <li>${translations.step3 || 'Вони заробляють'}</li>
+                    <li>${translations.step4 || 'Ти отримуєш комісію'}</li>
+                </ol>
+                <p class="auto-stats">${translations.auto_stats || 'Статистика оновлюється автоматично'}</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="earnings-actions">
+                ${earnings.can_unlock_top ? `
+                    <button class="action-btn unlock-btn" onclick="switchTab('top')">
+                        🔓 ${translations.btn_top_partners || 'Відкрити TOP'}
+                    </button>
+                ` : `
+                    <button class="action-btn unlock-btn" onclick="alert('Потрібно ${earnings.invites_needed || 0} інвайтів або ${earnings.buy_top_price || 1} ⭐')">
+                        🔒 ${translations.btn_unlock_top || `Розблокувати TOP (${earnings.buy_top_price || 1} ⭐)`}
+                    </button>
+                `}
+                <button class="action-btn activate-btn" onclick="alert('Функція в розробці')">
+                    ⚡ ${translations.btn_activate_7 || 'Активувати 7%'}
+                </button>
             </div>
         </div>
     `;
@@ -804,22 +863,33 @@ function showWalletMessage(message, type = 'info') {
 }
 
 /**
- * Render Info page
+ * Show welcome screen
  */
-function renderInfo() {
-    const container = document.getElementById('info-section');
-    if (!container || !appData) return;
+function showWelcomeScreen() {
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const welcomeCloseBtn = document.getElementById('welcome-close-btn');
     
-    const infoMessage = appData.info?.message || '';
+    if (!welcomeScreen || !appData) return;
     
-    // Parse HTML from info message (it comes as HTML from translations)
-    container.innerHTML = `
-        <div class="info-card">
-            <div class="info-content">
-                ${infoMessage || '<p>Інформація про бота</p>'}
-            </div>
-        </div>
-    `;
+    // Parse welcome message (HTML from translations)
+    const welcomeText = appData.welcome?.message || 'Ласкаво просимо до Mini App!';
+    
+    if (welcomeMessage) {
+        welcomeMessage.innerHTML = welcomeText;
+    }
+    
+    welcomeScreen.style.display = 'flex';
+    
+    // Close welcome screen
+    if (welcomeCloseBtn) {
+        welcomeCloseBtn.onclick = () => {
+            welcomeScreen.style.display = 'none';
+            localStorage.setItem('mini_app_welcome_seen', 'true');
+            renderApp();
+            showLoading(false);
+        };
+    }
 }
 
 /**

@@ -1,6 +1,6 @@
 # 🚀 Quick Start - Universal Bot OS
 
-> 💡 **Для AI агентів:** Дивись також `AGENT_ONBOARDING.md` - повний гайд з інструментами, API та процесом роботи.
+> 💡 **Для AI агентів:** Дивись також [`../AI_DOCS/01_AI_AGENT_QUICK_START/AGENT_ONBOARDING.md`](../AI_DOCS/01_AI_AGENT_QUICK_START/AGENT_ONBOARDING.md) - повний гайд з інструментами, API та процесом роботи.
 
 ## ⚡ Швидкий запуск
 
@@ -172,8 +172,8 @@ python scripts/migrate_from_sheets.py user_wallets.csv bot_log.csv Partners_Sett
 ## 📚 Документація
 
 - `DEPLOYMENT.md` - детальний гайд по деплою
-- `API_ENDPOINTS.md` - всі API endpoints
-- `ADMIN_API.md` - Admin API документація
+- [`../AI_DOCS/02_PLATFORM_ADMIN/API_ENDPOINTS.md`](../AI_DOCS/02_PLATFORM_ADMIN/API_ENDPOINTS.md) - всі API endpoints
+- [`../AI_DOCS/02_PLATFORM_ADMIN/ADMIN_API.md`](../AI_DOCS/02_PLATFORM_ADMIN/ADMIN_API.md) - Admin API документація
 - `MONITORING.md` - моніторинг та логи
 
 ---
