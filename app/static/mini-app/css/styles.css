@@ -183,12 +183,35 @@ body {
     background: transparent;
     color: var(--tg-theme-hint-color);
     cursor: pointer;
-    transition: color var(--transition-fast);
+    transition: all var(--transition-normal);
     font-size: var(--font-size-xs);
+    position: relative;
+}
+
+.tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 60%;
+    height: 3px;
+    background-color: var(--tg-theme-button-color);
+    border-radius: 3px 3px 0 0;
+    transition: transform var(--transition-normal);
 }
 
 .tab.active {
     color: var(--tg-theme-button-color);
+    transform: translateY(-2px);
+}
+
+.tab.active::after {
+    transform: translateX(-50%) scaleX(1);
+}
+
+.tab:active {
+    transform: translateY(0) scale(0.95);
 }
 
 .tab-icon {
@@ -393,7 +416,26 @@ body {
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    animation: cardFadeIn 0.4s ease-out backwards;
 }
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.partner-card:nth-child(1) { animation-delay: 0.05s; }
+.partner-card:nth-child(2) { animation-delay: 0.1s; }
+.partner-card:nth-child(3) { animation-delay: 0.15s; }
+.partner-card:nth-child(4) { animation-delay: 0.2s; }
+.partner-card:nth-child(5) { animation-delay: 0.25s; }
+.partner-card:nth-child(6) { animation-delay: 0.3s; }
 
 [data-theme="dark"] .partner-card {
     border-color: rgba(255, 255, 255, 0.1);
@@ -416,13 +458,14 @@ body {
 }
 
 .partner-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     border-color: var(--tg-theme-button-color);
 }
 
 .partner-card:active {
     transform: translateY(-2px) scale(0.98);
+    transition: transform 0.1s ease;
 }
 
 .partner-header {
@@ -446,6 +489,17 @@ body {
     border-radius: var(--radius-sm);
     font-size: var(--font-size-xs);
     font-weight: 600;
+    animation: badgePulse 2s ease-in-out infinite;
+    box-shadow: 0 2px 8px rgba(36, 129, 204, 0.3);
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(36, 129, 204, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 12px rgba(36, 129, 204, 0.5);
+    }
 }
 
 .top-badge {
