@@ -220,6 +220,12 @@ function setupEventHandlers() {
     
     // Swipe gestures for mobile navigation
     setupSwipeGestures();
+    
+    // Pull-to-refresh
+    setupPullToRefresh();
+    
+    // Ripple effects for buttons
+    setupRippleEffects();
 }
 
 /**
