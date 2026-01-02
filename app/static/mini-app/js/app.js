@@ -3,8 +3,7 @@
  * Telegram WebApp Integration
  */
 
-// API Base URL
-const API_BASE = window.location.origin;
+// API_BASE is defined in api.js (loaded before this file)
 
 // Telegram WebApp instance
 let tg = null;
