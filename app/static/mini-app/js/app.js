@@ -132,6 +132,18 @@ function applyTheme() {
  * Apply bot.config customizations
  */
 function applyBotConfig(config) {
+    // Normalize config shape for backward compatibility:
+    // - New backend: config.ui.{theme,colors,features,force_dark}
+    // - Old backend: config.{theme,colors,features,name}
+    if (config && !config.ui) {
+        config.ui = {
+            theme: config.theme,
+            colors: config.colors,
+            features: config.features,
+            force_dark: config.force_dark,
+        };
+    }
+
     // Apply custom colors from bot.config.ui.colors
     if (config.ui && config.ui.colors) {
         const colors = config.ui.colors;

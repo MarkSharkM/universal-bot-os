@@ -395,10 +395,19 @@ async def get_mini_app_data(
                 "message": welcome_message or "",
             },
             "config": {
+                # Contract:
+                # - `config.ui.*` is the canonical shape expected by Mini App frontend
+                # - `theme/colors/features` are kept for backward compatibility with older frontends
+                "name": bot_config.get("name", bot.name or "Bot"),
+                "ui": {
+                    "theme": bot_config.get("ui", {}).get("theme", "dark"),
+                    "colors": bot_config.get("ui", {}).get("colors", {}),
+                    "features": bot_config.get("ui", {}).get("features", {}),
+                    "force_dark": bool(bot_config.get("ui", {}).get("force_dark", False)),
+                },
                 "theme": bot_config.get("ui", {}).get("theme", "dark"),
                 "colors": bot_config.get("ui", {}).get("colors", {}),
                 "features": bot_config.get("ui", {}).get("features", {}),
-                "name": bot_config.get("name", bot.name or "Bot"),
             }
         }
     except Exception as e:
