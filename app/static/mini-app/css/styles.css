@@ -1007,6 +1007,29 @@ details.accordion[open] > .accordion-body {
     border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
+.wallet-help {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background-color: rgba(36, 129, 204, 0.1);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--tg-theme-button-color);
+}
+
+[data-theme="dark"] .wallet-help {
+    background-color: rgba(36, 129, 204, 0.15);
+}
+
+.wallet-help p {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--tg-theme-text-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+
+.wallet-help p:last-child {
+    margin-bottom: 0;
+}
+
 .wallet-address {
     display: block;
     margin-top: var(--spacing-sm);

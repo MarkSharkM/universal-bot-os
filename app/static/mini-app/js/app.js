@@ -1010,16 +1010,27 @@ function renderWallet() {
     if (!container || !appData) return;
     
     const wallet = appData.user?.wallet || '';
+    const walletHelp = appData.wallet?.help || '';
+    const hasWallet = wallet && wallet.trim();
     
     container.innerHTML = `
         <div class="wallet-card">
             <h2>TON Гаманець</h2>
-            ${wallet ? `
+            ${hasWallet ? `
                 <div class="current-wallet">
                     <p>Поточний гаманець:</p>
                     <code class="wallet-address">${wallet}</code>
                 </div>
-            ` : ''}
+            ` : walletHelp ? `
+                <div class="wallet-help">
+                    <p>${escapeHtml(walletHelp).replace(/\n/g, '<br>')}</p>
+                </div>
+            ` : `
+                <div class="wallet-help">
+                    <p>⚠️ У вас ще немає збереженого TON гаманця.</p>
+                    <p>Відкрийте будь-який TON гаманець, скопіюйте адресу та введіть її нижче.</p>
+                </div>
+            `}
             <form id="wallet-form" onsubmit="handleWalletSubmit(event)">
                 <label for="wallet-input">Введіть TON гаманець:</label>
                 <input 

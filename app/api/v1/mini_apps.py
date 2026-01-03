@@ -349,6 +349,13 @@ async def get_mini_app_data(
         info_message = translation_service.get_translation('info_main', user_lang)
         welcome_message = translation_service.get_translation('welcome', user_lang)
         
+        # Get wallet help message (for when wallet is empty)
+        wallet_help = translation_service.get_translation('wallet_help', user_lang)
+        if not wallet_help or wallet_help == 'wallet_help':  # Translation not found
+            wallet_help = translation_service.get_translation('wallet_not_found', user_lang)
+            if not wallet_help or wallet_help == 'wallet_not_found':  # Still not found
+                wallet_help = translation_service.get_translation('wallet_info_empty', user_lang) or ""
+        
         # Get 7% program translations for earnings
         commission_percent = int(earnings_data["commission_rate"] * 100)
         earnings_translations = {
@@ -393,6 +400,9 @@ async def get_mini_app_data(
             },
             "welcome": {
                 "message": welcome_message or "",
+            },
+            "wallet": {
+                "help": wallet_help or "",
             },
             "config": {
                 # Contract:
