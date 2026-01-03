@@ -341,9 +341,7 @@ function switchTab(tabName) {
         if ((tabName === 'earnings' || tabName === 'top') && appData && !isInitialLoad) {
             // Reload app data to get fresh counters (only if appData already exists and not initial load)
             // Use debounced version to prevent multiple rapid calls
-            loadAppData(false).catch(err => {
-                console.error('Error in loadAppData promise:', err);
-            }).then(() => {
+            loadAppData(false).then(() => {
                 // Render after data is loaded
                 if (tabName === 'earnings') {
                     renderEarnings();
@@ -754,7 +752,16 @@ function renderPartnerDetail(partnerId) {
  */
 function renderTop() {
     const container = document.getElementById('top-content');
-    if (!container || !appData) return;
+    if (!container) {
+        console.warn('TOP container not found');
+        return;
+    }
+    
+    if (!appData) {
+        console.warn('appData not loaded yet, showing loading state');
+        container.innerHTML = '<div class="loading-state"><p>Завантаження даних...</p></div>';
+        return;
+    }
     
     const topStatus = appData.user?.top_status || 'locked';
     const topPartners = appData.top_partners || [];
