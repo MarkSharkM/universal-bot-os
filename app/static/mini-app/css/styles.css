@@ -1888,3 +1888,83 @@ details.accordion[open] > .accordion-body {
     }
 }
 
+/* Toast Notifications */
+#toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    padding: 12px 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 90%;
+    min-width: 200px;
+    pointer-events: none;
+}
+
+#toast.toast-show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    font-size: var(--font-size-md);
+    line-height: 1.4;
+}
+
+.toast-success {
+    border-left: 4px solid var(--success-color);
+}
+
+.toast-error {
+    border-left: 4px solid var(--error-color);
+}
+
+.toast-warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+.toast-info {
+    border-left: 4px solid var(--info-color);
+}
+
+[data-theme="dark"] #toast {
+    background: var(--surface-1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Additional Skeleton Styles */
+.skeleton-earnings,
+.skeleton-wallet,
+.skeleton-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+}
+
+.skeleton-earnings .skeleton-card {
+    height: 120px;
+}
+
+.skeleton-wallet .skeleton-card {
+    height: 150px;
+}
+
+.skeleton-info .skeleton-card {
+    height: 100px;
+}
+

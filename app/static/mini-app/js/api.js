@@ -1,19 +1,34 @@
 /**
  * API Client for Mini App
- * Handles all API calls to backend
+ * Handles all API calls to backend with caching and retry logic
  */
 
 const API_BASE = window.location.origin;
 
 /**
- * Get Mini App data from backend
+ * Get Mini App data from backend with caching and retry
  * @param {string} botId - Bot UUID
  * @param {string} userId - User external ID (optional, can be extracted from initData)
  * @param {string} initData - Telegram WebApp initData (optional, for validation)
+ * @param {boolean} forceRefresh - Force refresh, bypass cache
  * @returns {Promise<Object>} Mini App data
  */
-async function getMiniAppData(botId, userId = null, initData = null) {
-    try {
+async function getMiniAppData(botId, userId = null, initData = null, forceRefresh = false) {
+    // Check cache first (if utils.js is loaded)
+    if (!forceRefresh && typeof ApiCache !== 'undefined' && ApiCache.isValid(60000)) {
+        const cached = ApiCache.get(60000);
+        if (cached) {
+            return cached;
+        }
+    }
+
+    // Check if online
+    if (!navigator.onLine) {
+        throw new Error('Немає інтернет-з\'єднання');
+    }
+
+    // Retry with exponential backoff
+    const fetchData = async () => {
         const params = new URLSearchParams();
         if (userId) params.append('user_id', userId);
         if (initData) params.append('init_data', initData);
@@ -33,7 +48,22 @@ async function getMiniAppData(botId, userId = null, initData = null) {
         }
         
         const data = await response.json();
+        
+        // Cache the data
+        if (typeof ApiCache !== 'undefined') {
+            ApiCache.set(data);
+        }
+        
         return data;
+    };
+
+    try {
+        // Use retry with backoff if available, otherwise just try once
+        if (typeof Retry !== 'undefined') {
+            return await Retry.withBackoff(fetchData, 3, 1000);
+        } else {
+            return await fetchData();
+        }
     } catch (error) {
         console.error('Error fetching Mini App data:', error);
         throw error;
@@ -41,7 +71,7 @@ async function getMiniAppData(botId, userId = null, initData = null) {
 }
 
 /**
- * Save wallet address
+ * Save wallet address with retry logic
  * @param {string} botId - Bot UUID
  * @param {string} walletAddress - TON wallet address
  * @param {string} userId - User external ID (optional)
@@ -49,7 +79,12 @@ async function getMiniAppData(botId, userId = null, initData = null) {
  * @returns {Promise<Object>} Success response
  */
 async function saveWallet(botId, walletAddress, userId = null, initData = null) {
-    try {
+    // Check if online
+    if (!navigator.onLine) {
+        throw new Error('Немає інтернет-з\'єднання');
+    }
+
+    const saveData = async () => {
         const params = new URLSearchParams();
         params.append('wallet_address', walletAddress);
         if (userId) params.append('user_id', userId);
@@ -70,7 +105,22 @@ async function saveWallet(botId, walletAddress, userId = null, initData = null) 
         }
         
         const data = await response.json();
+        
+        // Clear cache after wallet save
+        if (typeof ApiCache !== 'undefined') {
+            ApiCache.clear();
+        }
+        
         return data;
+    };
+
+    try {
+        // Use retry with backoff if available
+        if (typeof Retry !== 'undefined') {
+            return await Retry.withBackoff(saveData, 2, 1000);
+        } else {
+            return await saveData();
+        }
     } catch (error) {
         console.error('Error saving wallet:', error);
         throw error;

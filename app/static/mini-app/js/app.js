@@ -13,6 +13,8 @@ let appData = null;
 
 /**
  * Initialize Mini App
+ * @async
+ * @returns {Promise<void>}
  */
 async function initMiniApp() {
     try {
@@ -66,6 +68,8 @@ async function initMiniApp() {
 /**
  * Get bot_id from URL or initData
  * Priority: URL query param > initData API call
+ * @async
+ * @returns {Promise<string|null>} Bot ID or null if not found
  */
 async function getBotIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -264,6 +268,35 @@ function setupEventHandlers() {
     
     // Ripple effects for buttons
     setupRippleEffects();
+    
+    // Event delegation for dynamic buttons with data-action
+    document.addEventListener('click', (e) => {
+        const action = e.target.getAttribute('data-action');
+        if (!action) return;
+        
+        if (typeof Haptic !== 'undefined') Haptic.light();
+        
+        if (action === 'switch-top') {
+            switchTab('top');
+        } else if (action === 'buy-top') {
+            const price = parseInt(e.target.getAttribute('data-price') || '1');
+            handleBuyTop(price);
+        } else if (action === 'activate-7') {
+            showActivate7Instructions();
+        } else if (action === 'copy-referral') {
+            copyReferralLink();
+        } else if (action === 'share-referral') {
+            shareReferralLink();
+        }
+    });
+    
+    // Wallet form submit handler
+    document.addEventListener('submit', (e) => {
+        if (e.target.id === 'wallet-form') {
+            e.preventDefault();
+            handleWalletSubmit(e);
+        }
+    });
 }
 
 /**
@@ -314,8 +347,14 @@ let loadDataTimeout = null; // Debounce timer for loadAppData calls
 
 /**
  * Switch between tabs/pages
+ * @param {string} tabName - Tab name to switch to
  */
 function switchTab(tabName) {
+    // Haptic feedback
+    if (typeof Haptic !== 'undefined') {
+        Haptic.light();
+    }
+    
     // If user manually switches tabs, mark that initial load is done
     // This prevents loadAppData from auto-switching to earnings
     if (isInitialLoad) {
@@ -345,19 +384,39 @@ function switchTab(tabName) {
         targetPage.classList.add('active');
         currentPage = tabName;
         
+        // Show skeleton while loading (if data not available)
+        if (!appData) {
+            showSkeleton(tabName);
+        }
+        
         // Render content immediately with existing data (if available)
         // This ensures user sees content right away, not a blank screen
         if (tabName === 'partners') {
-            renderPartners();
-            setupSearchAndFilters();
+            if (appData) {
+                hideSkeleton('partners');
+                renderPartners();
+                setupSearchAndFilters();
+            }
         } else if (tabName === 'top') {
-            renderTop();
+            if (appData) {
+                hideSkeleton('top');
+                renderTop();
+            }
         } else if (tabName === 'earnings') {
-            renderEarnings();
+            if (appData) {
+                hideSkeleton('earnings');
+                renderEarnings();
+            }
         } else if (tabName === 'wallet') {
-            renderWallet();
+            if (appData) {
+                hideSkeleton('wallet');
+                renderWallet();
+            }
         } else if (tabName === 'info') {
-            renderInfo();
+            if (appData) {
+                hideSkeleton('info');
+                renderInfo();
+            }
         }
         
         // Reload data when switching to tabs that need fresh data
@@ -414,7 +473,10 @@ function goBack() {
 }
 
 /**
- * Load app data from backend
+ * Load app data from backend with debouncing and caching
+ * @async
+ * @param {boolean} showRefreshIndicator - Show refresh indicator
+ * @returns {Promise<void>}
  */
 async function loadAppData(showRefreshIndicator = false) {
     // Prevent concurrent requests
@@ -458,6 +520,11 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         // Only show loading on first load or when explicitly requested via showRefreshIndicator
         if (!showRefreshIndicator && isInitialLoad) {
             showLoading(true);
+        } else if (!showRefreshIndicator && appData) {
+            // Show skeleton for current page while loading
+            if (currentPage) {
+                showSkeleton(currentPage);
+            }
         }
         // showRefreshIndicator is handled by pull-to-refresh UI
         
@@ -512,15 +579,20 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                     renderApp();
                     // Re-render current page with fresh data
                     if (currentPage === 'earnings') {
+                        hideSkeleton('earnings');
                         renderEarnings();
                     } else if (currentPage === 'top') {
+                        hideSkeleton('top');
                         renderTop();
                     } else if (currentPage === 'partners') {
+                        hideSkeleton('partners');
                         renderPartners();
                         setupSearchAndFilters();
                     } else if (currentPage === 'wallet') {
+                        hideSkeleton('wallet');
                         renderWallet();
                     } else if (currentPage === 'info') {
+                        hideSkeleton('info');
                         renderInfo();
                     }
                 }
@@ -695,41 +767,90 @@ function renderPartners() {
 
 /**
  * Render partners list (internal)
+ * Uses DocumentFragment and addEventListener for better performance and security
+ * @param {Array<Object>} partners - Array of partner objects
  */
 function renderPartnersList(partners) {
     const container = document.getElementById('partners-list');
     if (!container) return;
     
+    // Clear container
+    container.innerHTML = '';
+    
     if (partners.length === 0) {
-        container.innerHTML = '<p class="empty-state">Партнерів не знайдено</p>';
+        const emptyState = document.createElement('p');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = 'Партнерів не знайдено';
+        container.appendChild(emptyState);
         return;
     }
     
-    container.innerHTML = partners.map((partner, index) => {
+    // Use DocumentFragment for batch DOM operations
+    const fragment = document.createDocumentFragment();
+    
+    partners.forEach((partner, index) => {
         const partnerId = partner.id || `temp-${index}`;
         const partnerIdStr = typeof partnerId === 'string' ? partnerId : String(partnerId);
         const isTop = (appData.top_partners || []).some(p => String(p.id) === String(partner.id));
         const referralLink = partner.referral_link || '';
         
-        return `
-            <div class="partner-card ${isTop ? 'top-partner' : ''}" 
-                 data-partner-id="${escapeHtml(partnerIdStr)}"
-                 onclick="showPartnerDetail('${escapeHtml(partnerIdStr)}')">
-                <div class="partner-header">
-                    <h3 class="partner-name">${escapeHtml(partner.name || 'Unknown')}</h3>
-                    <span class="commission-badge ${isTop ? 'top-badge' : ''}">${partner.commission || 0}%</span>
-                </div>
-                <p class="partner-description">${escapeHtml((partner.description || '').substring(0, 100))}${partner.description && partner.description.length > 100 ? '...' : ''}</p>
-                <button class="partner-btn" onclick="event.stopPropagation(); openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')" aria-label="Перейти до партнера ${escapeHtml(partner.name || 'Unknown')}">
-                    Перейти →
-                </button>
-            </div>
-        `;
-    }).join('');
+        // Create card element
+        const card = document.createElement('div');
+        card.className = `partner-card ${isTop ? 'top-partner' : ''}`;
+        card.setAttribute('data-partner-id', partnerIdStr);
+        
+        // Add click handler for card
+        card.addEventListener('click', () => {
+            if (typeof Haptic !== 'undefined') Haptic.light();
+            showPartnerDetail(partnerIdStr);
+        });
+        
+        // Create header
+        const header = document.createElement('div');
+        header.className = 'partner-header';
+        
+        const name = document.createElement('h3');
+        name.className = 'partner-name';
+        name.textContent = partner.name || 'Unknown';
+        
+        const badge = document.createElement('span');
+        badge.className = `commission-badge ${isTop ? 'top-badge' : ''}`;
+        badge.textContent = `${partner.commission || 0}%`;
+        
+        header.appendChild(name);
+        header.appendChild(badge);
+        
+        // Create description
+        const description = document.createElement('p');
+        description.className = 'partner-description';
+        const descText = (partner.description || '').substring(0, 100);
+        description.textContent = descText + (partner.description && partner.description.length > 100 ? '...' : '');
+        
+        // Create button
+        const button = document.createElement('button');
+        button.className = 'partner-btn';
+        button.textContent = 'Перейти →';
+        button.setAttribute('aria-label', `Перейти до партнера ${partner.name || 'Unknown'}`);
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (typeof Haptic !== 'undefined') Haptic.medium();
+            openPartner(referralLink, partnerIdStr);
+        });
+        
+        // Assemble card
+        card.appendChild(header);
+        card.appendChild(description);
+        card.appendChild(button);
+        
+        fragment.appendChild(card);
+    });
+    
+    container.appendChild(fragment);
 }
 
 /**
  * Render partner detail page
+ * @param {string|number} partnerId - Partner ID
  */
 function renderPartnerDetail(partnerId) {
     if (!appData || !partnerId) return;
@@ -755,27 +876,60 @@ function renderPartnerDetail(partnerId) {
     if (content) {
         const isTop = (appData.top_partners || []).some(p => p.id === partner.id);
         
-        content.innerHTML = `
-            <div class="partner-detail-card">
-                <div class="partner-detail-header">
-                    <h2>${escapeHtml(partner.name || 'Unknown')}</h2>
-                    <span class="commission-badge large ${isTop ? 'top-badge' : ''}">${partner.commission || 0}% комісія</span>
-                </div>
-                <div class="partner-detail-body">
-                    <p class="partner-detail-description">${escapeHtml(partner.description || 'Опис відсутній')}</p>
-                    <div class="partner-detail-actions">
-                        <button class="partner-btn large" onclick="openPartner('${escapeHtml(partner.referral_link || '')}', '${escapeHtml(String(partnerId))}')" aria-label="Перейти до партнера ${escapeHtml(partner.name || 'Unknown')}">
-                            Перейти до партнера
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+        // Clear content
+        content.innerHTML = '';
+        
+        // Create card using DOM API
+        const card = document.createElement('div');
+        card.className = 'partner-detail-card';
+        
+        // Create header
+        const header = document.createElement('div');
+        header.className = 'partner-detail-header';
+        
+        const h2 = document.createElement('h2');
+        h2.textContent = partner.name || 'Unknown';
+        
+        const badge = document.createElement('span');
+        badge.className = `commission-badge large ${isTop ? 'top-badge' : ''}`;
+        badge.textContent = `${partner.commission || 0}% комісія`;
+        
+        header.appendChild(h2);
+        header.appendChild(badge);
+        
+        // Create body
+        const body = document.createElement('div');
+        body.className = 'partner-detail-body';
+        
+        const description = document.createElement('p');
+        description.className = 'partner-detail-description';
+        description.textContent = partner.description || 'Опис відсутній';
+        
+        const actions = document.createElement('div');
+        actions.className = 'partner-detail-actions';
+        
+        const button = document.createElement('button');
+        button.className = 'partner-btn large';
+        button.textContent = 'Перейти до партнера';
+        button.setAttribute('aria-label', `Перейти до партнера ${partner.name || 'Unknown'}`);
+        button.addEventListener('click', () => {
+            if (typeof Haptic !== 'undefined') Haptic.medium();
+            openPartner(partner.referral_link || '', String(partnerId));
+        });
+        
+        actions.appendChild(button);
+        body.appendChild(description);
+        body.appendChild(actions);
+        
+        card.appendChild(header);
+        card.appendChild(body);
+        content.appendChild(card);
     }
 }
 
 /**
  * Render TOP partners
+ * Uses DocumentFragment and addEventListener for better performance and security
  */
 function renderTop() {
     const container = document.getElementById('top-content');
@@ -784,37 +938,63 @@ function renderTop() {
         return;
     }
     
+    // Hide skeleton
+    hideSkeleton('top');
+    
     if (!appData) {
         console.warn('appData not loaded yet, showing loading state');
         container.innerHTML = '<div class="loading-state"><p>Завантаження даних...</p></div>';
         return;
     }
     
+    // Clear container
+    container.innerHTML = '';
+    
     const topStatus = appData.user?.top_status || 'locked';
     const topPartners = appData.top_partners || [];
-    const wasLocked = container.querySelector('.locked-state') !== null;
+    const wasLocked = container.classList.contains('locked');
     
     if (topStatus === 'locked') {
         const invitesNeeded = appData.earnings?.invites_needed || 0;
         const buyTopPrice = appData.earnings?.buy_top_price || 1;
         const canUnlockTop = appData.earnings?.can_unlock_top || false;
         
-        container.innerHTML = `
-            <div class="locked-state">
-                <h2>TOP закрито</h2>
-                <p>Запроси ${invitesNeeded} друзів щоб розблокувати TOP</p>
-                <p>Або купи доступ за ${buyTopPrice} ⭐</p>
-                ${canUnlockTop ? `
-                    <button class="action-btn unlock-btn" onclick="switchTab('earnings')" aria-label="Розблокувати TOP через заробітки">
-                        Розблокувати TOP
-                    </button>
-                ` : `
-                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${buyTopPrice})" aria-label="Купити доступ до TOP за ${buyTopPrice} зірок">
-                        Купити доступ за ${buyTopPrice} ⭐
-                    </button>
-                `}
-            </div>
-        `;
+        const lockedDiv = document.createElement('div');
+        lockedDiv.className = 'locked-state';
+        
+        const h2 = document.createElement('h2');
+        h2.textContent = 'TOP закрито';
+        
+        const p1 = document.createElement('p');
+        p1.textContent = `Запроси ${invitesNeeded} друзів щоб розблокувати TOP`;
+        
+        const p2 = document.createElement('p');
+        p2.textContent = `Або купи доступ за ${buyTopPrice} ⭐`;
+        
+        const button = document.createElement('button');
+        button.className = 'action-btn unlock-btn';
+        
+        if (canUnlockTop) {
+            button.textContent = 'Розблокувати TOP';
+            button.setAttribute('aria-label', 'Розблокувати TOP через заробітки');
+            button.addEventListener('click', () => {
+                if (typeof Haptic !== 'undefined') Haptic.medium();
+                switchTab('earnings');
+            });
+        } else {
+            button.textContent = `Купити доступ за ${buyTopPrice} ⭐`;
+            button.setAttribute('aria-label', `Купити доступ до TOP за ${buyTopPrice} зірок`);
+            button.addEventListener('click', () => {
+                if (typeof Haptic !== 'undefined') Haptic.medium();
+                handleBuyTop(buyTopPrice);
+            });
+        }
+        
+        lockedDiv.appendChild(h2);
+        lockedDiv.appendChild(p1);
+        lockedDiv.appendChild(p2);
+        lockedDiv.appendChild(button);
+        container.appendChild(lockedDiv);
     } else {
         // Check if was just unlocked
         if (wasLocked) {
@@ -825,26 +1005,70 @@ function renderTop() {
         }
         
         if (topPartners.length === 0) {
-            container.innerHTML = '<p class="empty-state">TOP партнерів поки немає</p>';
+            const emptyState = document.createElement('p');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = 'TOP партнерів поки немає';
+            container.appendChild(emptyState);
         } else {
-            container.innerHTML = topPartners.map((partner, index) => {
+            // Use DocumentFragment for batch DOM operations
+            const fragment = document.createDocumentFragment();
+            
+            topPartners.forEach((partner, index) => {
                 const partnerId = partner.id || `temp-top-${index}`;
                 const partnerIdStr = typeof partnerId === 'string' ? partnerId : String(partnerId);
                 const referralLink = partner.referral_link || '';
                 
-                return `
-                <div class="partner-card top-partner" data-partner-id="${escapeHtml(partnerIdStr)}">
-                    <div class="partner-header">
-                        <h3 class="partner-name">${escapeHtml(partner.name || 'Unknown')}</h3>
-                        <span class="commission-badge top-badge">${partner.commission || 0}%</span>
-                    </div>
-                    <p class="partner-description">${escapeHtml(partner.description || '')}</p>
-                    <button class="partner-btn" onclick="openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')" aria-label="Перейти до партнера ${escapeHtml(partner.name || 'Unknown')}">
-                        Перейти →
-                    </button>
-                </div>
-            `;
-            }).join('');
+                // Create card element
+                const card = document.createElement('div');
+                card.className = 'partner-card top-partner';
+                card.setAttribute('data-partner-id', partnerIdStr);
+                
+                // Add click handler for card
+                card.addEventListener('click', () => {
+                    if (typeof Haptic !== 'undefined') Haptic.light();
+                    showPartnerDetail(partnerIdStr);
+                });
+                
+                // Create header
+                const header = document.createElement('div');
+                header.className = 'partner-header';
+                
+                const name = document.createElement('h3');
+                name.className = 'partner-name';
+                name.textContent = partner.name || 'Unknown';
+                
+                const badge = document.createElement('span');
+                badge.className = 'commission-badge top-badge';
+                badge.textContent = `${partner.commission || 0}%`;
+                
+                header.appendChild(name);
+                header.appendChild(badge);
+                
+                // Create description
+                const description = document.createElement('p');
+                description.className = 'partner-description';
+                description.textContent = partner.description || '';
+                
+                // Create button
+                const button = document.createElement('button');
+                button.className = 'partner-btn';
+                button.textContent = 'Перейти →';
+                button.setAttribute('aria-label', `Перейти до партнера ${partner.name || 'Unknown'}`);
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof Haptic !== 'undefined') Haptic.medium();
+                    openPartner(referralLink, partnerIdStr);
+                });
+                
+                // Assemble card
+                card.appendChild(header);
+                card.appendChild(description);
+                card.appendChild(button);
+                
+                fragment.appendChild(card);
+            });
+            
+            container.appendChild(fragment);
         }
     }
 }
@@ -858,6 +1082,9 @@ function renderEarnings() {
         console.warn('Earnings container not found');
         return;
     }
+    
+    // Hide skeleton
+    hideSkeleton('earnings');
     
     if (!appData) {
         console.warn('appData not loaded yet, showing loading state');
@@ -920,8 +1147,8 @@ function renderEarnings() {
                         <code>${user.referral_link}</code>
                     </div>
                     <div class="referral-actions">
-                        <button class="copy-btn" onclick="copyReferralLink()">📋 Копіювати</button>
-                        <button class="share-btn" onclick="shareReferralLink()">📤 Поділитися</button>
+                        <button class="copy-btn" data-action="copy-referral">📋 Копіювати</button>
+                        <button class="share-btn" data-action="share-referral">📤 Поділитися</button>
                     </div>
                 </div>
                 ` : `
@@ -990,15 +1217,15 @@ function renderEarnings() {
             <!-- Action Buttons -->
             <div class="earnings-actions">
                 ${earnings.can_unlock_top ? `
-                    <button class="action-btn unlock-btn" onclick="switchTab('top')" aria-label="Відкрити TOP партнерів">
+                    <button class="action-btn unlock-btn" data-action="switch-top" aria-label="Відкрити TOP партнерів">
                         ${translations.btn_top_partners || 'Відкрити TOP'}
                     </button>
                 ` : `
-                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${earnings.buy_top_price || 1})" aria-label="Розблокувати TOP за ${earnings.buy_top_price || 1} зірок">
+                    <button class="action-btn unlock-btn" data-action="buy-top" data-price="${earnings.buy_top_price || 1}" aria-label="Розблокувати TOP за ${earnings.buy_top_price || 1} зірок">
                         ${translations.btn_unlock_top || `Розблокувати TOP (${earnings.buy_top_price || 1} ⭐)`}
                     </button>
                 `}
-                <button class="action-btn activate-btn" onclick="showActivate7Instructions()" aria-label="Активувати програму 7% комісії">
+                <button class="action-btn activate-btn" data-action="activate-7" aria-label="Активувати програму 7% комісії">
                     ${translations.btn_activate_7 || 'Активувати 7%'}
                 </button>
             </div>
@@ -1012,6 +1239,9 @@ function renderEarnings() {
 function renderWallet() {
     const container = document.getElementById('wallet-section');
     if (!container || !appData) return;
+    
+    // Hide skeleton
+    hideSkeleton('wallet');
     
     const wallet = appData.user?.wallet || '';
     const walletHelp = appData.wallet?.help || '';
@@ -1042,7 +1272,7 @@ function renderWallet() {
                     <p>Відкрийте будь-який TON гаманець, скопіюйте адресу та введіть її нижче.</p>
                 </div>
             `}
-            <form id="wallet-form" onsubmit="handleWalletSubmit(event)">
+            <form id="wallet-form">
                 <label for="wallet-input">Введіть TON гаманець:</label>
                 <input 
                     type="text" 
@@ -1061,12 +1291,16 @@ function renderWallet() {
 }
 
 /**
- * Open partner link
+ * Open partner link using Telegram WebApp API
+ * @param {string} referralLink - Referral link URL
+ * @param {string|number} partnerId - Partner ID for logging
  */
 function openPartner(referralLink, partnerId) {
     if (!referralLink || !referralLink.trim()) {
         console.warn('Referral link is empty');
-        if (tg?.showAlert) {
+        if (typeof Toast !== 'undefined') {
+            Toast.error('Реферальна лінка відсутня');
+        } else if (tg?.showAlert) {
             tg.showAlert('Реферальна лінка відсутня');
         }
         return;
@@ -1095,6 +1329,9 @@ function openPartner(referralLink, partnerId) {
 
 /**
  * Handle wallet form submit
+ * @async
+ * @param {Event} event - Form submit event
+ * @returns {Promise<void>}
  */
 async function handleWalletSubmit(event) {
     event.preventDefault();
@@ -1128,6 +1365,14 @@ async function handleWalletSubmit(event) {
         const result = await saveWallet(botId, walletAddress, userId, initData);
         
         if (result && result.ok !== false) {
+            // Show toast notification
+            if (typeof Toast !== 'undefined') {
+                Toast.success('✅ Гаманець збережено успішно!');
+            }
+            if (typeof Haptic !== 'undefined') {
+                Haptic.success();
+            }
+            
             showWalletMessage('✅ Гаманець збережено успішно!', 'success');
             
             // Update app data locally (no need to reload all data, just update wallet)
@@ -1149,6 +1394,12 @@ async function handleWalletSubmit(event) {
     } catch (error) {
         console.error('Error saving wallet:', error);
         const errorMsg = error.message || 'Невідома помилка';
+        if (typeof Toast !== 'undefined') {
+            Toast.error('❌ Помилка збереження: ' + errorMsg);
+        }
+        if (typeof Haptic !== 'undefined') {
+            Haptic.error();
+        }
         showWalletMessage('❌ Помилка збереження: ' + errorMsg, 'error');
     }
 }
@@ -1249,6 +1500,9 @@ function renderInfo() {
     const container = document.getElementById('info-section');
     if (!container || !appData) return;
     
+    // Hide skeleton
+    hideSkeleton('info');
+    
     const infoMessage = appData.info?.message || '';
     
     // Fix cases where backend sends literal "\n" sequences instead of newlines
@@ -1272,7 +1526,9 @@ function renderInfo() {
  */
 function copyReferralLink() {
     if (!appData || !appData.user || !appData.user.referral_link) {
-        if (tg?.showAlert) {
+        if (typeof Toast !== 'undefined') {
+            Toast.error('Реферальна лінка відсутня');
+        } else if (tg?.showAlert) {
             tg.showAlert('Реферальна лінка відсутня');
         }
         return;
@@ -1300,7 +1556,9 @@ function copyReferralLink() {
  */
 function shareReferralLink() {
     if (!appData || !appData.user || !appData.user.referral_link) {
-        if (tg?.showAlert) {
+        if (typeof Toast !== 'undefined') {
+            Toast.error('Реферальна лінка відсутня');
+        } else if (tg?.showAlert) {
             tg.showAlert('Реферальна лінка відсутня');
         }
         return;
@@ -1339,7 +1597,11 @@ function fallbackCopyText(text) {
     } catch (err) {
         console.error('Fallback copy failed:', err);
         if (tg?.showAlert) {
+            if (typeof Toast !== 'undefined') {
+            Toast.error('Не вдалося скопіювати лінк');
+        } else if (tg?.showAlert) {
             tg.showAlert('Не вдалося скопіювати лінк');
+        }
         }
     }
     
@@ -1351,7 +1613,12 @@ function fallbackCopyText(text) {
  */
 function showCopySuccess() {
     if (tg?.showAlert) {
-        tg.showAlert('✅ Лінк скопійовано!');
+        if (typeof Toast !== 'undefined') {
+            Toast.success('✅ Лінк скопійовано!');
+            if (typeof Haptic !== 'undefined') Haptic.success();
+        } else if (tg?.showAlert) {
+            tg.showAlert('✅ Лінк скопійовано!');
+        }
     } else if (tg?.HapticFeedback?.impactOccurred) {
         // Haptic feedback if available
         tg.HapticFeedback.impactOccurred('light');
@@ -1410,9 +1677,57 @@ function showError(message) {
 }
 
 /**
+ * Show loading skeleton for a page
+ * @param {string} pageName - Page name: 'partners', 'top', 'earnings', 'wallet', 'info'
+ */
+function showSkeleton(pageName) {
+    const skeletonId = `${pageName}-skeleton`;
+    const skeleton = document.getElementById(skeletonId);
+    const contentId = pageName === 'partners' ? 'partners-list' : 
+                     pageName === 'top' ? 'top-content' :
+                     pageName === 'earnings' ? 'earnings-dashboard' :
+                     pageName === 'wallet' ? 'wallet-section' :
+                     pageName === 'info' ? 'info-section' : null;
+    const content = contentId ? document.getElementById(contentId) : null;
+    
+    if (skeleton) {
+        skeleton.style.display = 'grid';
+    }
+    if (content) {
+        content.style.display = 'none';
+    }
+}
+
+/**
+ * Hide loading skeleton for a page
+ * @param {string} pageName - Page name: 'partners', 'top', 'earnings', 'wallet', 'info'
+ */
+function hideSkeleton(pageName) {
+    const skeletonId = `${pageName}-skeleton`;
+    const skeleton = document.getElementById(skeletonId);
+    const contentId = pageName === 'partners' ? 'partners-list' : 
+                     pageName === 'top' ? 'top-content' :
+                     pageName === 'earnings' ? 'earnings-dashboard' :
+                     pageName === 'wallet' ? 'wallet-section' :
+                     pageName === 'info' ? 'info-section' : null;
+    const content = contentId ? document.getElementById(contentId) : null;
+    
+    if (skeleton) {
+        skeleton.style.display = 'none';
+    }
+    if (content) {
+        content.style.display = 'block';
+    }
+}
+
+/**
  * Escape HTML to prevent XSS
+ * Uses utils.js escapeHtml if available, otherwise fallback
  */
 function escapeHtml(text) {
+    if (typeof window.escapeHtml === 'function') {
+        return window.escapeHtml(text);
+    }
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
