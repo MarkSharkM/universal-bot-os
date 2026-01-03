@@ -1430,14 +1430,20 @@ function setupPullToRefresh() {
     const content = document.querySelector('.content');
     if (!content) return;
     
+    // Disable pull-to-refresh - it's too sensitive and causes accidental reloads
+    // Users can refresh by closing and reopening Mini App if needed
+    return;
+    
+    // Old code below (disabled)
+    /*
     let touchStartY = 0;
     let touchCurrentY = 0;
     let isPulling = false;
     let pullDistance = 0;
     let touchStartTime = 0;
-    const pullThreshold = 120; // Increased from 80 to make it less sensitive
-    const minPullDistance = 50; // Minimum distance before showing indicator
-    const maxScrollTop = 5; // Allow small scroll offset (not exactly 0)
+    const pullThreshold = 200; // Very high threshold - requires intentional pull
+    const minPullDistance = 100; // Minimum distance before showing indicator
+    const maxScrollTop = 2; // Very strict - must be exactly at top
     
     content.addEventListener('touchstart', (e) => {
         // Only trigger if at top of scroll (with small tolerance)
@@ -1482,7 +1488,7 @@ function setupPullToRefresh() {
         
         // Only trigger if pulled down enough AND user held for a moment (not accidental scroll)
         const touchDuration = Date.now() - touchStartTime;
-        const minDuration = 100; // At least 100ms to distinguish from quick scroll
+        const minDuration = 300; // At least 300ms to distinguish from quick scroll
         
         if (pullDistance >= pullThreshold && touchDuration >= minDuration) {
             // Trigger refresh
@@ -1504,6 +1510,7 @@ function setupPullToRefresh() {
             hidePullToRefresh();
         }
     }, { passive: true });
+    */
 }
 
 /**
