@@ -1077,23 +1077,15 @@ function openPartner(referralLink, partnerId) {
         }, initData).catch(err => console.error('Error logging partner click:', err));
     }
     
-    // Open link in Telegram (not in browser)
-    // Use openTelegramLink for t.me links to open within Telegram
+    // Open link in browser (new tab/window) instead of redirecting to Telegram bot
+    // This keeps user in Mini App context
     if (referralLink.startsWith('https://t.me/') || referralLink.startsWith('tg://')) {
-        if (tg?.openTelegramLink) {
-            tg.openTelegramLink(referralLink);
-        } else if (tg?.openLink) {
-            tg.openLink(referralLink);
-        } else {
-            window.open(referralLink, '_blank');
-        }
+        // For Telegram links, open in new browser tab (not in Telegram app)
+        // This allows user to stay in Mini App
+        window.open(referralLink, '_blank', 'noopener,noreferrer');
     } else {
-        // For non-Telegram links, use openLink
-        if (tg?.openLink) {
-            tg.openLink(referralLink);
-        } else {
-            window.open(referralLink, '_blank');
-        }
+        // For other links, also open in new browser tab
+        window.open(referralLink, '_blank', 'noopener,noreferrer');
     }
 }
 
@@ -1315,15 +1307,9 @@ function shareReferralLink() {
     // Use Telegram share URL
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
     
-    // Try Telegram WebApp API first
-    if (tg?.openTelegramLink) {
-        tg.openTelegramLink(shareUrl);
-    } else if (tg?.openLink) {
-        tg.openLink(shareUrl);
-    } else {
-        // Fallback: open in new window
-        window.open(shareUrl, '_blank');
-    }
+    // Open in new browser tab instead of redirecting to Telegram
+    // This keeps user in Mini App context
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
 }
 
 /**
@@ -1668,14 +1654,9 @@ function openTelegramBot() {
     }
     const botUrl = `https://t.me/${cleanBotName}`;
     
-    if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(botUrl);
-    } else if (tg && tg.openLink) {
-        tg.openLink(botUrl);
-    } else {
-        // Fallback: open in new window
-        window.open(botUrl, '_blank');
-    }
+    // Open in new browser tab instead of redirecting to Telegram
+    // This keeps user in Mini App context
+    window.open(botUrl, '_blank', 'noopener,noreferrer');
 }
 
 /**
@@ -1699,10 +1680,11 @@ function handleBuyTop(price) {
                     <p>• Запросити ${appData.earnings?.invites_needed || 0} друзів</p>
                     <p>• Або купити доступ за ${price} ⭐</p>
                     <p>Для покупки відкрийте бота та натисніть кнопку "Розблокувати TOP"</p>
+                    <p><small>💡 Посилання відкриється в новому вікні, ви залишитесь в Mini App</small></p>
                 </div>
                 <div class="modal-actions">
                     <button class="action-btn primary" onclick="openTelegramBot(); this.closest('.modal-overlay').remove();">
-                        Відкрити бота
+                        Відкрити бота (новий таб)
                     </button>
                     <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
                         Закрити
