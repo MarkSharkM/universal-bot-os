@@ -768,11 +768,24 @@ function renderTop() {
     const wasLocked = container.querySelector('.locked-state') !== null;
     
     if (topStatus === 'locked') {
+        const invitesNeeded = appData.earnings?.invites_needed || 0;
+        const buyTopPrice = appData.earnings?.buy_top_price || 1;
+        const canUnlockTop = appData.earnings?.can_unlock_top || false;
+        
         container.innerHTML = `
             <div class="locked-state">
                 <h2>TOP закрито</h2>
-                <p>Запроси ${appData.earnings?.invites_needed || 0} друзів щоб розблокувати TOP</p>
-                <p>Або купи доступ за ${appData.earnings?.buy_top_price || 1} ⭐</p>
+                <p>Запроси ${invitesNeeded} друзів щоб розблокувати TOP</p>
+                <p>Або купи доступ за ${buyTopPrice} ⭐</p>
+                ${canUnlockTop ? `
+                    <button class="action-btn unlock-btn" onclick="switchTab('earnings')">
+                        Розблокувати TOP
+                    </button>
+                ` : `
+                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${buyTopPrice})">
+                        Купити доступ за ${buyTopPrice} ⭐
+                    </button>
+                `}
             </div>
         `;
     } else {
