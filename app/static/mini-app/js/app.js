@@ -485,9 +485,12 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         initAttempts++;
         
         // Check if all required modules are loaded
-        if (typeof AppState === 'undefined' || !AppState.setTg) {
+        if (typeof AppState === 'undefined' || typeof AppState.setTg !== 'function') {
             if (initAttempts >= MAX_INIT_ATTEMPTS) {
                 console.error('Failed to load AppState after', MAX_INIT_ATTEMPTS, 'attempts');
+                console.error('AppState type:', typeof AppState);
+                console.error('AppState value:', AppState);
+                
                 const errorEl = document.getElementById('error-message');
                 const errorText = document.getElementById('error-text');
                 const loading = document.getElementById('loading');
@@ -497,6 +500,11 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                     if (loading) loading.style.display = 'none';
                 }
                 return;
+            }
+            
+            // Only log first few attempts
+            if (initAttempts <= 3) {
+                console.warn('Waiting for AppState... attempt', initAttempts, 'of', MAX_INIT_ATTEMPTS);
             }
             
             // Wait a bit more for modules to load
@@ -515,6 +523,7 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         }
         
         // All modules loaded, initialize
+        console.log('✅ All modules loaded, initializing Mini App...');
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => initMiniApp());
         } else {
@@ -523,5 +532,12 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
     }
     
     // Start trying to initialize after a small delay to ensure scripts are parsed
-    setTimeout(tryInit, 10);
+    // Use requestAnimationFrame for better timing
+    if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame(() => {
+            setTimeout(tryInit, 10);
+        });
+    } else {
+        setTimeout(tryInit, 10);
+    }
 })();

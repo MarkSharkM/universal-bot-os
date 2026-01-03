@@ -60,39 +60,80 @@ function clearNavigationHistory() {
 }
 
 // Export (namespace pattern for compatibility)
-window.AppState = {
-    // State object (for direct access if needed)
-    state: AppState,
-    
-    // Getters
-    getTg,
-    getBotId,
-    getUserId,
-    getAppData,
-    getCurrentPage,
-    getNavigationHistory,
-    getIsInitialLoad,
-    getIsLoadingData,
-    getLoadDataTimeout,
-    getFilteredPartners,
-    getCurrentSort,
-    getCurrentFilter,
-    
-    // Setters
-    setTg,
-    setBotId,
-    setUserId,
-    setAppData,
-    setCurrentPage,
-    setIsInitialLoad,
-    setIsLoadingData,
-    setLoadDataTimeout,
-    setFilteredPartners,
-    setCurrentSort,
-    setCurrentFilter,
-    
-    // Navigation helpers
-    pushNavigationHistory,
-    popNavigationHistory,
-    clearNavigationHistory
-};
+// Immediately export to ensure it's available as soon as script loads
+(function() {
+    try {
+        window.AppState = {
+            // State object (for direct access if needed)
+            state: AppState,
+            
+            // Getters
+            getTg,
+            getBotId,
+            getUserId,
+            getAppData,
+            getCurrentPage,
+            getNavigationHistory,
+            getIsInitialLoad,
+            getIsLoadingData,
+            getLoadDataTimeout,
+            getFilteredPartners,
+            getCurrentSort,
+            getCurrentFilter,
+            
+            // Setters
+            setTg,
+            setBotId,
+            setUserId,
+            setAppData,
+            setCurrentPage,
+            setIsInitialLoad,
+            setIsLoadingData,
+            setLoadDataTimeout,
+            setFilteredPartners,
+            setCurrentSort,
+            setCurrentFilter,
+            
+            // Navigation helpers
+            pushNavigationHistory,
+            popNavigationHistory,
+            clearNavigationHistory
+        };
+        
+        // Log success (only in development)
+        if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
+            console.log('✅ AppState module loaded successfully');
+        }
+    } catch (error) {
+        console.error('❌ Error loading AppState module:', error);
+        // Still try to export something to prevent complete failure
+        window.AppState = {
+            getTg: () => null,
+            setTg: () => {},
+            getBotId: () => null,
+            setBotId: () => {},
+            getUserId: () => null,
+            setUserId: () => {},
+            getAppData: () => null,
+            setAppData: () => {},
+            getCurrentPage: () => 'partners',
+            setCurrentPage: () => {},
+            getNavigationHistory: () => [],
+            pushNavigationHistory: () => {},
+            popNavigationHistory: () => null,
+            clearNavigationHistory: () => {},
+            getIsInitialLoad: () => true,
+            setIsInitialLoad: () => {},
+            getIsLoadingData: () => false,
+            setIsLoadingData: () => {},
+            getLoadDataTimeout: () => null,
+            setLoadDataTimeout: () => {},
+            getFilteredPartners: () => [],
+            setFilteredPartners: () => {},
+            getCurrentSort: () => 'name',
+            setCurrentSort: () => {},
+            getCurrentFilter: () => 'all',
+            setCurrentFilter: () => {}
+        };
+    }
+})();
