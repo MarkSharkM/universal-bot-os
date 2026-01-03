@@ -8,6 +8,13 @@
 
 async function initMiniApp() {
     try {
+        // Wait for AppState to be loaded
+        if (typeof AppState === 'undefined' || !AppState.setTg) {
+            console.error('AppState module not loaded yet');
+            setTimeout(initMiniApp, 100);
+            return;
+        }
+        
         // Get Telegram WebApp instance
         const tg = window.Telegram?.WebApp;
         AppState.setTg(tg);
