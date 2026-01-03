@@ -1434,32 +1434,57 @@ function setupPullToRefresh() {
     let touchCurrentY = 0;
     let isPulling = false;
     let pullDistance = 0;
-    const pullThreshold = 80;
+    let touchStartTime = 0;
+    const pullThreshold = 120; // Increased from 80 to make it less sensitive
+    const minPullDistance = 50; // Minimum distance before showing indicator
+    const maxScrollTop = 5; // Allow small scroll offset (not exactly 0)
     
     content.addEventListener('touchstart', (e) => {
-        // Only trigger if at top of scroll
-        if (content.scrollTop === 0) {
+        // Only trigger if at top of scroll (with small tolerance)
+        if (content.scrollTop <= maxScrollTop) {
             touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
             isPulling = true;
+        } else {
+            isPulling = false;
         }
     }, { passive: true });
     
     content.addEventListener('touchmove', (e) => {
         if (!isPulling) return;
         
+        // Check if still at top
+        if (content.scrollTop > maxScrollTop) {
+            isPulling = false;
+            hidePullToRefresh();
+            return;
+        }
+        
         touchCurrentY = e.touches[0].clientY;
         pullDistance = touchCurrentY - touchStartY;
         
-        if (pullDistance > 0 && content.scrollTop === 0) {
+        // Only show indicator if pulled down significantly
+        if (pullDistance > minPullDistance && content.scrollTop <= maxScrollTop) {
             e.preventDefault();
             updatePullToRefresh(pullDistance);
+        } else if (pullDistance <= 0) {
+            // User is scrolling up, cancel pull-to-refresh
+            isPulling = false;
+            hidePullToRefresh();
         }
     }, { passive: false });
     
     content.addEventListener('touchend', () => {
-        if (!isPulling) return;
+        if (!isPulling) {
+            hidePullToRefresh();
+            return;
+        }
         
-        if (pullDistance >= pullThreshold) {
+        // Only trigger if pulled down enough AND user held for a moment (not accidental scroll)
+        const touchDuration = Date.now() - touchStartTime;
+        const minDuration = 100; // At least 100ms to distinguish from quick scroll
+        
+        if (pullDistance >= pullThreshold && touchDuration >= minDuration) {
             // Trigger refresh
             showPullToRefresh();
             loadAppData(true);
@@ -1469,6 +1494,15 @@ function setupPullToRefresh() {
         
         isPulling = false;
         pullDistance = 0;
+        touchStartTime = 0;
+    }, { passive: true });
+    
+    // Also handle scroll events to cancel pull-to-refresh if user scrolls
+    content.addEventListener('scroll', () => {
+        if (isPulling && content.scrollTop > maxScrollTop) {
+            isPulling = false;
+            hidePullToRefresh();
+        }
     }, { passive: true });
 }
 
@@ -1479,7 +1513,7 @@ function updatePullToRefresh(distance) {
     const indicator = document.getElementById('pull-to-refresh');
     if (!indicator) return;
     
-    const threshold = 80;
+    const threshold = 120; // Match pullThreshold
     const progress = Math.min(distance / threshold, 1);
     
     indicator.style.opacity = progress;
