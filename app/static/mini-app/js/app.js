@@ -1116,19 +1116,18 @@ async function handleWalletSubmit(event) {
         if (result && result.ok !== false) {
             showWalletMessage('✅ Гаманець збережено успішно!', 'success');
             
-            // Reload app data to sync with server (in case admin deleted it)
-            await loadAppData(false);
-            
-            // Update app data
+            // Update app data locally (no need to reload all data, just update wallet)
             if (appData && appData.user) {
                 appData.user.wallet = walletAddress;
             }
+            
             // Update input after successful save
             if (input) {
                 input.value = walletAddress;
             }
             
             // Re-render wallet section to show updated data
+            // Don't call loadAppData here to avoid tab switching issues
             renderWallet();
         } else {
             throw new Error(result?.detail || 'Failed to save wallet');
