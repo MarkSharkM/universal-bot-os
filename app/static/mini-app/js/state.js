@@ -3,8 +3,8 @@
  * Manages global application state
  */
 
-// Global state
-const AppState = {
+// Global state (use different name to avoid conflict)
+const AppStateInternal = {
     tg: null,
     botId: null,
     userId: null,
@@ -20,43 +20,43 @@ const AppState = {
 };
 
 // Getters
-function getTg() { return AppState.tg; }
-function getBotId() { return AppState.botId; }
-function getUserId() { return AppState.userId; }
-function getAppData() { return AppState.appData; }
-function getCurrentPage() { return AppState.currentPage; }
-function getNavigationHistory() { return AppState.navigationHistory; }
-function getIsInitialLoad() { return AppState.isInitialLoad; }
-function getIsLoadingData() { return AppState.isLoadingData; }
-function getLoadDataTimeout() { return AppState.loadDataTimeout; }
-function getFilteredPartners() { return AppState.filteredPartners; }
-function getCurrentSort() { return AppState.currentSort; }
-function getCurrentFilter() { return AppState.currentFilter; }
+function getTg() { return AppStateInternal.tg; }
+function getBotId() { return AppStateInternal.botId; }
+function getUserId() { return AppStateInternal.userId; }
+function getAppData() { return AppStateInternal.appData; }
+function getCurrentPage() { return AppStateInternal.currentPage; }
+function getNavigationHistory() { return AppStateInternal.navigationHistory; }
+function getIsInitialLoad() { return AppStateInternal.isInitialLoad; }
+function getIsLoadingData() { return AppStateInternal.isLoadingData; }
+function getLoadDataTimeout() { return AppStateInternal.loadDataTimeout; }
+function getFilteredPartners() { return AppStateInternal.filteredPartners; }
+function getCurrentSort() { return AppStateInternal.currentSort; }
+function getCurrentFilter() { return AppStateInternal.currentFilter; }
 
 // Setters
-function setTg(value) { AppState.tg = value; }
-function setBotId(value) { AppState.botId = value; }
-function setUserId(value) { AppState.userId = value; }
-function setAppData(value) { AppState.appData = value; }
-function setCurrentPage(value) { AppState.currentPage = value; }
-function setIsInitialLoad(value) { AppState.isInitialLoad = value; }
-function setIsLoadingData(value) { AppState.isLoadingData = value; }
-function setLoadDataTimeout(value) { AppState.loadDataTimeout = value; }
-function setFilteredPartners(value) { AppState.filteredPartners = value; }
-function setCurrentSort(value) { AppState.currentSort = value; }
-function setCurrentFilter(value) { AppState.currentFilter = value; }
+function setTg(value) { AppStateInternal.tg = value; }
+function setBotId(value) { AppStateInternal.botId = value; }
+function setUserId(value) { AppStateInternal.userId = value; }
+function setAppData(value) { AppStateInternal.appData = value; }
+function setCurrentPage(value) { AppStateInternal.currentPage = value; }
+function setIsInitialLoad(value) { AppStateInternal.isInitialLoad = value; }
+function setIsLoadingData(value) { AppStateInternal.isLoadingData = value; }
+function setLoadDataTimeout(value) { AppStateInternal.loadDataTimeout = value; }
+function setFilteredPartners(value) { AppStateInternal.filteredPartners = value; }
+function setCurrentSort(value) { AppStateInternal.currentSort = value; }
+function setCurrentFilter(value) { AppStateInternal.currentFilter = value; }
 
 // Navigation history helpers
 function pushNavigationHistory(page) {
-    AppState.navigationHistory.push(page);
+    AppStateInternal.navigationHistory.push(page);
 }
 
 function popNavigationHistory() {
-    return AppState.navigationHistory.pop();
+    return AppStateInternal.navigationHistory.pop();
 }
 
 function clearNavigationHistory() {
-    AppState.navigationHistory = [];
+    AppStateInternal.navigationHistory = [];
 }
 
 // Export (namespace pattern for compatibility)
@@ -65,7 +65,7 @@ function clearNavigationHistory() {
     try {
         window.AppState = {
             // State object (for direct access if needed)
-            state: AppState,
+            state: AppStateInternal,
             
             // Getters
             getTg,
