@@ -1011,7 +1011,14 @@ function renderWallet() {
     
     const wallet = appData.user?.wallet || '';
     const walletHelp = appData.wallet?.help || '';
-    const hasWallet = wallet && wallet.trim();
+    // Check if wallet is valid (not empty, not just underscores/placeholders)
+    // "EQD____ _0vo" looks like a placeholder, not a real wallet
+    // Valid TON wallet should be at least 48 chars and not contain multiple underscores in a row
+    const walletTrimmed = wallet ? wallet.trim() : '';
+    const hasWallet = walletTrimmed && 
+                      walletTrimmed.length >= 48 && 
+                      !walletTrimmed.match(/_{3,}/) && // Not multiple underscores in a row
+                      walletTrimmed.match(/^EQ[A-Za-z0-9_-]+$/); // Valid TON wallet format
     
     container.innerHTML = `
         <div class="wallet-card">
