@@ -1537,18 +1537,25 @@ function updatePullToRefresh(distance) {
  * Show pull-to-refresh indicator
  */
 function showPullToRefresh() {
+    // Disabled - do nothing
+    return;
+    /*
     const indicator = document.getElementById('pull-to-refresh');
     if (indicator) {
         indicator.classList.add('active');
         indicator.querySelector('.pull-to-refresh-icon').textContent = '🔄';
         indicator.querySelector('.pull-to-refresh-text').textContent = 'Оновлення...';
     }
+    */
 }
 
 /**
  * Hide pull-to-refresh indicator
  */
 function hidePullToRefresh() {
+    // Disabled - do nothing
+    return;
+    /*
     const indicator = document.getElementById('pull-to-refresh');
     if (indicator) {
         indicator.classList.remove('active', 'ready');
@@ -1557,6 +1564,7 @@ function hidePullToRefresh() {
         indicator.querySelector('.pull-to-refresh-icon').textContent = '⬇️';
         indicator.querySelector('.pull-to-refresh-text').textContent = 'Потягніть для оновлення';
     }
+    */
 }
 
 /**
