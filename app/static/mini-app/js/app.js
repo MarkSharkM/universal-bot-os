@@ -6,14 +6,34 @@
 // Note: Uses AppState for global state
 // Note: Other modules (Render, Navigation, Events, Actions) are loaded before this
 
+// Retry counter for AppState loading
+let appStateRetryCount = 0;
+const MAX_APPSTATE_RETRIES = 50; // 5 seconds max (50 * 100ms)
+
 async function initMiniApp() {
     try {
-        // Wait for AppState to be loaded
+        // Wait for AppState to be loaded (with max retries)
         if (typeof AppState === 'undefined' || !AppState.setTg) {
-            console.error('AppState module not loaded yet');
+            appStateRetryCount++;
+            if (appStateRetryCount >= MAX_APPSTATE_RETRIES) {
+                console.error('AppState module failed to load after', MAX_APPSTATE_RETRIES, 'attempts');
+                if (typeof Render !== 'undefined' && Render.showError) {
+                    Render.showError('Помилка завантаження модулів. Перезавантажте сторінку.');
+                } else {
+                    showError('Помилка завантаження модулів. Перезавантажте сторінку.');
+                }
+                return;
+            }
+            // Only log first few attempts to avoid spam
+            if (appStateRetryCount <= 3) {
+                console.warn('AppState module not loaded yet, retrying...', appStateRetryCount);
+            }
             setTimeout(initMiniApp, 100);
             return;
         }
+        
+        // Reset retry counter on success
+        appStateRetryCount = 0;
         
         // Get Telegram WebApp instance
         const tg = window.Telegram?.WebApp;
@@ -456,11 +476,34 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
 }
 
 
-// Initialize when DOM is ready
-(async () => {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => initMiniApp());
-    } else {
-        await initMiniApp();
+// Initialize when DOM is ready AND all scripts are loaded
+(function() {
+    function tryInit() {
+        // Check if all required modules are loaded
+        if (typeof AppState === 'undefined' || !AppState.setTg) {
+            // Wait a bit more for modules to load
+            if (document.readyState === 'complete') {
+                // If DOM is complete but AppState still not loaded, wait a bit more
+                setTimeout(tryInit, 50);
+            } else {
+                // DOM still loading, wait for it
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', tryInit);
+                } else {
+                    setTimeout(tryInit, 50);
+                }
+            }
+            return;
+        }
+        
+        // All modules loaded, initialize
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => initMiniApp());
+        } else {
+            initMiniApp();
+        }
     }
+    
+    // Start trying to initialize
+    tryInit();
 })();
