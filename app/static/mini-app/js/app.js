@@ -335,42 +335,33 @@ function switchTab(tabName) {
         targetPage.classList.add('active');
         currentPage = tabName;
         
+        // Render content immediately with existing data (if available)
+        // This ensures user sees content right away, not a blank screen
+        if (tabName === 'partners') {
+            renderPartners();
+            setupSearchAndFilters();
+        } else if (tabName === 'top') {
+            renderTop();
+        } else if (tabName === 'earnings') {
+            renderEarnings();
+        } else if (tabName === 'wallet') {
+            renderWallet();
+        } else if (tabName === 'info') {
+            renderInfo();
+        }
+        
         // Reload data when switching to tabs that need fresh data
         // This ensures counters and stats are up-to-date
         // BUT: Don't reload on initial load (isInitialLoad = true) to prevent infinite loop
+        // AND: Only reload if we have existing data (to avoid double load on first visit)
         if ((tabName === 'earnings' || tabName === 'top') && appData && !isInitialLoad) {
             // Reload app data to get fresh counters (only if appData already exists and not initial load)
             // Use debounced version to prevent multiple rapid calls
-            loadAppData(false).then(() => {
-                // Render after data is loaded
-                if (tabName === 'earnings') {
-                    renderEarnings();
-                } else if (tabName === 'top') {
-                    renderTop();
-                }
-            }).catch(err => {
+            // Note: loadAppData will update the current tab, not switch to earnings
+            loadAppData(false).catch(err => {
                 console.error('Error reloading data:', err);
-                // Still render with existing data if reload fails
-                if (tabName === 'earnings') {
-                    renderEarnings();
-                } else if (tabName === 'top') {
-                    renderTop();
-                }
+                // Data already rendered above, so user sees content even if reload fails
             });
-        } else {
-            // Load content if not loaded yet (no refresh needed)
-            if (tabName === 'partners') {
-                renderPartners();
-                setupSearchAndFilters();
-            } else if (tabName === 'top') {
-                renderTop();
-            } else if (tabName === 'earnings') {
-                renderEarnings();
-            } else if (tabName === 'wallet') {
-                renderWallet();
-            } else if (tabName === 'info') {
-                renderInfo();
-            }
         }
     }
 }
@@ -486,17 +477,40 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
             if (!hasSeenWelcome) {
                 showWelcomeScreen();
             } else {
-                // Show Earnings tab first (it has instructions on what to do)
-                // This helps users understand what the bot does
-                isInitialLoad = true; // Mark as initial load to prevent reload loop
-                renderApp();
-                // Switch to Earnings tab first (instead of Partners)
-                // Note: switchTab must be called while isInitialLoad = true to prevent reload
-                switchTab('earnings');
-                // Reset flag AFTER switchTab completes (use setTimeout to ensure it runs after)
-                setTimeout(() => {
-                    isInitialLoad = false;
-                }, 100);
+                // Only switch to Earnings tab on initial load (when app is first shown)
+                // Don't switch if this is just a data refresh (showRefreshIndicator or not isInitialLoad)
+                const isFirstLoad = isInitialLoad && !showRefreshIndicator;
+                
+                if (isFirstLoad) {
+                    // Show Earnings tab first (it has instructions on what to do)
+                    // This helps users understand what the bot does
+                    isInitialLoad = true; // Mark as initial load to prevent reload loop
+                    renderApp();
+                    // Switch to Earnings tab first (instead of Partners)
+                    // Note: switchTab must be called while isInitialLoad = true to prevent reload
+                    switchTab('earnings');
+                    // Reset flag AFTER switchTab completes (use setTimeout to ensure it runs after)
+                    setTimeout(() => {
+                        isInitialLoad = false;
+                    }, 100);
+                } else {
+                    // This is a data refresh, not initial load
+                    // Just update the data and re-render current tab
+                    renderApp();
+                    // Re-render current page with fresh data
+                    if (currentPage === 'earnings') {
+                        renderEarnings();
+                    } else if (currentPage === 'top') {
+                        renderTop();
+                    } else if (currentPage === 'partners') {
+                        renderPartners();
+                        setupSearchAndFilters();
+                    } else if (currentPage === 'wallet') {
+                        renderWallet();
+                    } else if (currentPage === 'info') {
+                        renderInfo();
+                    }
+                }
                 showLoading(false);
             }
             
@@ -1352,6 +1366,12 @@ function showLoading(show) {
 function showError(message) {
     const errorEl = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
+    const app = document.getElementById('app');
+    
+    // Show app container so user can still see navigation and retry
+    if (app) {
+        app.style.display = 'block';
+    }
     
     if (errorEl && errorText) {
         errorText.textContent = message;
@@ -1362,7 +1382,7 @@ function showError(message) {
     const retryBtn = document.getElementById('retry-btn');
     if (retryBtn) {
         retryBtn.onclick = () => {
-            errorEl.style.display = 'none';
+            if (errorEl) errorEl.style.display = 'none';
             loadAppData();
         };
     }
