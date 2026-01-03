@@ -316,6 +316,12 @@ let loadDataTimeout = null; // Debounce timer for loadAppData calls
  * Switch between tabs/pages
  */
 function switchTab(tabName) {
+    // If user manually switches tabs, mark that initial load is done
+    // This prevents loadAppData from auto-switching to earnings
+    if (isInitialLoad) {
+        isInitialLoad = false;
+    }
+    
     // Update tab buttons
     document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.remove('active');
@@ -486,13 +492,16 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                     // This helps users understand what the bot does
                     isInitialLoad = true; // Mark as initial load to prevent reload loop
                     renderApp();
-                    // Switch to Earnings tab first (instead of Partners)
-                    // Note: switchTab must be called while isInitialLoad = true to prevent reload
-                    switchTab('earnings');
-                    // Reset flag AFTER switchTab completes (use setTimeout to ensure it runs after)
-                    setTimeout(() => {
-                        isInitialLoad = false;
-                    }, 100);
+                    
+                    // Only auto-switch to earnings if isInitialLoad is still true
+                    // (user hasn't manually switched tabs yet)
+                    // Check again right before switching to handle race conditions
+                    if (isInitialLoad) {
+                        // Switch to Earnings tab first (instead of Partners)
+                        // Note: switchTab will set isInitialLoad = false when called
+                        switchTab('earnings');
+                    }
+                    // If isInitialLoad is false, user already switched tabs manually, don't force switch
                 } else {
                     // This is a data refresh, not initial load
                     // Just update the data and re-render current tab
