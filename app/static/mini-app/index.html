@@ -179,7 +179,7 @@
         <button id="retry-btn" class="retry-btn">Спробувати ще раз</button>
     </div>
 
-    <!-- Scripts -->
+    <!-- Scripts (load synchronously to maintain order) -->
     <script src="/static/mini-app/js/utils.js"></script>
     <script src="/static/mini-app/js/api.js"></script>
     <script src="/static/mini-app/js/state.js"></script>
@@ -188,6 +188,22 @@
     <script src="/static/mini-app/js/actions.js"></script>
     <script src="/static/mini-app/js/events.js"></script>
     <script src="/static/mini-app/js/app.js"></script>
+    <script>
+        // Ensure AppState is loaded before initialization
+        (function() {
+            if (typeof AppState === 'undefined') {
+                console.error('AppState failed to load!');
+                const errorEl = document.getElementById('error-message');
+                const errorText = document.getElementById('error-text');
+                const loading = document.getElementById('loading');
+                if (errorEl && errorText) {
+                    errorText.textContent = 'Помилка завантаження модулів. Перезавантажте сторінку.';
+                    errorEl.style.display = 'block';
+                    if (loading) loading.style.display = 'none';
+                }
+            }
+        })();
+    </script>
 </body>
 </html>
 

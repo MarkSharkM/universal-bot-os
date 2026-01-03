@@ -478,9 +478,27 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
 
 // Initialize when DOM is ready AND all scripts are loaded
 (function() {
+    let initAttempts = 0;
+    const MAX_INIT_ATTEMPTS = 20; // 1 second max (20 * 50ms)
+    
     function tryInit() {
+        initAttempts++;
+        
         // Check if all required modules are loaded
         if (typeof AppState === 'undefined' || !AppState.setTg) {
+            if (initAttempts >= MAX_INIT_ATTEMPTS) {
+                console.error('Failed to load AppState after', MAX_INIT_ATTEMPTS, 'attempts');
+                const errorEl = document.getElementById('error-message');
+                const errorText = document.getElementById('error-text');
+                const loading = document.getElementById('loading');
+                if (errorEl && errorText) {
+                    errorText.textContent = 'Помилка завантаження модулів. Перезавантажте сторінку.';
+                    errorEl.style.display = 'block';
+                    if (loading) loading.style.display = 'none';
+                }
+                return;
+            }
+            
             // Wait a bit more for modules to load
             if (document.readyState === 'complete') {
                 // If DOM is complete but AppState still not loaded, wait a bit more
@@ -504,6 +522,6 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         }
     }
     
-    // Start trying to initialize
-    tryInit();
+    // Start trying to initialize after a small delay to ensure scripts are parsed
+    setTimeout(tryInit, 10);
 })();
