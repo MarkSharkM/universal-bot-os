@@ -32,30 +32,30 @@
     <!-- Main App (hidden until ready) -->
     <div id="app" class="app-container" style="display: none;">
         <!-- Header -->
-        <header class="app-header">
+        <header class="app-header" role="banner">
             <h1 id="bot-name">Mini App</h1>
-            <button id="close-btn" class="close-btn" aria-label="Закрити">×</button>
+            <button id="close-btn" class="close-btn" aria-label="Закрити Mini App" type="button">×</button>
         </header>
 
         <!-- Navigation Tabs -->
-        <nav class="tabs">
-            <button class="tab active" data-tab="partners">
+        <nav class="tabs" role="navigation" aria-label="Головна навігація">
+            <button class="tab active" data-tab="partners" aria-label="Партнери" aria-current="page">
                 <span class="tab-icon tab-icon-partners" aria-hidden="true"></span>
                 <span class="tab-label">Партнери</span>
             </button>
-            <button class="tab" data-tab="top">
+            <button class="tab" data-tab="top" aria-label="TOP партнери">
                 <span class="tab-icon tab-icon-top" aria-hidden="true"></span>
                 <span class="tab-label">TOP</span>
             </button>
-            <button class="tab" data-tab="earnings">
+            <button class="tab" data-tab="earnings" aria-label="Заробітки">
                 <span class="tab-icon tab-icon-earnings" aria-hidden="true"></span>
                 <span class="tab-label">Заробітки</span>
             </button>
-            <button class="tab" data-tab="wallet">
+            <button class="tab" data-tab="wallet" aria-label="TON гаманець">
                 <span class="tab-icon tab-icon-wallet" aria-hidden="true"></span>
                 <span class="tab-label">Гаманець</span>
             </button>
-            <button class="tab" data-tab="info">
+            <button class="tab" data-tab="info" aria-label="Інформація">
                 <span class="tab-icon tab-icon-info" aria-hidden="true"></span>
                 <span class="tab-label">Інфо</span>
             </button>
@@ -68,7 +68,7 @@
         </div> -->
 
         <!-- Content Areas -->
-        <main class="content">
+        <main class="content" role="main">
             <!-- Partners Page -->
             <section id="partners-page" class="page active">
                 <!-- Search & Filters -->

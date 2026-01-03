@@ -324,9 +324,13 @@ function switchTab(tabName) {
     
     // Update tab buttons
     document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-        if (tab.getAttribute('data-tab') === tabName) {
-            tab.classList.add('active');
+        const isActive = tab.getAttribute('data-tab') === tabName;
+        tab.classList.toggle('active', isActive);
+        // Update aria-current for accessibility
+        if (isActive) {
+            tab.setAttribute('aria-current', 'page');
+        } else {
+            tab.removeAttribute('aria-current');
         }
     });
     
@@ -716,7 +720,7 @@ function renderPartnersList(partners) {
                     <span class="commission-badge ${isTop ? 'top-badge' : ''}">${partner.commission || 0}%</span>
                 </div>
                 <p class="partner-description">${escapeHtml((partner.description || '').substring(0, 100))}${partner.description && partner.description.length > 100 ? '...' : ''}</p>
-                <button class="partner-btn" onclick="event.stopPropagation(); openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')">
+                <button class="partner-btn" onclick="event.stopPropagation(); openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')" aria-label="Перейти до партнера ${escapeHtml(partner.name || 'Unknown')}">
                     Перейти →
                 </button>
             </div>
@@ -760,7 +764,7 @@ function renderPartnerDetail(partnerId) {
                 <div class="partner-detail-body">
                     <p class="partner-detail-description">${escapeHtml(partner.description || 'Опис відсутній')}</p>
                     <div class="partner-detail-actions">
-                        <button class="partner-btn large" onclick="openPartner('${partner.referral_link || ''}', ${partnerId})">
+                        <button class="partner-btn large" onclick="openPartner('${escapeHtml(partner.referral_link || '')}', '${escapeHtml(String(partnerId))}')" aria-label="Перейти до партнера ${escapeHtml(partner.name || 'Unknown')}">
                             Перейти до партнера
                         </button>
                     </div>
@@ -801,11 +805,11 @@ function renderTop() {
                 <p>Запроси ${invitesNeeded} друзів щоб розблокувати TOP</p>
                 <p>Або купи доступ за ${buyTopPrice} ⭐</p>
                 ${canUnlockTop ? `
-                    <button class="action-btn unlock-btn" onclick="switchTab('earnings')">
+                    <button class="action-btn unlock-btn" onclick="switchTab('earnings')" aria-label="Розблокувати TOP через заробітки">
                         Розблокувати TOP
                     </button>
                 ` : `
-                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${buyTopPrice})">
+                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${buyTopPrice})" aria-label="Купити доступ до TOP за ${buyTopPrice} зірок">
                         Купити доступ за ${buyTopPrice} ⭐
                     </button>
                 `}
@@ -835,7 +839,7 @@ function renderTop() {
                         <span class="commission-badge top-badge">${partner.commission || 0}%</span>
                     </div>
                     <p class="partner-description">${escapeHtml(partner.description || '')}</p>
-                    <button class="partner-btn" onclick="openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')">
+                    <button class="partner-btn" onclick="openPartner('${escapeHtml(referralLink)}', '${escapeHtml(partnerIdStr)}')" aria-label="Перейти до партнера ${escapeHtml(partner.name || 'Unknown')}">
                         Перейти →
                     </button>
                 </div>
@@ -986,15 +990,15 @@ function renderEarnings() {
             <!-- Action Buttons -->
             <div class="earnings-actions">
                 ${earnings.can_unlock_top ? `
-                    <button class="action-btn unlock-btn" onclick="switchTab('top')">
+                    <button class="action-btn unlock-btn" onclick="switchTab('top')" aria-label="Відкрити TOP партнерів">
                         ${translations.btn_top_partners || 'Відкрити TOP'}
                     </button>
                 ` : `
-                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${earnings.buy_top_price || 1})">
+                    <button class="action-btn unlock-btn" onclick="handleBuyTop(${earnings.buy_top_price || 1})" aria-label="Розблокувати TOP за ${earnings.buy_top_price || 1} зірок">
                         ${translations.btn_unlock_top || `Розблокувати TOP (${earnings.buy_top_price || 1} ⭐)`}
                     </button>
                 `}
-                <button class="action-btn activate-btn" onclick="showActivate7Instructions()">
+                <button class="action-btn activate-btn" onclick="showActivate7Instructions()" aria-label="Активувати програму 7% комісії">
                     ${translations.btn_activate_7 || 'Активувати 7%'}
                 </button>
             </div>
@@ -1248,15 +1252,16 @@ function renderInfo() {
     const infoMessage = appData.info?.message || '';
     
     // Fix cases where backend sends literal "\n" sequences instead of newlines
-    const normalized = String(infoMessage || '')
+    // Escape HTML first to prevent XSS, then convert newlines to <br>
+    const safeMessage = escapeHtml(String(infoMessage || ''))
         .replace(/\\n/g, '\n')
         .replace(/\n/g, '<br>');
     
-    // Parse HTML from info message (it comes as HTML from translations)
+    // Use escaped content for safety
     container.innerHTML = `
         <div class="info-card">
             <div class="info-content">
-                ${normalized || '<p>Інформація про бота</p>'}
+                ${safeMessage || '<p>Інформація про бота</p>'}
             </div>
         </div>
     `;
