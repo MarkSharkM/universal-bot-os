@@ -318,6 +318,13 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
             // Show welcome screen on first visit (check localStorage)
             const hasSeenWelcome = localStorage.getItem('mini_app_welcome_seen');
             if (!hasSeenWelcome) {
+                // Hide loading screen when showing welcome screen
+                if (typeof Render !== 'undefined' && Render.showLoading) {
+                    Render.showLoading(false);
+                } else {
+                    showLoading(false);
+                }
+                
                 if (typeof Render !== 'undefined' && Render.showWelcomeScreen) {
                     Render.showWelcomeScreen();
                 } else {

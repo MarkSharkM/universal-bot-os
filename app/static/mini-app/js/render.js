@@ -746,6 +746,9 @@ function showWelcomeScreen() {
     
     welcomeScreen.style.display = 'flex';
     
+    // Hide loading screen when showing welcome screen
+    showLoading(false);
+    
     // Close welcome screen
     if (welcomeCloseBtn) {
         welcomeCloseBtn.onclick = () => {
