@@ -252,11 +252,19 @@ async def save_wallet_from_mini_app(
     if not wallet_service.validate_wallet_format(wallet_address):
         raise HTTPException(status_code=400, detail="Invalid wallet format")
     
-    # Save wallet
+    # Save wallet using WalletService (same as bot, includes Telegram notification)
     try:
-        user_service.update_wallet(user.id, wallet_address.strip())
-        logger.info(f"Wallet saved: bot_id={bot_id}, user_id={user.id}, wallet={wallet_address[:20]}...")
-        return {"ok": True, "message": "Wallet saved successfully"}
+        from app.adapters.telegram import TelegramAdapter
+        adapter = TelegramAdapter()
+        
+        # Use WalletService.save_wallet which handles validation and sends Telegram message
+        saved = await wallet_service.save_wallet(user.id, wallet_address.strip(), adapter)
+        
+        if saved:
+            logger.info(f"Wallet saved via WalletService: bot_id={bot_id}, user_id={user.id}, wallet={wallet_address[:20]}...")
+            return {"ok": True, "message": "Wallet saved successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Failed to save wallet")
     except Exception as e:
         logger.error(f"Error saving wallet: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error saving wallet: {str(e)}")
