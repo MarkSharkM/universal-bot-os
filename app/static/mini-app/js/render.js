@@ -784,11 +784,11 @@ function showWalletMessage(message, type = 'info') {
 }
 
 function escapeHtml(text) {
-    if (typeof window.escapeHtml === 'function') {
-        return window.escapeHtml(text);
-    }
+    // Always use local implementation to avoid recursion
+    // Don't check window.escapeHtml as it might point back to this function
+    if (text == null) return '';
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = String(text);
     return div.innerHTML;
 }
 
