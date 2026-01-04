@@ -457,8 +457,10 @@ class CommandService:
                 )
             
             # Get share text for button URL only (not in message)
+            bot_username = self._get_bot_username() or ''
             share_text = self.translation_service.get_translation('share_referral', lang, {
-                'referralLink': referral_link
+                'referralLink': referral_link,
+                'bot_username': bot_username
             })
             
             # Get buttons from bot.config or use defaults
@@ -524,13 +526,20 @@ class CommandService:
             message = error_msg
         
         referral_link = self.referral_service.generate_referral_link(user_id)
+        # Get share text for button
+        bot_username = self._get_bot_username() or ''
+        share_text = self.translation_service.get_translation('share_referral', lang, {
+            'referralLink': referral_link,
+            'bot_username': bot_username
+        })
+        share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
         # Get buttons from bot.config or use defaults
-        buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link)
+        buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link, share_text=share_text)
         if not buttons:
             # Default buttons
             buttons = [[{
                 'text': self.translation_service.get_translation('share_button', lang),
-                'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}"
+                'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"
             }]]
         
         return {
@@ -608,8 +617,10 @@ class CommandService:
         
         # Generate referral link for share button
         referral_link = self.referral_service.generate_referral_link(user_id)
+        bot_username = self._get_bot_username() or ''
         share_text = self.translation_service.get_translation('share_referral', lang, {
-            'referralLink': referral_link
+            'referralLink': referral_link,
+            'bot_username': bot_username
         })
         
         # Get buttons from bot.config or use defaults
@@ -647,6 +658,10 @@ class CommandService:
         # Get bot username for translation variables
         bot_username = self._get_bot_username() or ''
         
+        # Log warning if username is not found
+        if not bot_username:
+            logger.warning(f"Bot username not found for bot_id={self.bot_id} in /share command. Using empty string.")
+        
         # Get message text for /share command
         message_text = self.translation_service.get_translation(
             'share_referral',
@@ -656,6 +671,10 @@ class CommandService:
                 'bot_username': bot_username
             }
         )
+        
+        # Double-check: if placeholder is still present, log error
+        if '{{bot_username}}' in message_text:
+            logger.error(f"{{bot_username}} placeholder not replaced in share_referral translation! bot_username={bot_username}, bot_id={self.bot_id}")
         # Remove placeholder and clean up extra newlines
         # Replace placeholders first
         message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '')
@@ -710,8 +729,10 @@ class CommandService:
         
         # Generate referral link for share button
         referral_link = earnings_data.get('referral_link') or self.referral_service.generate_referral_link(user_id)
+        bot_username = self._get_bot_username() or ''
         share_text = self.translation_service.get_translation('share_referral', lang, {
-            'referralLink': referral_link
+            'referralLink': referral_link,
+            'bot_username': bot_username
         })
         
         # Get buttons from bot.config or use defaults
