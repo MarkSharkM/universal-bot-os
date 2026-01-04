@@ -2230,6 +2230,7 @@ async def list_bot_messages(
         # Get user data (already loaded via JOIN, but access via relationship)
         user = user_msg.user
         if not user:
+            logger.warning(f"User not found for message {user_msg.id}, user_id={user_msg.user_id}")
             continue
         
         # Extract command from content (remove /start params if present)

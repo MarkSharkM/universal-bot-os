@@ -2044,6 +2044,10 @@
                 if (userId) url += `&user_id=${userId}`;
                 
                 const res = await fetch(url);
+                if (!res.ok) {
+                    const error = await res.json().catch(() => ({ detail: res.statusText }));
+                    throw new Error(error.detail || `HTTP ${res.status}`);
+                }
                 const messages = await res.json();
                 const tbody = document.getElementById('database-messages-tbody');
                 
@@ -2053,10 +2057,12 @@
                 }
                 
                 if (messages.length === 0 && reset) {
-                    tbody.innerHTML = '<tr><td colspan="17" style="padding: 20px; text-align: center; color: #6b7280;">No messages found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="17" style="padding: 20px; text-align: center; color: #6b7280;">No messages found. Make sure there are user messages (commands) in the database.</td></tr>';
                     document.getElementById('database-messages-more').style.display = 'none';
                     return;
                 }
+                
+                console.log('Loaded messages:', messages.length, messages);
                 
                 messages.forEach(msg => {
                     const username = msg.username || '-';
