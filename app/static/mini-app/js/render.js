@@ -1287,6 +1287,15 @@ function renderTrustHeader() {
     const walletTrimmed = wallet ? wallet.trim() : '';
     const isWalletConnected = walletTrimmed && walletTrimmed.length >= 20;
     
+    // Debug logging
+    console.log('[Render] renderTrustHeader:', {
+        hasAppData: !!appData,
+        hasUser: !!appData?.user,
+        wallet: wallet ? `${wallet.substring(0, 10)}...` : 'empty',
+        walletLength: walletTrimmed.length,
+        isConnected: isWalletConnected
+    });
+    
     const walletItem = container.querySelector('.trust-item:last-child');
     if (walletItem) {
         if (isWalletConnected) {
@@ -1578,6 +1587,15 @@ function renderWalletBanner() {
     const appData = AppState.getAppData();
     const wallet = appData?.user?.wallet || '';
     const walletTrimmed = wallet ? wallet.trim() : '';
+    
+    // Debug logging
+    console.log('[Render] renderWalletBanner:', {
+        hasAppData: !!appData,
+        hasUser: !!appData?.user,
+        wallet: wallet ? `${wallet.substring(0, 10)}...` : 'empty',
+        walletLength: walletTrimmed.length,
+        willShow: !walletTrimmed || walletTrimmed.length < 20
+    });
     
     // Show banner only if wallet is not connected
     if (!walletTrimmed || walletTrimmed.length < 20) {
