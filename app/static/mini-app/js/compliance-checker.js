@@ -113,28 +113,68 @@
 
     /* -------------------- TON CONNECT WALLET -------------------- */
     try {
-        // Check if TON Connect SDK is loaded (our implementation uses TON_CONNECT_UI)
+        // Check if TON Connect SDK is loaded
+        // CDN version: TON_CONNECT_UI.TonConnectUI
+        // NPM version: window.TonConnect (if bundled)
+        let tonConnectAvailable = false;
+        let tonConnectUI = null;
+        
+        // Check CDN version (our implementation)
         if (typeof TON_CONNECT_UI !== 'undefined' && typeof TON_CONNECT_UI.TonConnectUI !== 'undefined') {
             complianceResult.wallet.enabled = true;
             complianceResult.wallet.sdkLoaded = true;
-
-            // Check if we have a tonConnectUI instance
+            tonConnectAvailable = true;
+            
+            // Try to get existing instance from our module
             if (typeof TonConnect !== 'undefined' && TonConnect.tonConnectUI) {
-                const tonConnectUI = TonConnect.tonConnectUI;
-                try {
-                    const walletInfo = tonConnectUI.walletInfo;
-                    if (walletInfo) {
-                        complianceResult.wallet.connected = true;
-                        complianceResult.wallet.address = walletInfo.account?.address || walletInfo.address || null;
-                    }
-                } catch(e) {
-                    complianceResult.wallet.errors.push("wallet_check_failed:" + e.message);
-                }
+                tonConnectUI = TonConnect.tonConnectUI;
             } else {
-                complianceResult.wallet.errors.push("tonConnectUI_instance_not_found");
+                // Try to create a test instance (won't actually connect, just check if SDK works)
+                try {
+                    const testUI = new TON_CONNECT_UI.TonConnectUI({
+                        manifestUrl: window.location.origin + '/api/v1/mini-apps/tonconnect-manifest.json'
+                    });
+                    complianceResult.wallet.sdkCanInstantiate = true;
+                } catch(instErr) {
+                    complianceResult.wallet.errors.push("sdk_instantiation_failed:" + instErr.message);
+                }
             }
-        } else {
+        }
+        
+        // Also check NPM/bundled version (for compatibility)
+        if (!tonConnectAvailable && window.TonConnect) {
+            complianceResult.wallet.enabled = true;
+            complianceResult.wallet.sdkLoaded = true;
+            complianceResult.wallet.sdkType = "npm";
+            tonConnectAvailable = true;
+        }
+        
+        if (!tonConnectAvailable) {
             complianceResult.wallet.errors.push("ton_connect_sdk_not_loaded");
+        }
+        
+        // Check if wallet is connected (if we have an instance)
+        if (tonConnectUI) {
+            try {
+                const walletInfo = tonConnectUI.walletInfo || tonConnectUI.wallet;
+                if (walletInfo) {
+                    complianceResult.wallet.connected = true;
+                    complianceResult.wallet.address = walletInfo.account?.address || walletInfo.address || null;
+                    complianceResult.wallet.chain = walletInfo.account?.chain?.toUpperCase() || null;
+                    
+                    // Check if can sign transactions
+                    if (typeof tonConnectUI.sendTransaction === 'function') {
+                        complianceResult.wallet.canSign = true;
+                    }
+                } else {
+                    complianceResult.wallet.errors.push("no_wallet_connected");
+                }
+            } catch(e) {
+                complianceResult.wallet.errors.push("wallet_check_failed:" + e.message);
+            }
+        } else if (tonConnectAvailable) {
+            // SDK loaded but no instance - wallet not initialized yet
+            complianceResult.wallet.errors.push("wallet_not_initialized");
         }
     } catch(err) {
         complianceResult.wallet.errors.push("wallet_error:" + err.message);
