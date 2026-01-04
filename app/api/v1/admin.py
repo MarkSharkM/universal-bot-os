@@ -270,6 +270,65 @@ async def hard_delete_bot(
     }
 
 
+@router.post("/bots/{bot_id}/users/{user_id}/reset-invites")
+async def reset_user_invites(
+    bot_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset user's invites count to 0 for testing.
+    This sets total_invited to 0 and locks TOP status.
+    
+    Args:
+        bot_id: Bot UUID
+        user_id: User UUID
+        db: Database session
+    
+    Returns:
+        Success message with updated counts
+    """
+    from app.models.user import User
+    from app.services.referral_service import ReferralService
+    
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.bot_id == bot_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Reset total_invited to 0
+    if not user.custom_data:
+        user.custom_data = {}
+    
+    old_count = user.custom_data.get('total_invited', 0)
+    user.custom_data['total_invited'] = 0
+    user.custom_data['top_status'] = 'locked'
+    user.custom_data['top_unlock_method'] = ''
+    
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(user, 'custom_data')
+    db.commit()
+    db.refresh(user)
+    
+    # Verify count from database
+    referral_service = ReferralService(db, bot_id)
+    actual_count = referral_service.count_referrals(user_id)
+    
+    return {
+        "success": True,
+        "message": f"User invites reset successfully",
+        "user_id": str(user_id),
+        "external_id": user.external_id,
+        "old_total_invited": old_count,
+        "new_total_invited": 0,
+        "actual_count_from_db": actual_count,
+        "top_status": "locked"
+    }
+
+
 @router.post("/bots/{bot_id}/users/{user_id}/test-5-invites")
 async def test_5_invites_unlock(
     bot_id: UUID,

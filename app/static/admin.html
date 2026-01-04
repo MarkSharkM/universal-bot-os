@@ -604,7 +604,13 @@
                         <label>Balance</label>
                         <input type="number" id="edit-user-balance" min="0" step="0.01">
                     </div>
-                    <button onclick="updateUser()" style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Save Changes</button>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                        <h4 style="margin: 0 0 10px 0; color: #ef4444;">⚠️ Testing Tools</h4>
+                        <button onclick="resetUserInvites()" style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 10px;">Reset Invites to 0</button>
+                        <button onclick="test5Invites()" style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Test 5 Invites</button>
+                        <small style="display: block; margin-top: 8px; color: #6b7280;">Use these tools to test invite functionality</small>
+                    </div>
+                    <button onclick="updateUser()" style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 15px;">Save Changes</button>
                     <button onclick="hideEditUserForm()" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">Cancel</button>
                 </div>
                 
@@ -1907,6 +1913,86 @@
         
         function hideEditUserForm() {
             document.getElementById('edit-user-form').style.display = 'none';
+        }
+        
+        async function resetUserInvites() {
+            if (!currentBotId) {
+                alert('Please select a bot first');
+                return;
+            }
+            
+            const userId = document.getElementById('edit-user-id').value;
+            if (!userId) {
+                alert('Please select a user first');
+                return;
+            }
+            
+            if (!confirm('⚠️ Reset invites to 0 for this user?\n\nThis will:\n- Set total_invited to 0\n- Lock TOP status\n\nContinue?')) {
+                return;
+            }
+            
+            try {
+                const url = `${API_BASE}/bots/${currentBotId}/users/${userId}/reset-invites`;
+                const res = await fetch(url, { method: 'POST' });
+                
+                if (!res.ok) {
+                    const error = await res.json().catch(() => ({ detail: res.statusText }));
+                    throw new Error(error.detail || `HTTP ${res.status}`);
+                }
+                
+                const result = await res.json();
+                alert(`✅ Invites reset successfully!\n\nOld count: ${result.old_total_invited}\nNew count: ${result.new_total_invited}\nActual DB count: ${result.actual_count_from_db}\n\nNote: If actual_count_from_db > 0, there are still referral logs in the database.`);
+                
+                // Reload messages to show updated data
+                loadMessages(0, true);
+            } catch (error) {
+                alert('Error resetting invites: ' + error.message);
+                console.error('Error resetting invites:', error);
+            }
+        }
+        
+        async function test5Invites() {
+            if (!currentBotId) {
+                alert('Please select a bot first');
+                return;
+            }
+            
+            const userId = document.getElementById('edit-user-id').value;
+            if (!userId) {
+                alert('Please select a user first');
+                return;
+            }
+            
+            if (!confirm('🧪 Create 5 test invites for this user?\n\nThis will:\n- Create 5 referral log entries\n- Update total_invited count\n- Auto-unlock TOP if >= 5 invites\n\nContinue?')) {
+                return;
+            }
+            
+            try {
+                const url = `${API_BASE}/bots/${currentBotId}/users/${userId}/test-5-invites`;
+                const res = await fetch(url, { method: 'POST' });
+                
+                if (!res.ok) {
+                    const error = await res.json().catch(() => ({ detail: res.statusText }));
+                    throw new Error(error.detail || `HTTP ${res.status}`);
+                }
+                
+                const result = await res.json();
+                let message = `✅ Test completed!\n\n`;
+                message += `Initial: ${result.initial_state.total_invited} invites, TOP: ${result.initial_state.top_status}\n`;
+                message += `Final: ${result.final_state.total_invited} invites, TOP: ${result.final_state.top_status}\n\n`;
+                message += `Tests passed: ${result.tests_passed}/${result.tests_total}\n`;
+                if (result.tests_passed < result.tests_total) {
+                    message += `\n⚠️ Some tests failed. Check details in console.`;
+                }
+                alert(message);
+                console.log('Test results:', result);
+                
+                // Reload messages to show updated data
+                loadMessages(0, true);
+            } catch (error) {
+                alert('Error testing invites: ' + error.message);
+                console.error('Error testing invites:', error);
+            }
         }
         
         async function updateUser() {
