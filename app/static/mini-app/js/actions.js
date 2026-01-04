@@ -363,7 +363,12 @@ async function handleBuyTop(price) {
 
 function openTelegramBot() {
     // Get bot URL (universal for any bot)
-    const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : 'https://t.me/EarnHubAggregatorBot';
+    const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : null;
+    
+    if (!botUrl) {
+        console.error('❌ Bot URL not found. Please sync username via API.');
+        return;
+    }
 
     // Use correct method: openTelegramLink for t.me links, openLink for external
     const tg = AppState.getTg();
@@ -389,7 +394,12 @@ function showActivate7Instructions() {
     const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
 
     // Get bot username (universal for any bot)
-    const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : 'EarnHubAggregatorBot';
+    const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : null;
+    
+    if (!botUsername) {
+        console.error('❌ Bot username not found. Please sync username via API.');
+        return;
+    }
 
     // Get instructions from translations or use default
     const instructions = translations.block2_enable_steps ||

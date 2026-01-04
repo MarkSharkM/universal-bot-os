@@ -782,7 +782,7 @@ function renderEarnings() {
                         <div class="commission-activate">
                             <h4 class="activate-title">Як активувати ${commissionPercent}% (1 раз назавжди):</h4>
                             <div class="activate-steps">
-                                <div class="activate-step">Відкрий @${typeof getBotUsername === 'function' ? getBotUsername() : 'EarnHubAggregatorBot'}</div>
+                                <div class="activate-step">Відкрий @${typeof getBotUsername === 'function' ? (getBotUsername() || 'bot') : 'bot'}</div>
                                 <div class="activate-step">«Партнерська програма»</div>
                                 <div class="activate-step">«Під'єднатись» → ${commissionPercent}% активуються назавжди</div>
                             </div>
@@ -1560,7 +1560,12 @@ function show7FlowInstructionModal() {
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;';
     
     // Get bot username from config (universal for any bot)
-    const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : 'EarnHubAggregatorBot';
+    const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : null;
+    
+    if (!botUsername) {
+        console.error('❌ Bot username not found. Please sync username via API.');
+        return;
+    }
     
     modal.innerHTML = `
         <div class="modal-content" style="background: var(--tg-theme-bg-color); border-radius: var(--radius-lg); padding: var(--spacing-lg); max-width: 90%; max-height: 80vh; overflow-y: auto;">
@@ -1617,7 +1622,12 @@ function show7FlowInstructionModal() {
             trackEvent('open_bot_from_7flow_modal');
             
             // Get bot URL (universal for any bot)
-            const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : 'https://t.me/EarnHubAggregatorBot';
+            const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : null;
+            
+            if (!botUrl) {
+                console.error('❌ Bot URL not found. Please sync username via API.');
+                return;
+            }
             
             // Use openTelegramLink to open in Telegram (will close Mini App, but that's OK for this action)
             // Or use openLink to open in browser (stays in Mini App context)

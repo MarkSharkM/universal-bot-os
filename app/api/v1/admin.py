@@ -86,6 +86,7 @@ async def create_bot(
 ):
     """
     Create new bot.
+    Automatically syncs username from Telegram API for Telegram bots.
     
     Args:
         bot_data: Bot creation data
@@ -99,13 +100,38 @@ async def create_bot(
         platform_type=bot_data.platform_type,
         token=bot_data.token,  # TODO: Encrypt token
         default_lang=bot_data.default_lang,
-        config=bot_data.config,
+        config=bot_data.config or {},
         is_active=True
     )
     
     db.add(bot)
     db.commit()
     db.refresh(bot)
+    
+    # Auto-sync username for Telegram bots (CRITICAL: fixes referral links and TON Connect)
+    if bot.platform_type == "telegram" and bot.token:
+        try:
+            from app.adapters.telegram import TelegramAdapter
+            adapter = TelegramAdapter()
+            bot_info = await adapter.get_bot_info(bot.id)
+            username = bot_info.get('username')
+            
+            if username:
+                # Save username to bot.config (single source of truth)
+                if not bot.config:
+                    bot.config = {}
+                bot.config['username'] = username
+                bot.config['bot_id'] = bot_info.get('id')
+                bot.config['first_name'] = bot_info.get('first_name')
+                
+                from sqlalchemy.orm.attributes import flag_modified
+                flag_modified(bot, 'config')
+                db.commit()
+                db.refresh(bot)
+                logger.info(f"Auto-synced bot username: {username} for bot_id={bot.id}")
+        except Exception as sync_err:
+            # Don't fail bot creation if sync fails, just log warning
+            logger.warning(f"Could not auto-sync bot username during creation: {sync_err}")
     
     return bot
 

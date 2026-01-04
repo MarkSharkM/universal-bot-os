@@ -383,8 +383,9 @@ function getBotUsername() {
         // This is a last resort fallback
     }
     
-    // Final fallback (should not happen in production)
-    return 'EarnHubAggregatorBot';
+    // No fallback - username should be in config
+    console.error('❌ Bot username not found in config. Please sync username via API.');
+    return null;
 }
 
 /**

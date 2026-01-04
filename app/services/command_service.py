@@ -138,6 +138,27 @@ class CommandService:
                 self._bot_config = {}
         return self._bot_config
     
+    def _get_bot_username(self) -> Optional[str]:
+        """
+        Get bot username from bot.config.username or bot.name.
+        
+        Returns:
+            Bot username (without @) or None if not found
+        """
+        config = self._get_bot_config()
+        username = config.get('username')
+        if username:
+            return username.replace('@', '').strip()
+        
+        # Fallback to bot.name
+        bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+        if bot and bot.name:
+            # Extract username from name (remove spaces, keep only alphanumeric and underscores)
+            import re
+            return re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
+        
+        return None
+    
     def _get_buy_top_price(self, lang: str) -> int:
         """
         Get buy TOP price from bot.config or translations.
@@ -623,11 +644,17 @@ class CommandService:
         
         referral_link = self.referral_service.generate_referral_link(user_id)
         
+        # Get bot username for translation variables
+        bot_username = self._get_bot_username() or ''
+        
         # Get message text for /share command
         message_text = self.translation_service.get_translation(
             'share_referral',
             lang,
-            {}
+            {
+                'referralLink': referral_link,
+                'bot_username': bot_username
+            }
         )
         # Remove placeholder and clean up extra newlines
         # Replace placeholders first
@@ -640,7 +667,9 @@ class CommandService:
         # For share button text, use text WITHOUT URL to avoid duplicate links
         # URL is already in the 'url' parameter, Telegram will add preview automatically
         # This is the text that appears when user clicks "Поділитись лінкою" button
-        share_text_for_button = self.translation_service.get_translation('share_referral', lang, {})
+        share_text_for_button = self.translation_service.get_translation('share_referral', lang, {
+            'bot_username': bot_username
+        })
         # Remove any placeholder and clean up - don't add URL, Telegram will add preview from 'url' parameter
         share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
         

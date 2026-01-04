@@ -128,14 +128,14 @@ async def tonconnect_manifest(request: Request):
             logger.error(f"Error reading TON Connect manifest: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error loading manifest: {str(e)}")
     else:
-        # Return default manifest
+        # Return default manifest (fallback - should not happen in production)
         base_url = str(request.base_url).rstrip('/')
         # Ensure HTTPS in production
         if base_url.startswith('http://') and 'railway' in base_url:
             base_url = base_url.replace('http://', 'https://')
         return JSONResponse(content={
             "url": base_url,
-            "name": "EarnHubAggregatorBot",
+            "name": "Bot",  # Generic fallback (real manifest should come from static file)
             "iconUrl": f"{base_url}/static/mini-app/icon.png"
         })
 
@@ -628,12 +628,21 @@ async def get_mini_app_data(
         
         # Get 7% program translations for earnings
         commission_percent = int(earnings_data["commission_rate"] * 100)
+        
+        # Get bot username for translation variables
+        bot_username = bot_config.get('username', '').replace('@', '').strip() if bot_config.get('username') else ''
+        if not bot_username and bot.name:
+            import re
+            bot_username = re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
+        
         earnings_translations = {
             "block2_title": translation_service.get_translation('earnings_block2_title', user_lang),
             "block2_how_it_works": translation_service.get_translation('earnings_block2_how_it_works', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
             "block2_examples": translation_service.get_translation('earnings_block2_examples', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
             "block2_enable_title": translation_service.get_translation('earnings_enable_7_title', user_lang),
-            "block2_enable_steps": translation_service.get_translation('earnings_enable_7_steps', user_lang),
+            "block2_enable_steps": translation_service.get_translation('earnings_enable_7_steps', user_lang, {
+                'bot_username': bot_username
+            }),
             "block3_title": translation_service.get_translation('earnings_block3_title', user_lang),
             "step1": translation_service.get_translation('earnings_step1_open' if earnings_data["can_unlock_top"] else 'earnings_step1_locked', user_lang, {'needed': earnings_data["invites_needed"]} if not earnings_data["can_unlock_top"] else {}),
             "step2": translation_service.get_translation('earnings_step2', user_lang),

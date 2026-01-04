@@ -124,10 +124,16 @@ class ReferralService:
         # Get username
         if not bot_username:
             if config.get('username'):
-                bot_username = config['username']
+                bot_username = config['username'].replace('@', '').strip()
             else:
-                # Fallback: use correct production username
-                bot_username = "HubAggregatorBot"
+                # Fallback to bot.name
+                bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+                if bot and bot.name:
+                    import re
+                    bot_username = re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
+                else:
+                    # Last resort: raise error (username should be synced via API)
+                    raise ValueError("Bot username not found in config. Please sync username via /api/v1/admin/bots/{bot_id}/sync-username")
         
         # Get link format
         link_format = referral_config.get('link_format', 'https://t.me/{username}?start={tag}')

@@ -34,7 +34,7 @@ function initTonConnect() {
         // Get return URL for Telegram Mini App (universal for any bot)
         // This is CRITICAL - wallet must return to this URL after connection
         // Format: https://t.me/{bot_username}/mini-app (REQUIRED for Mini Apps!)
-        let twaReturnUrl = 'https://t.me/EarnHubAggregatorBot/mini-app';
+        let twaReturnUrl = null;
         
         // DEBUG: Log AppState data to see what we have
         const appData = AppState.getAppData();
@@ -47,56 +47,41 @@ function initTonConnect() {
         });
         
         // Priority 1: Use config.username from API (most reliable)
-        // BUT: If config.name contains "Earn" and looks more correct, prefer it
-        if (appData && appData.config) {
-            const apiUsername = appData.config.username ? appData.config.username.replace('@', '').trim() : null;
-            const configName = appData.config.name ? appData.config.name.replace('@', '').trim().toLowerCase() : null;
-            
-            // Check if config.name looks more correct (contains "Earn" and is longer)
-            const shouldUseName = configName && 
-                                 configName.includes('earn') && 
-                                 apiUsername && 
-                                 !apiUsername.toLowerCase().includes('earn') &&
-                                 configName.length > apiUsername.length;
-            
-            if (shouldUseName) {
-                // Extract username from name (remove spaces, keep only alphanumeric and underscores)
-                const nameUsername = appData.config.name.replace(/[^a-zA-Z0-9_]/g, '').trim();
-                twaReturnUrl = `https://t.me/${nameUsername}/mini-app`;
-                console.log('📋 Using config.name (preferred over API username):', twaReturnUrl);
-                console.log('⚠️ API username was:', apiUsername, 'but config.name looks more correct');
-            } else if (apiUsername) {
-                twaReturnUrl = `https://t.me/${apiUsername}/mini-app`;
-                console.log('📋 Using config.username (from API):', twaReturnUrl);
-            }
+        if (appData && appData.config && appData.config.username) {
+            const apiUsername = appData.config.username.replace('@', '').trim();
+            twaReturnUrl = `https://t.me/${apiUsername}/mini-app`;
+            console.log('📋 Using config.username (from API):', twaReturnUrl);
         }
         // Priority 2: Try getBotUrl() function
         else if (typeof getBotUrl === 'function') {
             try {
                 const botUrl = getBotUrl();
                 console.log('📋 getBotUrl() returned:', botUrl);
-                // Add /mini-app suffix if not present (REQUIRED for TON Connect in Mini Apps)
-                twaReturnUrl = botUrl.endsWith('/mini-app') ? botUrl : `${botUrl}/mini-app`;
-                console.log('📋 Using getBotUrl() (with /mini-app):', twaReturnUrl);
+                if (botUrl) {
+                    // Add /mini-app suffix if not present (REQUIRED for TON Connect in Mini Apps)
+                    twaReturnUrl = botUrl.endsWith('/mini-app') ? botUrl : `${botUrl}/mini-app`;
+                    console.log('📋 Using getBotUrl() (with /mini-app):', twaReturnUrl);
+                }
             } catch (err) {
                 console.warn('⚠️ Error calling getBotUrl():', err);
             }
         }
         // Priority 3: Fallback to config.name
-        if (twaReturnUrl === 'https://t.me/EarnHubAggregatorBot/mini-app' && appData && appData.config) {
-            if (appData.config.name) {
-                // Fallback: use bot name (assuming it matches username)
-                const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '').trim();
+        if (!twaReturnUrl && appData && appData.config && appData.config.name) {
+            // Extract username from name (remove spaces, keep only alphanumeric and underscores)
+            const botName = appData.config.name.replace(/[^a-zA-Z0-9_]/g, '').trim().toLowerCase();
+            if (botName) {
                 twaReturnUrl = `https://t.me/${botName}/mini-app`;
                 console.log('📋 Using config.name (fallback):', twaReturnUrl);
             }
         }
         
         // Validate twaReturnUrl format (must include /mini-app for Mini Apps)
-        if (!twaReturnUrl.startsWith('https://t.me/')) {
+        if (!twaReturnUrl || !twaReturnUrl.startsWith('https://t.me/')) {
             console.error('❌ Invalid twaReturnUrl format:', twaReturnUrl);
             console.error('Expected format: https://t.me/username/mini-app');
-            twaReturnUrl = 'https://t.me/EarnHubAggregatorBot/mini-app'; // Fallback
+            console.error('Bot username not found in config. Please sync username via /api/v1/admin/bots/{bot_id}/sync-username');
+            throw new Error('Bot username not found. Please sync username via API.');
         } else if (!twaReturnUrl.endsWith('/mini-app')) {
             // Ensure /mini-app suffix is present (REQUIRED for TON Connect)
             twaReturnUrl = `${twaReturnUrl}/mini-app`;

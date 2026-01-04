@@ -53,6 +53,27 @@ class EarningsService:
                 self._bot_config = {}
         return self._bot_config
     
+    def _get_bot_username(self) -> Optional[str]:
+        """
+        Get bot username from bot.config.username or bot.name.
+        
+        Returns:
+            Bot username (without @) or None if not found
+        """
+        config = self._get_bot_config()
+        username = config.get('username')
+        if username:
+            return username.replace('@', '').strip()
+        
+        # Fallback to bot.name
+        bot = self.db.query(Bot).filter(Bot.id == self.bot_id).first()
+        if bot and bot.name:
+            # Extract username from name (remove spaces, keep only alphanumeric and underscores)
+            import re
+            return re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
+        
+        return None
+    
     def _get_required_invites(self) -> int:
         """
         Get required invites from bot.config or use default.
@@ -268,11 +289,16 @@ class EarningsService:
         commission_rate = self._get_commission_rate()
         commission_percent = int(commission_rate * 100)  # Convert 0.07 to 7
         
+        # Get bot username for translation variables
+        bot_username = self._get_bot_username() or ''
+        
         block_title = self.translation_service.get_translation('earnings_block2_title', lang)
         how_it_works = self.translation_service.get_translation('earnings_block2_how_it_works', lang)
         examples = self.translation_service.get_translation('earnings_block2_examples', lang)
         enable_title = self.translation_service.get_translation('earnings_enable_7_title', lang)
-        enable_steps = self.translation_service.get_translation('earnings_enable_7_steps', lang)
+        enable_steps = self.translation_service.get_translation('earnings_enable_7_steps', lang, {
+            'bot_username': bot_username
+        })
         
         # Replace commission rate in translations if they contain placeholders
         # Note: Translations should use {{commission}} or [[commission]] placeholder
