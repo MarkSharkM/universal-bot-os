@@ -201,6 +201,46 @@
         complianceResult.onboarding.errors.push("onboarding_error:" + err.message);
     }
 
+    /* -------------------- PUSH NOTIFICATIONS (OPTIONAL) -------------------- */
+    try {
+        if ("Notification" in window) {
+            complianceResult.pushNotifications.enabled = true;
+            complianceResult.pushNotifications.canSubscribe = Notification.permission !== "denied";
+            complianceResult.pushNotifications.permission = Notification.permission;
+        }
+        
+        // Check Service Worker registration
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.getRegistration('/static/mini-app/');
+                if (registration) {
+                    complianceResult.pushNotifications.serviceWorkerRegistered = true;
+                    complianceResult.pushNotifications.serviceWorkerScope = registration.scope;
+                    
+                    // Check if push manager is available
+                    if (registration.pushManager) {
+                        complianceResult.pushNotifications.pushManagerAvailable = true;
+                        
+                        // Check subscription
+                        const subscription = await registration.pushManager.getSubscription();
+                        if (subscription) {
+                            complianceResult.pushNotifications.subscribed = true;
+                            complianceResult.pushNotifications.subscriptionEndpoint = subscription.endpoint;
+                        }
+                    }
+                } else {
+                    complianceResult.pushNotifications.errors.push("service_worker_not_registered");
+                }
+            } catch(swErr) {
+                complianceResult.pushNotifications.errors.push("service_worker_check_failed:" + swErr.message);
+            }
+        } else {
+            complianceResult.pushNotifications.errors.push("service_worker_not_supported");
+        }
+    } catch(err) {
+        complianceResult.pushNotifications.errors.push("push_notifications_error:" + err.message);
+    }
+
     /* -------------------- OUTPUT -------------------- */
     console.log('='.repeat(80));
     console.log('📊 MINI APP COMPLIANCE CHECK RESULTS');

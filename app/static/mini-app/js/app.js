@@ -87,6 +87,9 @@ async function initMiniApp() {
         // Apply theme from Telegram
         applyTheme();
         
+        // Register Service Worker for Push Notifications (optional feature)
+        registerServiceWorker();
+        
         // Setup event handlers
         if (typeof Events !== 'undefined' && Events.setupEventHandlers) {
             Events.setupEventHandlers();
@@ -171,6 +174,40 @@ function applyTheme() {
     const appData = AppState.getAppData();
     if (appData && appData.config) {
         applyBotConfig(appData.config);
+    }
+}
+
+/**
+ * Register Service Worker for Push Notifications
+ * Note: Currently registered but not actively used.
+ * Can be enabled in the future for web push notifications.
+ */
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('/static/mini-app/sw.js', {
+                scope: '/static/mini-app/'
+            });
+            console.log('[Service Worker] Registered successfully:', registration.scope);
+            
+            // Request notification permission (optional)
+            if ('Notification' in window && Notification.permission === 'default') {
+                try {
+                    const permission = await Notification.requestPermission();
+                    console.log('[Service Worker] Notification permission:', permission);
+                } catch (err) {
+                    console.warn('[Service Worker] Notification permission error:', err);
+                }
+            }
+            
+            return registration;
+        } catch (error) {
+            console.warn('[Service Worker] Registration failed:', error);
+            return null;
+        }
+    } else {
+        console.log('[Service Worker] Not supported in this browser');
+        return null;
     }
 }
 
