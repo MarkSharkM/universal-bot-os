@@ -154,6 +154,15 @@ class EarningsService:
             referral_tag = self.referral_service.generate_referral_tag(user_id)
             referral_link = self.referral_service.generate_referral_link(user_id)
             
+            # Update total_invited count from database BEFORE checking status
+            # This ensures the count is up-to-date when user checks /earnings
+            logger.info(f"build_earnings_message: updating total_invited count from database")
+            try:
+                self.referral_service.update_total_invited(user_id)
+                logger.info(f"build_earnings_message: total_invited updated successfully")
+            except Exception as e:
+                logger.warning(f"build_earnings_message: failed to update total_invited: {e}, continuing with cached value")
+            
             # Check TOP unlock eligibility (this also gets total_invited internally)
             logger.info(f"build_earnings_message: checking top unlock eligibility")
             can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
