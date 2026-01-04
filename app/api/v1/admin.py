@@ -1619,15 +1619,28 @@ async def delete_user(
     
     # Count related records before deletion
     # Use cast() for JSONB queries (same approach as in user_service.py)
+    # Also check for NULL values to avoid errors
+    from sqlalchemy import text
+    
     business_data_count = db.query(BusinessData).filter(
         and_(
             BusinessData.bot_id == bot_id,
             BusinessData.deleted_at.is_(None),
             # Match by user_id in data JSON or by external_id
+            # Use text() with proper NULL handling for JSONB
             or_(
-                cast(BusinessData.data['user_id'], String) == str(user_id),
-                cast(BusinessData.data['external_id'], String) == str(user_external_id),
-                cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
+                and_(
+                    BusinessData.data['user_id'].isnot(None),
+                    cast(BusinessData.data['user_id'], String) == str(user_id)
+                ),
+                and_(
+                    BusinessData.data['external_id'].isnot(None),
+                    cast(BusinessData.data['external_id'], String) == str(user_external_id)
+                ),
+                and_(
+                    BusinessData.data['inviter_external_id'].isnot(None),
+                    cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
+                )
             )
         )
     ).count()
@@ -1649,14 +1662,24 @@ async def delete_user(
     
     # Delete all related data
     # 1. Delete business_data records (soft delete)
+    # Use same filter logic as count query
     business_data_records = db.query(BusinessData).filter(
         and_(
             BusinessData.bot_id == bot_id,
             BusinessData.deleted_at.is_(None),
             or_(
-                cast(BusinessData.data['user_id'], String) == str(user_id),
-                cast(BusinessData.data['external_id'], String) == str(user_external_id),
-                cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
+                and_(
+                    BusinessData.data['user_id'].isnot(None),
+                    cast(BusinessData.data['user_id'], String) == str(user_id)
+                ),
+                and_(
+                    BusinessData.data['external_id'].isnot(None),
+                    cast(BusinessData.data['external_id'], String) == str(user_external_id)
+                ),
+                and_(
+                    BusinessData.data['inviter_external_id'].isnot(None),
+                    cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
+                )
             )
         )
     ).all()

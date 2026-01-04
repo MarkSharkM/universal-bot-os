@@ -250,6 +250,62 @@ async def mini_app_webhook(
                 user_external_id = validated_user_id
                 user_service = UserService(db, bot_id)
                 user = user_service.get_user(validated_user_id, platform="telegram")
+                
+                # Update user data from event_data if provided (username, device, etc.)
+                if user and event_data:
+                    from sqlalchemy.orm.attributes import flag_modified
+                    updated = False
+                    
+                    # Initialize custom_data if not exists
+                    if not user.custom_data:
+                        user.custom_data = {}
+                    
+                    # Update username if provided
+                    if 'username' in event_data and event_data['username']:
+                        if user.custom_data.get('username') != event_data['username']:
+                            user.custom_data['username'] = event_data['username']
+                            updated = True
+                    
+                    # Update first_name if provided
+                    if 'first_name' in event_data and event_data['first_name']:
+                        if user.custom_data.get('first_name') != event_data['first_name']:
+                            user.custom_data['first_name'] = event_data['first_name']
+                            updated = True
+                    
+                    # Update last_name if provided
+                    if 'last_name' in event_data and event_data['last_name']:
+                        if user.custom_data.get('last_name') != event_data['last_name']:
+                            user.custom_data['last_name'] = event_data['last_name']
+                            updated = True
+                    
+                    # Update device if provided
+                    if 'device' in event_data and event_data['device']:
+                        if user.custom_data.get('device') != event_data['device']:
+                            user.custom_data['device'] = event_data['device']
+                            updated = True
+                    
+                    # Update device_version if provided
+                    if 'device_version' in event_data and event_data['device_version']:
+                        if user.custom_data.get('device_version') != event_data['device_version']:
+                            user.custom_data['device_version'] = event_data['device_version']
+                            updated = True
+                    
+                    # Update platform if provided
+                    if 'platform' in event_data and event_data['platform']:
+                        if user.custom_data.get('platform') != event_data['platform']:
+                            user.custom_data['platform'] = event_data['platform']
+                            updated = True
+                    
+                    # Update language_code if provided
+                    if 'language_code' in event_data and event_data['language_code']:
+                        if user.language_code != event_data['language_code']:
+                            user.language_code = event_data['language_code']
+                            updated = True
+                    
+                    if updated:
+                        flag_modified(user, 'custom_data')
+                        db.commit()
+                        logger.info(f"Updated user data from analytics event: user_id={user.id}, external_id={user_external_id}")
             
             # Create analytics event
             analytics_event = AnalyticsEvent(

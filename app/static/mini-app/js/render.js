@@ -2065,12 +2065,40 @@ function trackEvent(eventName, data = {}) {
     // Send to backend if API available
     const botId = AppState.getBotId();
     const initData = AppState.getTg()?.initData || null;
+    const tg = AppState.getTg();
+    
+    // Extract user data from initDataUnsafe for tracking
+    const userData = {};
+    if (tg?.initDataUnsafe?.user) {
+        const user = tg.initDataUnsafe.user;
+        if (user.username) userData.username = user.username;
+        if (user.first_name) userData.first_name = user.first_name;
+        if (user.last_name) userData.last_name = user.last_name;
+        if (user.language_code) userData.language_code = user.language_code;
+    }
+    
+    // Extract device/platform info from Telegram WebApp
+    if (tg?.version) userData.telegram_version = tg.version;
+    if (tg?.platform) userData.platform = tg.platform;
+    
+    // Get device info from appData if available
+    const appData = AppState.getAppData();
+    if (appData?.user) {
+        if (appData.user.device && !userData.device) userData.device = appData.user.device;
+        if (appData.user.device_version && !userData.device_version) userData.device_version = appData.user.device_version;
+    }
+    
+    // Merge user data with event-specific data
+    const enrichedData = {
+        ...userData,
+        ...data
+    };
     
     if (botId && typeof Api !== 'undefined' && Api.sendCallback) {
         Api.sendCallback(botId, {
             type: 'analytics',
             event: eventName,
-            data: data
+            data: enrichedData
         }, initData).catch(err => console.error('Error tracking event:', err));
     }
 }
