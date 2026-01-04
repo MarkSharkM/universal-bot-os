@@ -1283,10 +1283,28 @@ function renderTrustHeader() {
     
     // Update wallet status if available
     const appData = AppState.getAppData();
-    if (appData && appData.wallet) {
-        const walletItem = container.querySelector('.trust-item:last-child');
-        if (walletItem) {
+    const wallet = appData?.user?.wallet || '';
+    const walletTrimmed = wallet ? wallet.trim() : '';
+    const isWalletConnected = walletTrimmed && walletTrimmed.length >= 20;
+    
+    const walletItem = container.querySelector('.trust-item:last-child');
+    if (walletItem) {
+        if (isWalletConnected) {
             walletItem.textContent = '🟢 Wallet: connected';
+            walletItem.style.cursor = 'default';
+            walletItem.onclick = null;
+        } else {
+            walletItem.textContent = '🟡 Wallet: optional (натисни щоб підключити)';
+            walletItem.style.cursor = 'pointer';
+            walletItem.style.textDecoration = 'underline';
+            walletItem.onclick = () => {
+                trackEvent('wallet_trust_header_clicked');
+                if (typeof Render !== 'undefined' && Render.showWalletModal) {
+                    Render.showWalletModal();
+                } else {
+                    showWalletModal();
+                }
+            };
         }
     }
 }
