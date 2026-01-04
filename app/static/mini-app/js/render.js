@@ -1172,63 +1172,6 @@ if (typeof window !== 'undefined') {
         setTimeout(checkSharePopupTriggers, 2000); // Check after 2 seconds
     });
 }
-                    <h3>Партнери</h3>
-                    <p>Обери партнерського бота та отримуй зірки</p>
-                </div>
-            </div>
-            <div class="welcome-step">
-                <div class="step-icon">⭐</div>
-                <div class="step-content">
-                    <h3>TOP партнери</h3>
-                    <p>Найкращі пропозиції з високою комісією</p>
-                </div>
-            </div>
-            <div class="welcome-step">
-                <div class="step-icon">💰</div>
-                <div class="step-content">
-                    <h3>Заробітки</h3>
-                    <p>Переглянь свій баланс та прогрес</p>
-                </div>
-            </div>
-            <div class="welcome-step">
-                <div class="step-icon">👛</div>
-                <div class="step-content">
-                    <h3>Гаманець</h3>
-                    <p>Додай TON гаманець для виведення</p>
-                </div>
-            </div>
-        </div>
-        <p class="welcome-hint">👆 Оберіть розділ внизу екрана</p>
-    `;
-    
-    if (welcomeMessage) {
-        welcomeMessage.innerHTML = welcomeHTML;
-    }
-    
-    welcomeScreen.style.display = 'flex';
-    
-    // Hide loading screen when showing welcome screen
-    showLoading(false);
-    
-    // Close welcome screen
-    if (welcomeCloseBtn) {
-        welcomeCloseBtn.onclick = () => {
-            welcomeScreen.style.display = 'none';
-            const storage = typeof SafeStorage !== 'undefined' ? SafeStorage : localStorage;
-            storage.setItem('mini_app_welcome_seen', 'true');
-            // AppState.getAppData() should already be loaded at this point
-            if (AppState.getAppData()) {
-                renderApp(); // This will show Earnings tab first
-            } else {
-                // If AppState.getAppData() not loaded, load it first
-                loadAppData(false).then(() => {
-                    renderApp();
-                });
-            }
-            showLoading(false);
-        };
-    }
-}
 
 function showWalletMessage(message, type = 'info') {
     const messageEl = document.getElementById('wallet-message');
