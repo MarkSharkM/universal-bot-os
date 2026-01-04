@@ -48,6 +48,24 @@ function switchTab(tabName) {
     targetPage.style.display = 'block';
     AppState.setCurrentPage(tabName);
     
+    // Scroll to top when switching tabs (works for all tabs: Home, Partners, TOP)
+    // Find the scrollable container (usually .content or the page itself)
+    const contentContainer = document.querySelector('.content') || targetPage;
+    if (contentContainer) {
+        // Use requestAnimationFrame to ensure DOM is updated before scrolling
+        requestAnimationFrame(() => {
+            contentContainer.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'instant' // Instant scroll, no animation
+            });
+            // Fallback for older browsers
+            if (contentContainer.scrollTo === undefined) {
+                contentContainer.scrollTop = 0;
+            }
+        });
+    }
+    
     console.log(`[Navigation] Switched to tab: ${tabName}, page ID: ${targetPage.id}`);
     console.log(`[Navigation] Active pages:`, Array.from(document.querySelectorAll('.page.active')).map(p => p.id));
     

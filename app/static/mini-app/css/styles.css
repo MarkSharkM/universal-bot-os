@@ -85,6 +85,7 @@
     --transition-slow: 0.5s ease;
 
     /* Tab icons (SVG masks) */
+    --icon-home: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/%3E%3C/svg%3E");
     --icon-partners: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M16.5 12.25c1.52 0 2.75-1.23 2.75-2.75S18.02 6.75 16.5 6.75s-2.75 1.23-2.75 2.75 1.23 2.75 2.75 2.75ZM7.5 12.25c1.52 0 2.75-1.23 2.75-2.75S9.02 6.75 7.5 6.75 4.75 7.98 4.75 9.5s1.23 2.75 2.75 2.75Zm9 1.5c-2.1 0-6.25 1.05-6.25 3.15V19h12.5v-2.1c0-2.1-4.15-3.15-6.25-3.15Zm-9 0C5.4 13.75 1.25 14.8 1.25 16.9V19h7.5v-2.1c0-.86.37-1.6.98-2.22-.66-.5-1.58-.93-2.23-.93Z'/%3E%3C/svg%3E");
     --icon-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2l2.85 6.63L22 9.24l-5.4 4.68L18.2 21 12 17.27 5.8 21l1.6-7.08L2 9.24l7.15-.61L12 2z'/%3E%3C/svg%3E");
     --icon-earnings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 1C6.49 1 2 5.04 2 10c0 2.57 1.33 4.9 3.5 6.53V23l3.86-2.09c.84.18 1.73.28 2.64.28 5.51 0 10-4.04 10-9.99S17.51 1 12 1Zm.5 15.5h-1v-1.16c-1.56-.2-2.75-1.24-2.86-2.64h1.62c.12.7.84 1.2 1.78 1.2.97 0 1.71-.46 1.71-1.12 0-.62-.5-.96-1.9-1.27-1.86-.43-3.02-1.12-3.02-2.72 0-1.44 1.12-2.43 2.67-2.66V5h1v1.14c1.33.21 2.34 1.07 2.55 2.36h-1.6c-.18-.56-.7-.95-1.55-.95-.86 0-1.5.39-1.5.97 0 .61.56.86 1.85 1.16 2.02.47 3.07 1.29 3.07 2.84 0 1.53-1.16 2.56-2.82 2.78v1.2Z'/%3E%3C/svg%3E");
@@ -337,6 +338,7 @@ body::after {
     font-size: var(--font-size-xs);
 }
 
+.tab-icon-home { --tab-icon: var(--icon-home); }
 .tab-icon-partners { --tab-icon: var(--icon-partners); }
 .tab-icon-top { --tab-icon: var(--icon-top); }
 .tab-icon-earnings { --tab-icon: var(--icon-earnings); }
@@ -1992,7 +1994,7 @@ details.accordion[open] > .accordion-body {
 }
 
 .wallet-connect-content {
-    background: var(--tg-theme-bg-color);
+    background: #ffffff; /* Білий фон для кращого контрасту (як в прикладі) */
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     width: 100%;
     max-width: 500px;
@@ -2001,6 +2003,12 @@ details.accordion[open] > .accordion-body {
     padding: var(--spacing-lg);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
     animation: slideUp 0.3s ease-out;
+}
+
+/* Dark theme override for modal */
+[data-theme="dark"] .wallet-connect-content {
+    background: #ffffff; /* Залишаємо білий навіть в dark theme для кращого контрасту */
+    color: #000000;
 }
 
 @keyframes slideUp {
@@ -2037,14 +2045,14 @@ details.accordion[open] > .accordion-body {
     margin: 0 0 var(--spacing-xs) 0;
     font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--tg-theme-text-color);
+    color: #000000; /* Чорний текст на білому фоні */
     text-align: center;
 }
 
 .wallet-connect-subtitle {
     margin: 0 0 var(--spacing-lg) 0;
     font-size: var(--font-size-sm);
-    color: var(--tg-theme-hint-color);
+    color: #666666; /* Сірий для підзаголовку */
     text-align: center;
 }
 
@@ -2085,8 +2093,9 @@ details.accordion[open] > .accordion-body {
     align-items: center;
     text-align: center;
     margin: var(--spacing-lg) 0;
-    color: var(--tg-theme-hint-color);
+    color: #999999; /* Сірий для білого фону */
     font-size: var(--font-size-xs);
+    font-weight: 500;
 }
 
 .wallet-connect-separator::before,
@@ -2133,7 +2142,7 @@ details.accordion[open] > .accordion-body {
 
 .wallet-option span {
     font-size: var(--font-size-sm);
-    color: var(--tg-theme-text-color);
+    color: #000000; /* Чорний текст на білому фоні */
     font-weight: 500;
 }
 
@@ -2267,6 +2276,48 @@ details.accordion[open] > .accordion-body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
+}
+
+.wallet-instructions {
+    background: var(--surface-1);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border: 1px solid var(--border-color);
+}
+
+.wallet-instructions-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--tg-theme-text-color);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.wallet-instructions-list {
+    margin: 0;
+    padding-left: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: var(--tg-theme-text-color);
+    line-height: 1.6;
+}
+
+.wallet-instructions-list li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.wallet-input-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--tg-theme-text-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.wallet-input-hint {
+    font-size: var(--font-size-xs);
+    color: var(--tg-theme-hint-color);
+    margin-top: var(--spacing-xs);
+    margin-bottom: 0;
 }
 
 [data-theme="dark"] .wallet-banner {
@@ -2828,6 +2879,39 @@ details.accordion[open] > .accordion-body {
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
+}
+
+.trust-wallet-container {
+    margin-top: var(--spacing-xs);
+}
+
+.trust-connect-btn {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--tg-theme-text-color);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    box-shadow: var(--shadow-sm);
+}
+
+.trust-connect-btn:hover {
+    background: var(--surface-2);
+    border-color: var(--tg-theme-link-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.trust-connect-btn:active {
+    transform: translateY(0);
 }
 
 /* Primary Action Card */

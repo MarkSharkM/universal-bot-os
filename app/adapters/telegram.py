@@ -230,6 +230,62 @@ class TelegramAdapter(BaseAdapter):
         finally:
             db.close()
     
+    async def create_invoice_link(
+        self,
+        bot_id: UUID,
+        title: str,
+        description: str,
+        payload: str,
+        prices: List[Dict[str, Any]],
+        currency: str = "XTR",
+        **kwargs
+    ) -> str:
+        """
+        Create invoice link via Telegram Bot API.
+        Returns URL that can be used with tg.openInvoice() in Mini App.
+        
+        Args:
+            bot_id: Bot UUID
+            title: Invoice title
+            description: Invoice description
+            payload: Unique payload for payment
+            currency: Currency code (XTR for Stars)
+            prices: List of price objects [{"label": "...", "amount": 1}]
+            **kwargs: provider_data, photo, etc.
+        
+        Returns:
+            Invoice link URL
+        """
+        db = SessionLocal()
+        try:
+            bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if not bot:
+                raise ValueError(f"Bot {bot_id} not found")
+            
+            token = bot.token
+            url = f"{self.BASE_URL}{token}/createInvoiceLink"
+            
+            payload_data = {
+                "title": title,
+                "description": description,
+                "payload": payload,
+                "currency": currency,
+                "prices": prices,
+                **kwargs
+            }
+            
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                response = await client.post(url, json=payload_data)
+                response.raise_for_status()
+                result = response.json()
+                # createInvoiceLink returns {"ok": true, "result": "invoice_url"}
+                if result.get("ok") and result.get("result"):
+                    return result["result"]
+                else:
+                    raise ValueError(f"Failed to create invoice link: {result}")
+        finally:
+            db.close()
+    
     async def answer_callback_query(
         self,
         bot_id: UUID,

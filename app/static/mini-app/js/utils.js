@@ -302,6 +302,10 @@ const SafeStorage = {
 // Export SafeStorage
 window.SafeStorage = SafeStorage;
 
+// Export utility functions
+window.getBotUsername = getBotUsername;
+window.getBotUrl = getBotUrl;
+
 /**
  * Escape HTML to prevent XSS
  * @param {string} text - Text to escape
@@ -314,4 +318,49 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Get bot username from app config (universal for any bot)
+ * @returns {string} Bot username (without @)
+ */
+function getBotUsername() {
+    // Try to get from AppState if available
+    if (typeof AppState !== 'undefined') {
+        const appData = AppState.getAppData();
+        if (appData?.config?.username) {
+            // Remove @ if present
+            return appData.config.username.replace('@', '').trim();
+        }
+        if (appData?.config?.name) {
+            // Extract username from name if it's a URL or contains @
+            let name = appData.config.name;
+            // Remove @ if present
+            name = name.replace('@', '').trim();
+            // If it's a full URL, extract username
+            if (name.includes('t.me/')) {
+                name = name.split('t.me/')[1].split('/')[0];
+            }
+            return name;
+        }
+    }
+    
+    // Fallback: try to get from Telegram WebApp
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        // Try to extract from initData or other sources
+        // This is a last resort fallback
+    }
+    
+    // Final fallback (should not happen in production)
+    return 'EarnHubAggregatorBot';
+}
+
+/**
+ * Get bot URL (t.me link)
+ * @returns {string} Bot URL
+ */
+function getBotUrl() {
+    const username = getBotUsername();
+    return `https://t.me/${username}`;
 }

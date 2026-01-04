@@ -19,18 +19,22 @@ function initTonConnect() {
         const tg = AppState.getTg();
         const manifestUrl = window.location.origin + '/api/v1/mini-apps/tonconnect-manifest.json';
         
-        // Get return URL for Telegram Mini App
-        // Try to get bot username from appData config, fallback to default
+        // Get return URL for Telegram Mini App (universal for any bot)
         let twaReturnUrl = 'https://t.me/EarnHubAggregatorBot';
-        const appData = AppState.getAppData();
-        if (appData && appData.config) {
-            // Try to get username from config (stored by sync-username endpoint)
-            if (appData.config.username) {
-                twaReturnUrl = `https://t.me/${appData.config.username}`;
-            } else if (appData.config.name) {
-                // Fallback: use bot name (assuming it matches username)
-                const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '');
-                twaReturnUrl = `https://t.me/${botName}`;
+        if (typeof getBotUrl === 'function') {
+            twaReturnUrl = getBotUrl();
+        } else {
+            // Fallback: try to get from AppState
+            const appData = AppState.getAppData();
+            if (appData && appData.config) {
+                // Try to get username from config (stored by sync-username endpoint)
+                if (appData.config.username) {
+                    twaReturnUrl = `https://t.me/${appData.config.username.replace('@', '')}`;
+                } else if (appData.config.name) {
+                    // Fallback: use bot name (assuming it matches username)
+                    const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '');
+                    twaReturnUrl = `https://t.me/${botName}`;
+                }
             }
         }
         

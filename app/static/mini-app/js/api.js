@@ -142,6 +142,45 @@ async function saveWallet(botId, walletAddress, userId = null, initData = null) 
 }
 
 /**
+ * Create invoice link for Telegram Stars payment (buy TOP)
+ * @param {string} botId - Bot UUID
+ * @param {string} initData - Telegram WebApp initData (optional, for validation)
+ * @param {string} userId - User external ID (optional, if initData not provided)
+ * @returns {Promise<string>} Invoice link URL
+ */
+async function createInvoiceLink(botId, initData = null, userId = null) {
+    try {
+        const params = new URLSearchParams();
+        if (initData) params.append('init_data', initData);
+        if (userId) params.append('user_id', userId);
+        
+        const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}/create-invoice?${params.toString()}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(error.detail || `HTTP ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (result.ok && result.invoice_link) {
+            return result.invoice_link;
+        } else {
+            throw new Error('Failed to create invoice link');
+        }
+    } catch (error) {
+        console.error('Error creating invoice link:', error);
+        throw error;
+    }
+}
+
+/**
  * Send callback to backend (partner clicks, etc.)
  * @param {string} botId - Bot UUID
  * @param {Object} data - Callback data
@@ -180,7 +219,8 @@ async function sendCallback(botId, data, initData = null) {
 window.Api = {
     getMiniAppData,
     saveWallet,
-    sendCallback
+    sendCallback,
+    createInvoiceLink
 };
 
 // Also export for Node.js if needed

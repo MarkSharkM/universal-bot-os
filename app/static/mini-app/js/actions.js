@@ -184,57 +184,126 @@ function shareReferralLink() {
     }
 }
 
-function handleBuyTop(price) {
+async function handleBuyTop(price) {
     if (!AppState.getAppData() || !AppState.getBotId()) return;
     
-    // Show confirmation modal
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Розблокувати TOP</h2>
-                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="instructions-text">
-                    <p>Для розблокування TOP потрібно:</p>
-                    <p>• Запросити ${AppState.getAppData().earnings?.invites_needed || 0} друзів</p>
-                    <p>• Або купити доступ за ${price} ⭐</p>
-                    <p>Для покупки відкрийте бота та натисніть кнопку "Розблокувати TOP"</p>
-                </div>
-                <div class="modal-actions">
-                    <button class="action-btn primary" onclick="openTelegramBot(); this.closest('.modal-overlay').remove();">
-                        Відкрити бота
-                    </button>
-                    <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
-                        Закрити
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
+    const botId = AppState.getBotId();
+    const tg = AppState.getTg();
+    const initData = tg?.initData || null;
+    const userId = AppState.getUserId();
     
-    document.body.appendChild(modal);
+    // Check if tg.openInvoice is available (Telegram WebApp API)
+    if (!tg || !tg.openInvoice) {
+        // Fallback: show modal with instructions
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Розблокувати TOP</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="instructions-text">
+                        <p>Для розблокування TOP потрібно:</p>
+                        <p>• Запросити ${AppState.getAppData().earnings?.invites_needed || 0} друзів</p>
+                        <p>• Або купити доступ за ${price} ⭐</p>
+                        <p>Для покупки відкрийте бота та натисніть кнопку "Розблокувати TOP"</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="action-btn primary" onclick="openTelegramBot(); this.closest('.modal-overlay').remove();">
+                            Відкрити бота
+                        </button>
+                        <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
+                            Закрити
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Close on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        return;
+    }
     
-    // Close on overlay click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
+    // Use Telegram Stars Payment API (openInvoice in Mini App)
+    try {
+        // Show loading state
+        if (typeof Toast !== 'undefined') {
+            Toast.info('Створюємо рахунок...');
         }
-    });
+        if (typeof Haptic !== 'undefined') {
+            Haptic.light();
+        }
+        
+        // Create invoice link via backend
+        const invoiceLink = await Api.createInvoiceLink(botId, initData, userId);
+        
+        // Open invoice in Mini App (stays in Mini App, no browser redirect)
+        tg.openInvoice(invoiceLink, (status) => {
+            if (status === 'paid') {
+                // Payment successful
+                if (typeof Toast !== 'undefined') {
+                    Toast.success('✅ TOP розблоковано!');
+                }
+                if (typeof Haptic !== 'undefined') {
+                    Haptic.success();
+                }
+                
+                // Track event
+                trackEvent('top_purchase_success');
+                
+                // Reload app data to get updated TOP status
+                if (typeof loadAppData === 'function') {
+                    loadAppData(true).then(() => {
+                        // Re-render to show updated state
+                        if (typeof Render !== 'undefined' && Render.renderPrimaryActionCard) {
+                            Render.renderPrimaryActionCard();
+                        }
+                        if (typeof Render !== 'undefined' && Render.renderTop) {
+                            Render.renderTop();
+                        }
+                    });
+                }
+            } else if (status === 'failed' || status === 'cancelled') {
+                // Payment failed or cancelled
+                if (typeof Toast !== 'undefined') {
+                    Toast.warning('Оплата скасована');
+                }
+                if (typeof Haptic !== 'undefined') {
+                    Haptic.error();
+                }
+                
+                // Track event
+                trackEvent('top_purchase_cancelled');
+            }
+        });
+    } catch (error) {
+        console.error('Error creating invoice link:', error);
+        
+        // Show error and fallback to bot
+        if (typeof Toast !== 'undefined') {
+            Toast.error('Помилка створення рахунку. Спробуйте через бота.');
+        }
+        if (typeof Haptic !== 'undefined') {
+            Haptic.error();
+        }
+        
+        // Fallback: open bot
+        openTelegramBot();
+    }
 }
 
 function openTelegramBot() {
-    // Get bot username from config or use default
-    const botName = AppState.getAppData()?.config?.name || 'EarnHubAggregatorBot';
-    // Remove @ if present and extract username if it's a full URL
-    let cleanBotName = botName.replace('@', '').trim();
-    // If it's a full URL, extract username
-    if (cleanBotName.includes('t.me/')) {
-        cleanBotName = cleanBotName.split('t.me/')[1].split('/')[0];
-    }
-    const botUrl = `https://t.me/${cleanBotName}`;
+    // Get bot URL (universal for any bot)
+    const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : 'https://t.me/EarnHubAggregatorBot';
     
     // Use openLink (not openTelegramLink) to open in browser, keep user in Mini App context
     const tg = AppState.getTg();
@@ -253,9 +322,12 @@ function showActivate7Instructions() {
     const translations = earnings.translations || {};
     const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
     
+    // Get bot username (universal for any bot)
+    const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : 'EarnHubAggregatorBot';
+    
     // Get instructions from translations or use default
     const instructions = translations.block2_enable_steps || 
-        `1️⃣ Відкрий @HubAggregatorBot
+        `1️⃣ Відкрий @${botUsername}
 2️⃣ «Партнерська програма»
 3️⃣ «Під'єднатись»
 → ${commissionPercent}% активуються назавжди`;

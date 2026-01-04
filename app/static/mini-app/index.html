@@ -73,7 +73,7 @@
             
             <!-- Primary: Connect Wallet in Telegram -->
             <button id="wallet-connect-telegram" class="wallet-connect-primary-btn">
-                <span class="wallet-btn-icon">📷</span>
+                <span class="wallet-btn-icon">💎</span>
                 <span>Connect Wallet in Telegram</span>
                 <span class="wallet-btn-icon">✈️</span>
             </button>
@@ -86,19 +86,19 @@
             <!-- Wallet Options Grid -->
             <div class="wallet-options-grid">
                 <button class="wallet-option" data-wallet="tonkeeper">
-                    <div class="wallet-option-icon tonkeeper-icon"></div>
+                    <div class="wallet-option-icon tonkeeper-icon">💎</div>
                     <span>Tonkeeper</span>
                 </button>
                 <button class="wallet-option" data-wallet="mytonwallet">
-                    <div class="wallet-option-icon mytonwallet-icon"></div>
+                    <div class="wallet-option-icon mytonwallet-icon">🔷</div>
                     <span>MyTonWallet</span>
                 </button>
                 <button class="wallet-option" data-wallet="tonhub">
-                    <div class="wallet-option-icon tonhub-icon"></div>
+                    <div class="wallet-option-icon tonhub-icon">🔮</div>
                     <span>Tonhub</span>
                 </button>
                 <button class="wallet-option" data-wallet="view-all">
-                    <div class="wallet-option-icon view-all-icon"></div>
+                    <div class="wallet-option-icon view-all-icon">➕</div>
                     <span>View all wallets</span>
                 </button>
             </div>
@@ -119,15 +119,26 @@
         <div class="modal-content wallet-modal-content">
             <h2>Підключити TON гаманець</h2>
             <p class="wallet-modal-copy">Потрібно лише для майбутніх виплат<br>Ніколи не списуємо кошти</p>
+            <div class="wallet-instructions">
+                <p class="wallet-instructions-title">Як знайти адресу гаманця:</p>
+                <ol class="wallet-instructions-list">
+                    <li>Відкрий свій TON гаманець (Tonkeeper, MyTonWallet, Tonhub)</li>
+                    <li>Знайди розділ "Receive" або "Отримати"</li>
+                    <li>Скопіюй адресу (починається з EQ, UQ, kQ або 0Q)</li>
+                </ol>
+            </div>
             <form id="wallet-modal-form" class="wallet-form">
+                <label for="wallet-modal-input" class="wallet-input-label">Адреса TON гаманця:</label>
                 <input 
                     type="text" 
                     id="wallet-modal-input" 
                     class="wallet-input" 
-                    placeholder="EQD... або UQD..."
+                    placeholder="EQD0X... або UQD0X... (48 символів)"
                     pattern="^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$"
                     required
+                    aria-describedby="wallet-input-hint"
                 >
+                <p id="wallet-input-hint" class="wallet-input-hint">Приклад: EQD0X... або UQD0X...</p>
                 <div class="wallet-form-actions">
                     <button type="submit" class="primary-action-btn">Зберегти</button>
                     <button type="button" id="wallet-manual-close" class="secondary-action-btn">Скасувати</button>
@@ -159,7 +170,7 @@
         <!-- Navigation Tabs -->
         <nav class="tabs" role="navigation" aria-label="Головна навігація">
             <button class="tab active" data-tab="home" aria-label="Головна" aria-current="page">
-                <span class="tab-icon tab-icon-home" aria-hidden="true">🏠</span>
+                <span class="tab-icon tab-icon-home" aria-hidden="true"></span>
                 <span class="tab-label">Головна</span>
             </button>
             <button class="tab" data-tab="partners" aria-label="Партнери">

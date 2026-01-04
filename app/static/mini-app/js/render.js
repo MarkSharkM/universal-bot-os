@@ -761,7 +761,7 @@ function renderEarnings() {
                         <div class="commission-activate">
                             <h4 class="activate-title">Як активувати ${commissionPercent}% (1 раз назавжди):</h4>
                             <div class="activate-steps">
-                                <div class="activate-step">Відкрий @HubAggregatorBot</div>
+                                <div class="activate-step">Відкрий @${typeof getBotUsername === 'function' ? getBotUsername() : 'EarnHubAggregatorBot'}</div>
                                 <div class="activate-step">«Партнерська програма»</div>
                                 <div class="activate-step">«Під'єднатись» → ${commissionPercent}% активуються назавжди</div>
                             </div>
@@ -1149,12 +1149,15 @@ function checkSharePopupTriggers() {
     const partnerClickCount = parseInt(storage.getItem('partner_click_count') || '0');
     
     // Trigger 1: After start_7_flow
-    if (didStart7Flow && lastSharePopup !== 'start_7_flow') {
-        showSharePopup('start_7_flow');
-        storage.setItem('last_share_popup', 'start_7_flow');
-        storage.setItem('last_share_popup_time', String(Date.now()));
-        return;
-    }
+    // DISABLED: Don't show share popup immediately after clicking "Start 7% flow"
+    // User should see instructions first, then decide when to share
+    // Share popup will be shown later (after user closes instruction modal or other triggers)
+    // if (didStart7Flow && lastSharePopup !== 'start_7_flow') {
+    //     showSharePopup('start_7_flow');
+    //     storage.setItem('last_share_popup', 'start_7_flow');
+    //     storage.setItem('last_share_popup_time', String(Date.now()));
+    //     return;
+    // }
     
     // Trigger 2: After top_unlocked
     if (!topLocked && lastSharePopup !== 'top_unlocked') {
@@ -1296,25 +1299,44 @@ function renderTrustHeader() {
         isConnected: isWalletConnected
     });
     
-    const walletItem = container.querySelector('.trust-item:last-child');
-    if (walletItem) {
-        if (isWalletConnected) {
-            walletItem.textContent = '🟢 Wallet: connected';
-            walletItem.style.cursor = 'default';
-            walletItem.onclick = null;
-        } else {
-            walletItem.textContent = '🟡 Wallet: optional (натисни щоб підключити)';
-            walletItem.style.cursor = 'pointer';
-            walletItem.style.textDecoration = 'underline';
-            walletItem.onclick = () => {
-                trackEvent('wallet_trust_header_clicked');
-                if (typeof Render !== 'undefined' && Render.showWalletModal) {
-                    Render.showWalletModal();
-                } else {
-                    showWalletModal();
-                }
-            };
+    // Get or create wallet button container
+    let walletContainer = container.querySelector('.trust-wallet-container');
+    if (!walletContainer) {
+        // Remove old trust-item if exists
+        const oldWalletItem = container.querySelector('.trust-item:last-child');
+        if (oldWalletItem && oldWalletItem.textContent.includes('Wallet')) {
+            oldWalletItem.remove();
         }
+        // Create new container for wallet button
+        walletContainer = document.createElement('div');
+        walletContainer.className = 'trust-wallet-container';
+        container.appendChild(walletContainer);
+    }
+    
+    // Clear container
+    walletContainer.innerHTML = '';
+    
+    if (isWalletConnected) {
+        // Show connected status
+        const statusItem = document.createElement('div');
+        statusItem.className = 'trust-item';
+        statusItem.textContent = '🟢 Wallet: connected';
+        walletContainer.appendChild(statusItem);
+    } else {
+        // Show connect button
+        const connectBtn = document.createElement('button');
+        connectBtn.className = 'trust-connect-btn';
+        connectBtn.textContent = '🔗 Підключити гаманець';
+        connectBtn.setAttribute('aria-label', 'Підключити TON гаманець');
+        connectBtn.onclick = () => {
+            trackEvent('wallet_trust_header_clicked');
+            if (typeof Render !== 'undefined' && Render.showWalletModal) {
+                Render.showWalletModal();
+            } else {
+                showWalletModal();
+            }
+        };
+        walletContainer.appendChild(connectBtn);
     }
 }
 
@@ -1390,23 +1412,15 @@ function renderPrimaryActionCardStateA(container) {
             const storage = typeof SafeStorage !== 'undefined' ? SafeStorage : localStorage;
             storage.setItem('did_start_7_flow', 'true');
             
-            // Open official Telegram partner screen
-            const tg = AppState.getTg();
-            if (tg && tg.openLink) {
-                tg.openLink('https://t.me/HubAggregatorBot');
-            }
-            
-            // Show instruction modal (1 time)
+            // Show instruction modal (1 time) - NO automatic redirect to browser
+            // User stays in Mini App and can decide when to open bot if needed
             show7FlowInstructionModal();
             
-            // Check for share popup trigger
-            setTimeout(() => {
-                if (typeof checkSharePopupTriggers === 'function') {
-                    checkSharePopupTriggers();
-                }
-            }, 1000);
+            // DO NOT automatically show share popup after clicking "Start 7% flow"
+            // User should see instructions first, then decide when to share
+            // Share popup will be shown later (after other triggers or user actions)
             
-            // Re-render to show next state
+            // Re-render to show next state (will show STATE B or STATE C)
             renderPrimaryActionCard();
         });
     }
@@ -1466,9 +1480,14 @@ function renderPrimaryActionCardStateB(container, referralCount) {
     if (buyBtn) {
         buyBtn.addEventListener('click', () => {
             trackEvent('top_purchase');
-            // Handle TOP purchase
+            // Get price from appData
+            const appData = AppState.getAppData();
+            const price = appData?.earnings?.buy_top_price || 1;
+            // Handle TOP purchase (using Telegram Stars Payment API)
             if (typeof Actions !== 'undefined' && Actions.handleBuyTop) {
-                Actions.handleBuyTop();
+                Actions.handleBuyTop(price);
+            } else if (typeof handleBuyTop === 'function') {
+                handleBuyTop(price);
             }
         });
     }
@@ -1519,17 +1538,33 @@ function show7FlowInstructionModal() {
     modal.className = 'modal-overlay';
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;';
     
+    // Get bot username from config (universal for any bot)
+    const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : 'EarnHubAggregatorBot';
+    
     modal.innerHTML = `
         <div class="modal-content" style="background: var(--tg-theme-bg-color); border-radius: var(--radius-lg); padding: var(--spacing-lg); max-width: 90%; max-height: 80vh; overflow-y: auto;">
             <h2 style="margin: 0 0 var(--spacing-md) 0; font-size: var(--font-size-xl);">💸 Як активувати 7%</h2>
-            <div style="margin-bottom: var(--spacing-md);">
-                <p style="margin: var(--spacing-sm) 0; line-height: 1.5;">1. Відкрий @HubAggregatorBot в Telegram</p>
-                <p style="margin: var(--spacing-sm) 0; line-height: 1.5;">2. Надішли команду /earnings</p>
-                <p style="margin: var(--spacing-sm) 0; line-height: 1.5;">3. Слідуй інструкціям для активації</p>
+            <div style="margin-bottom: var(--spacing-lg);">
+                <p style="margin: var(--spacing-sm) 0; line-height: 1.6; font-size: var(--font-size-md);">
+                    Telegram ділиться доходом, якщо твої реферали купують ⭐
+                </p>
+                <div style="margin: var(--spacing-md) 0; padding: var(--spacing-md); background: var(--tg-theme-secondary-bg-color, rgba(0,0,0,0.1)); border-radius: var(--radius-md);">
+                    <p style="margin: var(--spacing-xs) 0; line-height: 1.6;">1️⃣ Відкрий <strong>@${botUsername}</strong> в Telegram</p>
+                    <p style="margin: var(--spacing-xs) 0; line-height: 1.6;">2️⃣ Надішли команду <code style="background: var(--tg-theme-bg-color); padding: 2px 6px; border-radius: 4px;">/earnings</code></p>
+                    <p style="margin: var(--spacing-xs) 0; line-height: 1.6;">3️⃣ Слідуй інструкціям для активації</p>
+                </div>
+                <p style="margin: var(--spacing-sm) 0; line-height: 1.6; font-size: var(--font-size-sm); color: var(--tg-theme-hint-color, #999);">
+                    ♾️ Одноразове налаштування назавжди
+                </p>
             </div>
-            <button class="primary-action-btn" id="close-7-flow-modal" style="width: 100%;">
-                Зрозуміло
-            </button>
+            <div style="display: flex; gap: var(--spacing-sm); flex-direction: column;">
+                <button class="secondary-action-btn" id="open-bot-btn" style="width: 100%;">
+                    📱 Відкрити бота (опціонально)
+                </button>
+                <button class="primary-action-btn" id="close-7-flow-modal" style="width: 100%;">
+                    ✅ Зрозуміло
+                </button>
+            </div>
         </div>
     `;
     
@@ -1537,12 +1572,46 @@ function show7FlowInstructionModal() {
     
     // Close modal handlers
     const closeBtn = modal.querySelector('#close-7-flow-modal');
+    const openBotBtn = modal.querySelector('#open-bot-btn');
+    
     const closeModal = () => {
-        document.body.removeChild(modal);
+        if (document.body.contains(modal)) {
+            document.body.removeChild(modal);
+        }
+        // Re-render primary action card to show updated state (STATE B or STATE C)
+        // Since user has started 7% flow, next state will be shown
+        if (typeof renderPrimaryActionCard === 'function') {
+            renderPrimaryActionCard();
+        }
     };
     
     if (closeBtn) {
         closeBtn.addEventListener('click', closeModal);
+    }
+    
+    // Optional: Open bot button (user decides)
+    if (openBotBtn) {
+        openBotBtn.addEventListener('click', () => {
+            // Track event
+            trackEvent('open_bot_from_7flow_modal');
+            
+            // Get bot URL (universal for any bot)
+            const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : 'https://t.me/EarnHubAggregatorBot';
+            
+            // Use openTelegramLink to open in Telegram (will close Mini App, but that's OK for this action)
+            // Or use openLink to open in browser (stays in Mini App context)
+            const tg = AppState.getTg();
+            if (tg?.openTelegramLink) {
+                // Open in Telegram app (closes Mini App, but user initiated this action)
+                tg.openTelegramLink(botUrl);
+            } else if (tg?.openLink) {
+                // Fallback: open in browser (stays in Mini App)
+                tg.openLink(botUrl);
+            }
+            
+            // Close modal
+            closeModal();
+        });
     }
     
     modal.addEventListener('click', (e) => {

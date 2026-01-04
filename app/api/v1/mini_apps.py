@@ -356,6 +356,101 @@ async def save_wallet_from_mini_app(
         raise HTTPException(status_code=500, detail=f"Error saving wallet: {str(e)}")
 
 
+@router.post("/mini-app/{bot_id}/create-invoice")
+async def create_invoice_link(
+    bot_id: UUID,
+    init_data: Optional[str] = Query(None, description="Telegram WebApp initData (for validation)"),
+    user_id: Optional[str] = Query(None, description="User external ID (if initData not provided)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Create invoice link for Telegram Stars payment (for buying TOP).
+    Returns invoice link that can be used with tg.openInvoice() in Mini App.
+    
+    Args:
+        bot_id: Bot UUID
+        init_data: Telegram WebApp initData (for validation)
+        user_id: User external ID (fallback if initData not provided)
+        db: Database session
+    
+    Returns:
+        Invoice link URL
+    """
+    # Verify bot
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    if not bot.is_active:
+        raise HTTPException(status_code=403, detail="Bot is inactive")
+    
+    # Validate initData if provided
+    validated_user_id = None
+    if init_data:
+        if not validate_telegram_init_data(init_data, bot.token):
+            logger.warning(f"Invalid initData for bot_id={bot_id}")
+            raise HTTPException(status_code=401, detail="Invalid initData signature")
+        validated_user_id = get_user_id_from_init_data(init_data)
+        if not validated_user_id:
+            raise HTTPException(status_code=400, detail="Could not extract user_id from initData")
+    
+    # Use validated user_id or fallback to provided user_id
+    final_user_id = validated_user_id or user_id
+    if not final_user_id:
+        raise HTTPException(status_code=400, detail="user_id or init_data required")
+    
+    # Get user
+    user_service = UserService(db, bot_id)
+    user = user_service.get_user(final_user_id, platform="telegram")
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get translation for invoice
+    translation_service = TranslationService(db)
+    lang = translation_service.detect_language(user.language_code)
+    
+    # Get price from config or default
+    buy_top_price = 1
+    if bot.config and isinstance(bot.config, dict):
+        earnings_config = bot.config.get('earnings', {})
+        buy_top_price = earnings_config.get('buy_top_price', 1)
+    
+    title = translation_service.get_translation('buy_top_title', lang) or "Розблокувати TOP"
+    description = translation_service.get_translation('buy_top_description', lang) or "Розблокувати доступ до TOP партнерів"
+    label = translation_service.get_translation('buy_top_label', lang) or f"{buy_top_price} Star{'s' if buy_top_price > 1 else ''}"
+    
+    # Create invoice payload (unique identifier for this payment)
+    payload = f"buy_top_{bot_id}_{user.id}"
+    
+    # For Telegram Stars (XTR), amount is the number of stars directly
+    # 1 star = amount: 1 (not 100 like other currencies)
+    star_amount = buy_top_price  # 1 star = amount: 1
+    
+    prices = [{
+        "label": label,
+        "amount": star_amount  # For XTR (Stars), amount = number of stars
+    }]
+    
+    # Create invoice link via TelegramAdapter
+    try:
+        from app.adapters.telegram import TelegramAdapter
+        adapter = TelegramAdapter()
+        
+        invoice_link = await adapter.create_invoice_link(
+            bot_id=bot_id,
+            title=title,
+            description=description,
+            payload=payload,
+            currency="XTR",  # XTR = Telegram Stars
+            prices=prices
+        )
+        
+        logger.info(f"Invoice link created: bot_id={bot_id}, user_id={user.id}, invoice_link={invoice_link[:50]}...")
+        return {"ok": True, "invoice_link": invoice_link}
+    except Exception as e:
+        logger.error(f"Error creating invoice link: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error creating invoice link: {str(e)}")
+
+
 @router.get("/mini-app/{bot_id}/data")
 async def get_mini_app_data(
     request: Request,
