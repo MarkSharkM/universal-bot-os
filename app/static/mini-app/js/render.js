@@ -411,21 +411,22 @@ function renderTop() {
     const topStatus = appData.user?.top_status || 'locked';
     const topPartners = appData.top_partners || [];
     const referralCount = AppState.getReferralCount();
-    const invitesNeeded = appData.earnings?.invites_needed || 5;
+    const requiredInvites = appData.earnings?.required_invites || 5; // Total needed (like in bot)
+    const invitesNeeded = appData.earnings?.invites_needed || 0; // How many more needed
     const buyTopPrice = appData.earnings?.buy_top_price || 1;
     
     // Determine state: LOCKED, ALMOST (X >= 3), or UNLOCKED
     let state = 'LOCKED';
     if (topStatus === 'open' || topStatus === 'unlocked') {
         state = 'UNLOCKED';
-    } else if (referralCount >= 3 && referralCount < 5) {
+    } else if (referralCount >= 3 && referralCount < requiredInvites) {
         state = 'ALMOST';
     }
     
     if (state === 'LOCKED') {
-        renderTopLocked(container, referralCount, invitesNeeded, buyTopPrice, topPartners);
+        renderTopLocked(container, referralCount, requiredInvites, invitesNeeded, buyTopPrice, topPartners);
     } else if (state === 'ALMOST') {
-        renderTopAlmost(container, referralCount, invitesNeeded, buyTopPrice, topPartners);
+        renderTopAlmost(container, referralCount, requiredInvites, invitesNeeded, buyTopPrice, topPartners);
     } else {
         renderTopUnlocked(container, topPartners);
     }
@@ -434,11 +435,12 @@ function renderTop() {
 /**
  * Render TOP LOCKED state (FOMO + Paywall)
  */
-function renderTopLocked(container, referralCount, invitesNeeded, buyTopPrice, topPartners) {
+function renderTopLocked(container, referralCount, requiredInvites, invitesNeeded, buyTopPrice, topPartners) {
     container.className = 'top-locked';
     
-    const progress = Math.min(referralCount, invitesNeeded);
-    const progressPercent = (progress / invitesNeeded) * 100;
+    // Use requiredInvites for progress calculation (like in bot: total_invited / required_invites)
+    const progress = Math.min(referralCount, requiredInvites);
+    const progressPercent = requiredInvites > 0 ? (progress / requiredInvites) * 100 : 0;
     
     const lockedDiv = document.createElement('div');
     lockedDiv.className = 'top-locked-content';
@@ -463,7 +465,7 @@ function renderTopLocked(container, referralCount, invitesNeeded, buyTopPrice, t
         
         <div class="top-locked-progress">
             <div class="progress-info">
-                <span>👥 ${referralCount} / ${invitesNeeded} друзів</span>
+                <span>👥 ${referralCount} / ${requiredInvites} друзів</span>
             </div>
             <div class="progress-bar">
                 <div class="progress-fill" style="width: ${progressPercent}%"></div>
@@ -511,11 +513,12 @@ function renderTopLocked(container, referralCount, invitesNeeded, buyTopPrice, t
 /**
  * Render TOP ALMOST state (X >= 3)
  */
-function renderTopAlmost(container, referralCount, invitesNeeded, buyTopPrice, topPartners) {
+function renderTopAlmost(container, referralCount, requiredInvites, invitesNeeded, buyTopPrice, topPartners) {
     container.className = 'top-almost';
     
-    const progress = Math.min(referralCount, invitesNeeded);
-    const progressPercent = (progress / invitesNeeded) * 100;
+    // Use requiredInvites for progress calculation (like in bot: total_invited / required_invites)
+    const progress = Math.min(referralCount, requiredInvites);
+    const progressPercent = requiredInvites > 0 ? (progress / requiredInvites) * 100 : 0;
     
     const almostDiv = document.createElement('div');
     almostDiv.className = 'top-almost-content';
@@ -539,7 +542,7 @@ function renderTopAlmost(container, referralCount, invitesNeeded, buyTopPrice, t
         
         <div class="top-almost-progress">
             <div class="progress-info">
-                <span>👥 ${referralCount} / ${invitesNeeded} друзів</span>
+                <span>👥 ${referralCount} / ${requiredInvites} друзів</span>
             </div>
             <div class="progress-bar">
                 <div class="progress-fill" style="width: ${progressPercent}%"></div>
