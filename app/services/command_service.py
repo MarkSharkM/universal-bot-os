@@ -462,6 +462,8 @@ class CommandService:
                 'referralLink': referral_link,
                 'bot_username': bot_username
             })
+            # Remove referralLink placeholder from share_text (URL is in button URL parameter)
+            share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
             
             # Get buttons from bot.config or use defaults
             buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link, share_text=share_text, buy_top_price=buy_top_price)
@@ -736,6 +738,8 @@ class CommandService:
             'referralLink': referral_link,
             'bot_username': bot_username
         })
+        # Remove referralLink placeholder from share_text (URL is in button URL parameter)
+        share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
         
         # Get buttons from bot.config or use defaults
         buy_top_price = self._get_buy_top_price(lang)
