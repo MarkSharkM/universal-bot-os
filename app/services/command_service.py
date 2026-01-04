@@ -457,13 +457,18 @@ class CommandService:
                 )
             
             # Get share text for button URL only (not in message)
+            # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
+            # The link is already in the button URL parameter, Telegram will add preview automatically
             bot_username = self._get_bot_username() or ''
             share_text = self.translation_service.get_translation('share_referral', lang, {
-                'referralLink': referral_link,
                 'bot_username': bot_username
             })
             # Remove referralLink placeholder from share_text (URL is in button URL parameter)
             share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
+            # Also remove any actual referral link that might have been added (safety check)
+            if referral_link in share_text:
+                share_text = share_text.replace(referral_link, '').strip()
+                logger.warning(f"Removed referral link from share_text in /top (locked) for bot_id={self.bot_id}")
             
             # Get buttons from bot.config or use defaults
             buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link, share_text=share_text, buy_top_price=buy_top_price)
@@ -529,12 +534,17 @@ class CommandService:
         
         referral_link = self.referral_service.generate_referral_link(user_id)
         # Get share text for button
+        # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
+        # The link is already in the button URL parameter, Telegram will add preview automatically
         bot_username = self._get_bot_username() or ''
         share_text = self.translation_service.get_translation('share_referral', lang, {
-            'referralLink': referral_link,
             'bot_username': bot_username
         })
         share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
+        # Also remove any actual referral link that might have been added (safety check)
+        if referral_link in share_text:
+            share_text = share_text.replace(referral_link, '').strip()
+            logger.warning(f"Removed referral link from share_text in /top (open) for bot_id={self.bot_id}")
         # Get buttons from bot.config or use defaults
         buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link, share_text=share_text)
         if not buttons:
@@ -620,12 +630,17 @@ class CommandService:
         # Generate referral link for share button
         referral_link = self.referral_service.generate_referral_link(user_id)
         bot_username = self._get_bot_username() or ''
+        # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
+        # The link is already in the button URL parameter, Telegram will add preview automatically
         share_text = self.translation_service.get_translation('share_referral', lang, {
-            'referralLink': referral_link,
             'bot_username': bot_username
         })
         # Remove referralLink placeholder from share_text (URL is in button URL parameter)
         share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
+        # Also remove any actual referral link that might have been added (safety check)
+        if referral_link in share_text:
+            share_text = share_text.replace(referral_link, '').strip()
+            logger.warning(f"Removed referral link from share_text in /partners for bot_id={self.bot_id}")
         
         # Get buttons from bot.config or use defaults
         buttons = self._get_buttons_for_command('partners', lang, referral_link=referral_link, share_text=share_text)
@@ -746,12 +761,17 @@ class CommandService:
         # Generate referral link for share button
         referral_link = earnings_data.get('referral_link') or self.referral_service.generate_referral_link(user_id)
         bot_username = self._get_bot_username() or ''
+        # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
+        # The link is already in the button URL parameter, Telegram will add preview automatically
         share_text = self.translation_service.get_translation('share_referral', lang, {
-            'referralLink': referral_link,
             'bot_username': bot_username
         })
         # Remove referralLink placeholder from share_text (URL is in button URL parameter)
         share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
+        # Also remove any actual referral link that might have been added (safety check)
+        if referral_link in share_text:
+            share_text = share_text.replace(referral_link, '').strip()
+            logger.warning(f"Removed referral link from share_text in /earnings for bot_id={self.bot_id}")
         
         # Get buttons from bot.config or use defaults
         buy_top_price = self._get_buy_top_price(lang)
