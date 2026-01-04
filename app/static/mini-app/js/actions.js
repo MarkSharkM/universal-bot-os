@@ -151,7 +151,20 @@ function shareReferralLink() {
     }
     
     const link = AppState.getAppData().user.referral_link;
-    const shareText = '🚀 Долучайся до HubAggregatorBot — отримуй зірки за активність!\nОсь твоє реферальне посилання:';
+    // Updated share text (Revenue Launcher approach - NO numbers, NO TON)
+    const shareText = 'Я підʼєднався до партнерської програми Telegram. Це працює автоматично.';
+    
+    // Track share event
+    if (AppState.getBotId()) {
+        const initData = AppState.getTg()?.initData || null;
+        if (typeof Api !== 'undefined' && Api.sendCallback) {
+            Api.sendCallback(AppState.getBotId(), {
+                type: 'analytics',
+                event: 'share_sent',
+                data: {}
+            }, initData).catch(err => console.error('Error tracking share:', err));
+        }
+    }
     
     // Use Telegram share URL
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
@@ -163,6 +176,11 @@ function shareReferralLink() {
     } else {
         // Fallback: open in same window
         window.location.href = shareUrl;
+    }
+    
+    // Haptic feedback
+    if (typeof Haptic !== 'undefined') {
+        Haptic.medium();
     }
 }
 

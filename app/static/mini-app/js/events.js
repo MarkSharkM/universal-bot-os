@@ -130,7 +130,7 @@ function setupSwipeGestures() {
         
         if (Math.abs(diff) < swipeThreshold) return;
         
-        const tabs = ['partners', 'top', 'earnings', 'wallet'];
+        const tabs = ['home', 'partners', 'top'];
         const currentTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
         const currentIndex = tabs.indexOf(currentTab);
         
@@ -317,11 +317,56 @@ function hidePullToRefresh() {
 }
 
 
+/**
+ * Setup offline detection
+ */
+function setupOfflineDetection() {
+    const indicator = document.getElementById('offline-indicator');
+    if (!indicator) return;
+    
+    function updateOfflineStatus() {
+        if (!navigator.onLine) {
+            indicator.style.display = 'flex';
+            // Track offline event
+            if (typeof Render !== 'undefined' && Render.trackEvent) {
+                Render.trackEvent('offline_detected');
+            } else if (typeof trackEvent === 'function') {
+                trackEvent('offline_detected');
+            }
+        } else {
+            indicator.style.display = 'none';
+        }
+    }
+    
+    // Initial check
+    updateOfflineStatus();
+    
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+        updateOfflineStatus();
+        if (typeof Toast !== 'undefined') {
+            Toast.success('Інтернет-з\'єднання відновлено');
+        }
+        // Try to reload data
+        if (typeof loadAppData === 'function') {
+            loadAppData(false).catch(err => console.error('Error reloading after online:', err));
+        }
+    });
+    
+    window.addEventListener('offline', () => {
+        updateOfflineStatus();
+        if (typeof Toast !== 'undefined') {
+            Toast.warning('Немає інтернет-з\'єднання');
+        }
+    });
+}
+
 window.Events = {
     setupEventHandlers,
     setupSwipeGestures,
     setupPullToRefresh,
     setupRippleEffects,
+    setupOfflineDetection,
     updatePullToRefresh,
     showPullToRefresh,
     hidePullToRefresh

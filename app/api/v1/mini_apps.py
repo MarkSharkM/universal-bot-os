@@ -91,6 +91,45 @@ async def mini_app_html_simple(
         raise HTTPException(status_code=404, detail="Mini App HTML not found")
 
 
+@router.get("/tonconnect-manifest.json")
+async def tonconnect_manifest(request: Request):
+    """
+    Serve TON Connect manifest file.
+    Required for TON Connect SDK integration.
+    """
+    import pathlib
+    from fastapi.responses import JSONResponse
+    
+    current_file = pathlib.Path(__file__)  # app/api/v1/mini_apps.py
+    app_dir = current_file.parent.parent.parent  # app/
+    manifest_path = app_dir / "static" / "tonconnect-manifest.json"
+    
+    if manifest_path.exists():
+        try:
+            import json
+            manifest_content = json.loads(manifest_path.read_text(encoding='utf-8'))
+            
+            # Update URL dynamically based on request
+            base_url = str(request.base_url).rstrip('/')
+            manifest_content['url'] = base_url
+            # If iconUrl is relative, make it absolute
+            if manifest_content.get('iconUrl', '').startswith('/'):
+                manifest_content['iconUrl'] = base_url + manifest_content['iconUrl']
+            
+            return JSONResponse(content=manifest_content)
+        except Exception as e:
+            logger.error(f"Error reading TON Connect manifest: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error loading manifest: {str(e)}")
+    else:
+        # Return default manifest
+        base_url = str(request.base_url).rstrip('/')
+        return JSONResponse(content={
+            "url": base_url,
+            "name": "EarnHubAggregatorBot",
+            "iconUrl": f"{base_url}/static/mini-app/icon.png"
+        })
+
+
 @router.get("/mini-app/{bot_id}/index.html", response_class=HTMLResponse)
 async def mini_app_html(
     bot_id: UUID,
@@ -184,6 +223,14 @@ async def mini_app_webhook(
         partner_id = data.get("partner_id")
         logger.info(f"Partner click: bot_id={bot_id}, user_id={validated_user_id}, partner_id={partner_id}")
         return {"ok": True, "action": "partner_click", "logged": True}
+    
+    # Handle analytics events (Revenue Launcher)
+    if data.get("type") == "analytics":
+        event = data.get("event")
+        event_data = data.get("data", {})
+        logger.info(f"Analytics event: bot_id={bot_id}, user_id={validated_user_id}, event={event}, data={event_data}")
+        # TODO: Store analytics events in database for metrics
+        return {"ok": True, "event": event, "logged": True}
     
     # Default response
     return {"ok": True, "data": data}
@@ -383,6 +430,9 @@ async def get_mini_app_data(
             "btn_activate_7": translation_service.get_translation('earnings_btn_activate_7', user_lang),
         }
         
+        # Get user custom_data for Revenue Launcher
+        user_custom_data = user.custom_data or {}
+        
         return {
             "ok": True,
             "user": {
@@ -391,6 +441,9 @@ async def get_mini_app_data(
                 "total_invited": earnings_data["total_invited"],
                 "top_status": earnings_data["top_status"],
                 "referral_link": earnings_data["referral_link"],
+                "custom_data": user_custom_data,  # Include custom_data for frontend
+                "did_start_7_flow": user_custom_data.get("did_start_7_flow", False),  # Revenue Launcher flag
+                "has_seen_onboarding": user_custom_data.get("has_seen_onboarding", False),  # Onboarding flag
             },
             "earnings": {
                 "earned": earnings_data["earned"],
@@ -415,6 +468,8 @@ async def get_mini_app_data(
             "config": {
                 # Contract:
                 # - `config.ui.*` is the canonical shape expected by Mini App frontend
+                "username": bot_config.get("username", ""),  # Bot username for TON Connect
+                "name": bot_config.get("name", bot.name or "Mini App"),  # Bot name
                 # - `theme/colors/features` are kept for backward compatibility with older frontends
                 "name": bot_config.get("name", bot.name or "Bot"),
                 "ui": {

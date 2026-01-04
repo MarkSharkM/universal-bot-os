@@ -246,6 +246,50 @@ function isOnline() {
 }
 
 /**
+ * Safe localStorage wrapper with fallback to memory storage
+ */
+const memoryStorage = {};
+
+const SafeStorage = {
+    get(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            console.warn('localStorage not available, using memory storage');
+            return memoryStorage[key] || null;
+        }
+    },
+    
+    set(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            console.warn('localStorage not available, using memory storage');
+            memoryStorage[key] = value;
+        }
+    },
+    
+    remove(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            delete memoryStorage[key];
+        }
+    },
+    
+    clear() {
+        try {
+            localStorage.clear();
+        } catch (e) {
+            Object.keys(memoryStorage).forEach(key => delete memoryStorage[key]);
+        }
+    }
+};
+
+// Export SafeStorage
+window.SafeStorage = SafeStorage;
+
+/**
  * Escape HTML to prevent XSS
  * @param {string} text - Text to escape
  * @returns {string} Escaped text

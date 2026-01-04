@@ -78,6 +78,9 @@ async function initMiniApp() {
             return;
         }
         
+        // Initialize TON Connect (after app data is loaded)
+        // Will be initialized in loadAppData after data is fetched
+        
         // Apply theme from Telegram
         applyTheme();
         
@@ -88,15 +91,21 @@ async function initMiniApp() {
             setupEventHandlers();
         }
         
+        // Setup offline detection
+        if (typeof Events !== 'undefined' && Events.setupOfflineDetection) {
+            Events.setupOfflineDetection();
+        }
+        
         // Load app data
         loadAppData();
         
     } catch (error) {
         console.error('Error initializing Mini App:', error);
+        const errorType = error.type || 'general';
         if (typeof Render !== 'undefined' && Render.showError) {
-            Render.showError('Помилка ініціалізації: ' + error.message);
+            Render.showError('Помилка ініціалізації: ' + error.message, errorType);
         } else {
-            showError('Помилка ініціалізації: ' + error.message);
+            showError('Помилка ініціалізації: ' + error.message, errorType);
         }
     }
 }
@@ -227,6 +236,10 @@ function applyBotConfig(config) {
         const features = config.ui.features;
         
         // Hide tabs if features are disabled
+        if (features.home === false) {
+            const homeTab = document.querySelector('[data-tab="home"]');
+            if (homeTab) homeTab.style.display = 'none';
+        }
         if (features.partners === false) {
             const partnersTab = document.querySelector('[data-tab="partners"]');
             if (partnersTab) partnersTab.style.display = 'none';
@@ -234,14 +247,6 @@ function applyBotConfig(config) {
         if (features.top === false) {
             const topTab = document.querySelector('[data-tab="top"]');
             if (topTab) topTab.style.display = 'none';
-        }
-        if (features.earnings === false) {
-            const earningsTab = document.querySelector('[data-tab="earnings"]');
-            if (earningsTab) earningsTab.style.display = 'none';
-        }
-        if (features.wallet === false) {
-            const walletTab = document.querySelector('[data-tab="wallet"]');
-            if (walletTab) walletTab.style.display = 'none';
         }
     }
     
@@ -335,45 +340,60 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
             // If ok is undefined, assume success (backward compatibility)
             AppState.setAppData(data);
             
-            // Show welcome screen on first visit (check localStorage)
-            const hasSeenWelcome = localStorage.getItem('mini_app_welcome_seen');
-            if (!hasSeenWelcome) {
-                // Hide loading screen when showing welcome screen
+            // Initialize TON Connect after app data is loaded
+            if (typeof TonConnect !== 'undefined' && TonConnect.initTonConnect) {
+                // Wait a bit for SDK to fully load and app data to be set
+                setTimeout(() => {
+                    TonConnect.initTonConnect();
+                }, 500);
+            }
+            
+            // Show onboarding on first visit (check localStorage)
+            const storage = typeof SafeStorage !== 'undefined' ? SafeStorage : localStorage;
+            const hasSeenOnboarding = AppState.getHasSeenOnboarding() || 
+                                      storage.getItem('has_seen_onboarding') === 'true';
+            if (!hasSeenOnboarding) {
+                // Hide loading screen when showing onboarding
                 if (typeof Render !== 'undefined' && Render.showLoading) {
                     Render.showLoading(false);
                 } else {
                     showLoading(false);
                 }
                 
-                if (typeof Render !== 'undefined' && Render.showWelcomeScreen) {
+                if (typeof Render !== 'undefined' && Render.showOnboarding) {
+                    Render.showOnboarding();
+                } else if (typeof Render !== 'undefined' && Render.showWelcomeScreen) {
                     Render.showWelcomeScreen();
                 } else {
-                    showWelcomeScreen();
+                    if (typeof showOnboarding === 'function') {
+                        showOnboarding();
+                    } else {
+                        showWelcomeScreen();
+                    }
                 }
             } else {
-                // Only switch to Earnings tab on initial load (when app is first shown)
+                // Only switch to HOME tab on initial load (when app is first shown)
                 // Don't switch if this is just a data refresh (showRefreshIndicator or not isInitialLoad)
                 const isFirstLoad = AppState.getIsInitialLoad() && !showRefreshIndicator;
                 
                 if (isFirstLoad) {
-                    // Show Earnings tab first (it has instructions on what to do)
-                    // This helps users understand what the bot does
+                    // Show HOME tab first (Action Engine)
                     if (typeof Render !== 'undefined' && Render.renderApp) {
                         Render.renderApp();
                     } else {
                         renderApp();
                     }
                     
-                    // Only auto-switch to earnings if isInitialLoad is still true
+                    // Only auto-switch to home if isInitialLoad is still true
                     // (user hasn't manually switched tabs yet)
                     // Check again right before switching to handle race conditions
                     if (AppState.getIsInitialLoad()) {
-                        // Switch to Earnings tab first (instead of Partners)
+                        // Switch to HOME tab first (Action Engine)
                         // Note: switchTab will set isInitialLoad = false when called
                         if (typeof Navigation !== 'undefined' && Navigation.switchTab) {
-                            Navigation.switchTab('earnings');
+                            Navigation.switchTab('home');
                         } else {
-                            switchTab('earnings');
+                            switchTab('home');
                         }
                     }
                     // If isInitialLoad is false, user already switched tabs manually, don't force switch
@@ -387,13 +407,13 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                     }
                     // Re-render current page with fresh data
                     const currentPage = AppState.getCurrentPage();
-                    if (currentPage === 'earnings') {
-                        if (typeof Render !== 'undefined' && Render.hideSkeleton && Render.renderEarnings) {
-                            Render.hideSkeleton('earnings');
-                            Render.renderEarnings();
+                    if (currentPage === 'home') {
+                        if (typeof Render !== 'undefined' && Render.hideSkeleton && Render.renderHome) {
+                            Render.hideSkeleton('home');
+                            Render.renderHome();
                         } else {
-                            hideSkeleton('earnings');
-                            renderEarnings();
+                            hideSkeleton('home');
+                            renderHome();
                         }
                     } else if (currentPage === 'top') {
                         if (typeof Render !== 'undefined' && Render.hideSkeleton && Render.renderTop) {
@@ -416,22 +436,6 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                         } else {
                             setupSearchAndFilters();
                         }
-                    } else if (currentPage === 'wallet') {
-                        if (typeof Render !== 'undefined' && Render.hideSkeleton && Render.renderWallet) {
-                            Render.hideSkeleton('wallet');
-                            Render.renderWallet();
-                        } else {
-                            hideSkeleton('wallet');
-                            renderWallet();
-                        }
-                    } else if (currentPage === 'info') {
-                        if (typeof Render !== 'undefined' && Render.hideSkeleton && Render.renderInfo) {
-                            Render.hideSkeleton('info');
-                            Render.renderInfo();
-                        } else {
-                            hideSkeleton('info');
-                            renderInfo();
-                        }
                     }
                 }
                 if (typeof Render !== 'undefined' && Render.showLoading) {
@@ -451,13 +455,14 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         } else {
             throw new Error(data.detail || 'Failed to load data');
         }
-    } catch (error) {
-        console.error('Error loading app data:', error);
-        if (typeof Render !== 'undefined' && Render.showError) {
-            Render.showError('Помилка завантаження даних: ' + error.message);
-        } else {
-            showError('Помилка завантаження даних: ' + error.message);
-        }
+        } catch (error) {
+            console.error('Error loading app data:', error);
+            const errorType = error.type || (error.message.includes('інтернет') ? 'network' : 'api');
+            if (typeof Render !== 'undefined' && Render.showError) {
+                Render.showError('Помилка завантаження даних: ' + error.message, errorType);
+            } else {
+                showError('Помилка завантаження даних: ' + error.message, errorType);
+            }
         if (typeof Render !== 'undefined' && Render.showLoading) {
             Render.showLoading(false);
         } else {

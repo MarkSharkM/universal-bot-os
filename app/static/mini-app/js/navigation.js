@@ -45,31 +45,33 @@ function switchTab(tabName) {
         
         // Render content immediately with existing data (if available)
         // This ensures user sees content right away, not a blank screen
-        if (tabName === 'partners') {
+        if (tabName === 'home') {
+            if (AppState.getAppData()) {
+                hideSkeleton('home');
+                if (typeof Render !== 'undefined' && Render.renderHome) {
+                    Render.renderHome();
+                } else {
+                    renderHome();
+                }
+            }
+        } else if (tabName === 'partners') {
             if (AppState.getAppData()) {
                 hideSkeleton('partners');
-                renderPartners();
+                if (typeof Render !== 'undefined' && Render.renderPartners) {
+                    Render.renderPartners();
+                } else {
+                    renderPartners();
+                }
                 setupSearchAndFilters();
             }
         } else if (tabName === 'top') {
             if (AppState.getAppData()) {
                 hideSkeleton('top');
-                renderTop();
-            }
-        } else if (tabName === 'earnings') {
-            if (AppState.getAppData()) {
-                hideSkeleton('earnings');
-                renderEarnings();
-            }
-        } else if (tabName === 'wallet') {
-            if (AppState.getAppData()) {
-                hideSkeleton('wallet');
-                renderWallet();
-            }
-        } else if (tabName === 'info') {
-            if (AppState.getAppData()) {
-                hideSkeleton('info');
-                renderInfo();
+                if (typeof Render !== 'undefined' && Render.renderTop) {
+                    Render.renderTop();
+                } else {
+                    renderTop();
+                }
             }
         }
         
@@ -77,10 +79,9 @@ function switchTab(tabName) {
         // This ensures counters and stats are up-to-date
         // BUT: Don't reload on initial load (AppState.getIsInitialLoad() = true) to prevent infinite loop
         // AND: Only reload if we have existing data (to avoid double load on first visit)
-        if ((tabName === 'earnings' || tabName === 'top') && AppState.getAppData() && !AppState.getIsInitialLoad()) {
+        if ((tabName === 'home' || tabName === 'top') && AppState.getAppData() && !AppState.getIsInitialLoad()) {
             // Reload app data to get fresh counters (only if AppState.getAppData() already exists and not initial load)
             // Use debounced version to prevent multiple rapid calls
-            // Note: loadAppData will update the current tab, not switch to earnings
             loadAppData(false).catch(err => {
                 console.error('Error reloading data:', err);
                 // Data already rendered above, so user sees content even if reload fails
@@ -122,9 +123,9 @@ function goBack() {
         }
     } else {
         if (typeof Navigation !== 'undefined' && Navigation.switchTab) {
-            Navigation.switchTab('partners');
+            Navigation.switchTab('home');
         } else {
-            switchTab('partners');
+            switchTab('home');
         }
     }
 }

@@ -9,14 +9,20 @@ const AppStateInternal = {
     botId: null,
     userId: null,
     appData: null,
-    currentPage: 'partners',
+    currentPage: 'home', // Changed default to 'home'
     navigationHistory: [],
     isInitialLoad: true,
     isLoadingData: false,
     loadDataTimeout: null,
     filteredPartners: [],
     currentSort: 'name',
-    currentFilter: 'all'
+    currentFilter: 'all',
+    // New states for Revenue Launcher
+    didStart7Flow: false, // Track if user started 7% flow
+    topLocked: true, // Track TOP lock status (default: locked)
+    referralCount: 0, // Track referral count for TOP unlock
+    hasSeenOnboarding: false, // Track onboarding completion
+    partnersExpanded: false // Track if partners list is expanded (default: show 5)
 };
 
 // Getters
@@ -32,6 +38,11 @@ function getLoadDataTimeout() { return AppStateInternal.loadDataTimeout; }
 function getFilteredPartners() { return AppStateInternal.filteredPartners; }
 function getCurrentSort() { return AppStateInternal.currentSort; }
 function getCurrentFilter() { return AppStateInternal.currentFilter; }
+function getDidStart7Flow() { return AppStateInternal.didStart7Flow; }
+function getTopLocked() { return AppStateInternal.topLocked; }
+function getReferralCount() { return AppStateInternal.referralCount; }
+function getHasSeenOnboarding() { return AppStateInternal.hasSeenOnboarding; }
+function getPartnersExpanded() { return AppStateInternal.partnersExpanded; }
 
 // Setters
 function setTg(value) { AppStateInternal.tg = value; }
@@ -45,6 +56,11 @@ function setLoadDataTimeout(value) { AppStateInternal.loadDataTimeout = value; }
 function setFilteredPartners(value) { AppStateInternal.filteredPartners = value; }
 function setCurrentSort(value) { AppStateInternal.currentSort = value; }
 function setCurrentFilter(value) { AppStateInternal.currentFilter = value; }
+function setDidStart7Flow(value) { AppStateInternal.didStart7Flow = value; }
+function setTopLocked(value) { AppStateInternal.topLocked = value; }
+function setReferralCount(value) { AppStateInternal.referralCount = value; }
+function setHasSeenOnboarding(value) { AppStateInternal.hasSeenOnboarding = value; }
+function setPartnersExpanded(value) { AppStateInternal.partnersExpanded = value; }
 
 // Navigation history helpers
 function pushNavigationHistory(page) {
@@ -80,6 +96,11 @@ function clearNavigationHistory() {
             getFilteredPartners,
             getCurrentSort,
             getCurrentFilter,
+            getDidStart7Flow,
+            getTopLocked,
+            getReferralCount,
+            getHasSeenOnboarding,
+            getPartnersExpanded,
             
             // Setters
             setTg,
@@ -93,6 +114,11 @@ function clearNavigationHistory() {
             setFilteredPartners,
             setCurrentSort,
             setCurrentFilter,
+            setDidStart7Flow,
+            setTopLocked,
+            setReferralCount,
+            setHasSeenOnboarding,
+            setPartnersExpanded,
             
             // Navigation helpers
             pushNavigationHistory,
@@ -116,7 +142,7 @@ function clearNavigationHistory() {
             setUserId: () => {},
             getAppData: () => null,
             setAppData: () => {},
-            getCurrentPage: () => 'partners',
+            getCurrentPage: () => 'home',
             setCurrentPage: () => {},
             getNavigationHistory: () => [],
             pushNavigationHistory: () => {},
@@ -133,7 +159,17 @@ function clearNavigationHistory() {
             getCurrentSort: () => 'name',
             setCurrentSort: () => {},
             getCurrentFilter: () => 'all',
-            setCurrentFilter: () => {}
+            setCurrentFilter: () => {},
+            getDidStart7Flow: () => false,
+            setDidStart7Flow: () => {},
+            getTopLocked: () => true,
+            setTopLocked: () => {},
+            getReferralCount: () => 0,
+            setReferralCount: () => {},
+            getHasSeenOnboarding: () => false,
+            setHasSeenOnboarding: () => {},
+            getPartnersExpanded: () => false,
+            setPartnersExpanded: () => {}
         };
     }
 })();

@@ -35,26 +35,40 @@ async function getMiniAppData(botId, userId = null, initData = null, forceRefres
         
         const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}/data?${params.toString()}`;
         
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        // Add timeout (30 seconds)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
         
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-            throw new Error(error.detail || `HTTP ${response.status}`);
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                throw new Error(error.detail || `HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Cache the data
+            if (typeof ApiCache !== 'undefined') {
+                ApiCache.set(data);
+            }
+            
+            return data;
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                throw new Error('Час очікування вичерпано. Спробуйте ще раз.');
+            }
+            throw fetchError;
         }
-        
-        const data = await response.json();
-        
-        // Cache the data
-        if (typeof ApiCache !== 'undefined') {
-            ApiCache.set(data);
-        }
-        
-        return data;
     };
 
     try {
@@ -162,7 +176,14 @@ async function sendCallback(botId, data, initData = null) {
     }
 }
 
-// Export functions
+// Export via namespace pattern (for compatibility with render.js)
+window.Api = {
+    getMiniAppData,
+    saveWallet,
+    sendCallback
+};
+
+// Also export for Node.js if needed
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { getMiniAppData, saveWallet, sendCallback };
 }
