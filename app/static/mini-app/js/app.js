@@ -344,12 +344,23 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
             AppState.setAppData(data);
             
             // Initialize TON Connect after app data is loaded
-            if (typeof TonConnect !== 'undefined' && TonConnect.initTonConnect) {
-                // Wait a bit for SDK to fully load and app data to be set
-                setTimeout(() => {
-                    TonConnect.initTonConnect();
-                }, 500);
+            // Check if TON Connect SDK is loaded from CDN first
+            function tryInitTonConnect() {
+                // Check if SDK is loaded (from CDN: TON_CONNECT_UI.TonConnectUI)
+                if (typeof TON_CONNECT_UI !== 'undefined' && typeof TON_CONNECT_UI.TonConnectUI !== 'undefined') {
+                    // SDK is loaded, initialize
+                    if (typeof TonConnect !== 'undefined' && TonConnect.initTonConnect) {
+                        TonConnect.initTonConnect();
+                    }
+                } else if (typeof TonConnect !== 'undefined' && TonConnect.initTonConnect) {
+                    // SDK not loaded yet, wait a bit more
+                    console.warn('TON Connect SDK not loaded yet, retrying...');
+                    setTimeout(tryInitTonConnect, 500);
+                }
             }
+            
+            // Try to initialize immediately, then retry if needed
+            tryInitTonConnect();
             
             // Show onboarding on first visit (check localStorage)
             const storage = typeof SafeStorage !== 'undefined' ? SafeStorage : localStorage;

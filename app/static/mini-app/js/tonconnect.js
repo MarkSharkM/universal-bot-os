@@ -11,8 +11,14 @@ let tonConnectUI = null;
 function initTonConnect() {
     try {
         // Check if TON Connect SDK is loaded
-        if (typeof TonConnectUI === 'undefined') {
+        // SDK from CDN is available as TON_CONNECT_UI.TonConnectUI
+        if (typeof TON_CONNECT_UI === 'undefined' || typeof TON_CONNECT_UI.TonConnectUI === 'undefined') {
             console.warn('TON Connect SDK not loaded, using fallback');
+            console.warn('Expected: TON_CONNECT_UI.TonConnectUI, but got:', {
+                TON_CONNECT_UI: typeof TON_CONNECT_UI,
+                TonConnectUI: typeof TonConnectUI,
+                windowKeys: Object.keys(window).filter(k => k.includes('TON') || k.includes('Ton'))
+            });
             return false;
         }
         
@@ -38,7 +44,8 @@ function initTonConnect() {
             }
         }
         
-        tonConnectUI = new TonConnectUI({
+        // Use TON_CONNECT_UI.TonConnectUI from CDN
+        tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: manifestUrl,
             buttonRootId: 'wallet-connect-telegram',
             uiOptions: {
