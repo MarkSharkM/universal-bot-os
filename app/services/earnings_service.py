@@ -293,7 +293,9 @@ class EarningsService:
         bot_username = self._get_bot_username() or ''
         
         block_title = self.translation_service.get_translation('earnings_block2_title', lang)
-        how_it_works = self.translation_service.get_translation('earnings_block2_how_it_works', lang)
+        how_it_works = self.translation_service.get_translation('earnings_block2_how_it_works', lang, {
+            'bot_username': bot_username
+        })
         examples = self.translation_service.get_translation('earnings_block2_examples', lang)
         enable_title = self.translation_service.get_translation('earnings_enable_7_title', lang)
         enable_steps = self.translation_service.get_translation('earnings_enable_7_steps', lang, {

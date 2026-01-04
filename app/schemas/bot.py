@@ -33,6 +33,7 @@ class BotResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
+    config: Dict[str, Any] = Field(default_factory=dict)
     
     class Config:
         from_attributes = True
