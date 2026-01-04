@@ -283,6 +283,19 @@ const SafeStorage = {
         } catch (e) {
             Object.keys(memoryStorage).forEach(key => delete memoryStorage[key]);
         }
+    },
+    
+    // Alias methods for localStorage compatibility
+    getItem(key) {
+        return this.get(key);
+    },
+    
+    setItem(key, value) {
+        return this.set(key, value);
+    },
+    
+    removeItem(key) {
+        return this.remove(key);
     }
 };
 
