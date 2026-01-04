@@ -1828,11 +1828,12 @@ async def delete_user(
         "deleted": {
             "user_id": str(user_id),
             "external_id": user_external_id,
-            "business_data_records": business_data_count,
+            "business_data_records": business_data_deleted,  # Actual deleted count (hard delete)
             "analytics_events": analytics_events_count,
             "messages": messages_count,
-            "total_records": business_data_count + analytics_events_count + messages_count + 1  # +1 for user
-        }
+            "total_records": business_data_deleted + analytics_events_count + messages_count + 1  # +1 for user
+        },
+        "note": "Business data logs were HARD DELETED (not soft deleted) to prevent counting old logs for new users with the same external_id"
     }
 
 
