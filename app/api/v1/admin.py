@@ -2222,3 +2222,58 @@ async def sync_bot_username(
         logger.error(f"Error syncing bot username: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to sync username: {str(e)}")
 
+
+@router.get("/bots/{bot_id}/test-avatar")
+async def test_bot_avatar(
+    bot_id: UUID,
+    target_username: str = Query(..., description="Target bot username (without @)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Test fetching bot avatar from Telegram API.
+    
+    Args:
+        bot_id: Our bot UUID (to get token)
+        target_username: Target bot username to fetch avatar for
+        db: Database session
+    
+    Returns:
+        Avatar URL or error message
+    """
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    if bot.platform_type != "telegram":
+        raise HTTPException(status_code=400, detail="Only Telegram bots supported")
+    
+    from app.adapters.telegram import TelegramAdapter
+    adapter = TelegramAdapter()
+    
+    try:
+        avatar_url = await adapter.get_bot_avatar_url(bot_id, target_username)
+        
+        if avatar_url:
+            return {
+                "ok": True,
+                "username": target_username,
+                "avatar_url": avatar_url,
+                "message": "Avatar fetched successfully"
+            }
+        else:
+            return {
+                "ok": False,
+                "username": target_username,
+                "avatar_url": None,
+                "message": "Avatar not found or bot has no profile photo"
+            }
+    except Exception as e:
+        logger.error(f"Error fetching bot avatar: {e}", exc_info=True)
+        return {
+            "ok": False,
+            "username": target_username,
+            "avatar_url": None,
+            "error": str(e),
+            "message": f"Error fetching avatar: {str(e)}"
+        }
+
