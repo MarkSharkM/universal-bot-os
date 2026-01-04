@@ -643,9 +643,9 @@
                         <table style="width: 100%; border-collapse: collapse; font-size: 10px; min-width: 2000px;">
                             <thead style="background: #f9fafb;">
                                 <tr>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Дата</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Час</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Дата/Час</th>
                                     <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">User ID</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">External ID</th>
                                     <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Username</th>
                                     <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Device</th>
                                     <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Language</th>
@@ -2154,6 +2154,31 @@
                 
                 console.log('Loaded messages:', messages.length, messages);
                 
+                // Store user data for editing (from messages)
+                if (reset) {
+                    window.usersData = [];
+                }
+                // Extract unique users from messages
+                const userMap = new Map();
+                messages.forEach(msg => {
+                    if (!userMap.has(msg.user_id)) {
+                        userMap.set(msg.user_id, {
+                            id: msg.user_id,
+                            external_id: msg.external_id,
+                            username: msg.username,
+                            first_name: msg.first_name,
+                            last_name: msg.last_name,
+                            top_status: msg.top_status,
+                            top_unlock_method: msg.top_status === 'open' ? (msg.total_invited >= 5 ? 'invites' : 'payment') : '',
+                            total_invited: msg.total_invited,
+                            wallet_address: msg.wallet_address,
+                            balance: msg.balance,
+                            is_active: msg.is_active
+                        });
+                    }
+                });
+                window.usersData.push(...Array.from(userMap.values()));
+                
                 messages.forEach(msg => {
                     const username = msg.username || '-';
                     const firstName = msg.first_name || '';
@@ -2169,10 +2194,14 @@
                         topBadge = '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">LOCKED</span>';
                     }
                     
-                    // Format dates
+                    // Format dates (combined date/time)
                     const commandDate = msg.command_timestamp ? new Date(msg.command_timestamp) : null;
-                    const dateStr = commandDate ? commandDate.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) : '-';
-                    const timeStr = commandDate ? commandDate.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '-';
+                    const dateTimeStr = commandDate ? commandDate.toLocaleString('uk-UA', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    }) : '-';
                     const createdDate = msg.created_at ? new Date(msg.created_at).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) : '-';
                     const lastActivityDate = msg.last_activity ? new Date(msg.last_activity).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) : '-';
                     
@@ -2213,9 +2242,9 @@
                     
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${dateStr}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${timeStr}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${dateTimeStr}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.user_id.substring(0, 8)}...</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.external_id || '-'}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${username}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
                             ${msg.device ? `<span style="background: #e5e7eb; color: #374151; padding: 1px 4px; border-radius: 3px; font-size: 9px;">${msg.device}</span>` : '-'}
