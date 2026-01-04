@@ -27,10 +27,12 @@ class Message(Base):
     user = relationship("User", back_populates="messages")
     bot = relationship("Bot", backref="messages")
     
-    # Index for efficient AI context retrieval
+    # Indexes for efficient queries
     __table_args__ = (
         Index("idx_messages_user_timestamp", "user_id", "timestamp"),
         Index("idx_messages_bot_timestamp", "bot_id", "timestamp"),
+        Index("idx_messages_bot_role_timestamp", "bot_id", "role", "timestamp"),  # For filtering by role
+        Index("idx_messages_bot_user_role_timestamp", "bot_id", "user_id", "role", "timestamp"),  # For finding responses
     )
     
     def __repr__(self):

@@ -2180,18 +2180,44 @@ async def list_bot_messages(
         # Filter by command (e.g., /start, /top)
         query = query.filter(Message.content.like(f'{command}%'))
     
-    # Get user messages ordered by timestamp
+    # Get user messages ordered by timestamp with user data (already joined)
     user_messages = query.order_by(Message.timestamp.desc()).offset(skip).limit(limit).all()
+    
+    # OPTIMIZATION: Batch load all response messages for these user messages in one query
+    if not user_messages:
+        return []
+    
+    user_msg_ids = [msg.id for msg in user_messages]
+    user_ids = list(set([msg.user_id for msg in user_messages]))
+    
+    # Get all assistant messages for these users after their user messages
+    # Use window function approach: get next assistant message for each user message
+    from sqlalchemy import text
+    
+    # Build a more efficient query using window functions or subquery
+    # For now, use batch loading with optimized query
+    response_messages_query = db.query(Message).filter(
+        Message.bot_id == bot_id,
+        Message.user_id.in_(user_ids),
+        Message.role == 'assistant'
+    ).order_by(Message.user_id, Message.timestamp.asc()).all()
+    
+    # Create a map: user_id -> list of assistant messages (sorted by timestamp)
+    response_map = {}
+    for resp_msg in response_messages_query:
+        if resp_msg.user_id not in response_map:
+            response_map[resp_msg.user_id] = []
+        response_map[resp_msg.user_id].append(resp_msg)
     
     result = []
     for user_msg in user_messages:
         # Find the next assistant message (bot response) after this user message
-        response_msg = db.query(Message).filter(
-            Message.bot_id == bot_id,
-            Message.user_id == user_msg.user_id,
-            Message.role == 'assistant',
-            Message.timestamp > user_msg.timestamp
-        ).order_by(Message.timestamp.asc()).first()
+        response_msg = None
+        user_responses = response_map.get(user_msg.user_id, [])
+        for resp in user_responses:
+            if resp.timestamp > user_msg.timestamp:
+                response_msg = resp
+                break
         
         # Calculate response time
         response_time_ms = None
@@ -2201,8 +2227,8 @@ async def list_bot_messages(
             response_time_ms = int(delta.total_seconds() * 1000)
             response_time_seconds = round(delta.total_seconds(), 2)
         
-        # Get user data
-        user = db.query(User).filter(User.id == user_msg.user_id).first()
+        # Get user data (already loaded via JOIN, but access via relationship)
+        user = user_msg.user
         if not user:
             continue
         

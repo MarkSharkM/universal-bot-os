@@ -863,7 +863,7 @@
         function showDatabaseTab(tabName) {
             // No tabs anymore - always show users+messages combined
             if (currentBotId) {
-                loadUsersForUsersFilter();
+                loadUsersForMessagesFilter();
                 loadMessages(0, true);
                 loadUsersForMessagesFilter();
             }
@@ -2030,7 +2030,7 @@
         }
         
         let messagesOffset = 0;
-        const MESSAGES_PER_PAGE = 10;
+        const MESSAGES_PER_PAGE = 20;  // Increased from 10, but API default is 50
         
         async function loadMessages(offset = 0, reset = false) {
             if (!currentBotId) return;
