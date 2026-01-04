@@ -2041,7 +2041,11 @@
                 const userId = document.getElementById('messages-user-filter')?.value || '';
                 let url = `${API_BASE}/bots/${currentBotId}/messages?skip=${offset}&limit=${MESSAGES_PER_PAGE}&sort_by=${sortBy}`;
                 if (command) url += `&command=${encodeURIComponent(command)}`;
-                if (userId) url += `&user_id=${userId}`;
+                if (userId) {
+                    // userId is already UUID from select option value
+                    url += `&user_id=${encodeURIComponent(userId)}`;
+                }
+                console.log('Loading messages with URL:', url);
                 
                 const res = await fetch(url);
                 if (!res.ok) {
