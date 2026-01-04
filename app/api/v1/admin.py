@@ -1613,25 +1613,23 @@ async def delete_user(
     
     user_external_id = user.external_id
     
-    from sqlalchemy import or_, and_, text
+    from sqlalchemy import or_, and_
     from sqlalchemy.sql import func
+    from sqlalchemy import cast, String
     
     # Count related records before deletion
-    # Use text() for JSONB queries to ensure proper SQL generation
+    # Use cast() for JSONB queries (same approach as in user_service.py)
     business_data_count = db.query(BusinessData).filter(
         and_(
             BusinessData.bot_id == bot_id,
             BusinessData.deleted_at.is_(None),
             # Match by user_id in data JSON or by external_id
             or_(
-                text("(data->>'user_id') = :user_id_str"),
-                text("(data->>'external_id') = :external_id_str"),
-                text("(data->>'inviter_external_id') = :external_id_str")
+                cast(BusinessData.data['user_id'], String) == str(user_id),
+                cast(BusinessData.data['external_id'], String) == str(user_external_id),
+                cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
             )
         )
-    ).params(
-        user_id_str=str(user_id),
-        external_id_str=str(user_external_id)
     ).count()
     
     analytics_events_count = db.query(AnalyticsEvent).filter(
@@ -1656,14 +1654,11 @@ async def delete_user(
             BusinessData.bot_id == bot_id,
             BusinessData.deleted_at.is_(None),
             or_(
-                text("(data->>'user_id') = :user_id_str"),
-                text("(data->>'external_id') = :external_id_str"),
-                text("(data->>'inviter_external_id') = :external_id_str")
+                cast(BusinessData.data['user_id'], String) == str(user_id),
+                cast(BusinessData.data['external_id'], String) == str(user_external_id),
+                cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
             )
         )
-    ).params(
-        user_id_str=str(user_id),
-        external_id_str=str(user_external_id)
     ).all()
     for bd in business_data_records:
         bd.deleted_at = func.now()
