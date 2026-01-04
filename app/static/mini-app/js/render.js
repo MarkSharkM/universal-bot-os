@@ -608,35 +608,6 @@ function renderTopUnlocked(container, topPartners) {
     
     container.appendChild(unlockedDiv);
 }
-                if (typeof Haptic !== 'undefined') Haptic.medium();
-                if (typeof Navigation !== 'undefined' && Navigation.switchTab) {
-                    Navigation.switchTab('earnings');
-                } else {
-                    switchTab('earnings');
-                }
-            });
-        } else {
-            button.textContent = `Купити доступ за ${buyTopPrice} ⭐`;
-            button.setAttribute('aria-label', `Купити доступ до TOP за ${buyTopPrice} зірок`);
-            button.addEventListener('click', () => {
-                if (typeof Haptic !== 'undefined') Haptic.medium();
-                if (typeof Actions !== 'undefined' && Actions.handleBuyTop) {
-                    Actions.handleBuyTop(buyTopPrice);
-                } else {
-                    handleBuyTop(buyTopPrice);
-                }
-            });
-        }
-        
-        lockedDiv.appendChild(h2);
-        lockedDiv.appendChild(p1);
-        lockedDiv.appendChild(p2);
-        lockedDiv.appendChild(button);
-        container.appendChild(lockedDiv);
-    } else {
-        // Check if was just unlocked
-        if (wasLocked) {
-            container.classList.add('unlocked');
             setTimeout(() => {
                 container.classList.remove('unlocked');
             }, 1000);
