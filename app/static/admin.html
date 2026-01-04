@@ -2029,8 +2029,8 @@
             }
         }
         
-        let messagesOffset = 0;
-        const MESSAGES_PER_PAGE = 20;  // Increased from 10, but API default is 50
+        // messagesOffset already declared at line 1551
+        // const MESSAGES_PER_PAGE already declared at line 1553
         
         async function loadMessages(offset = 0, reset = false) {
             if (!currentBotId) return;
