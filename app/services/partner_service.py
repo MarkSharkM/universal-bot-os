@@ -117,6 +117,8 @@ class PartnerService:
                 'category': data.get('category', 'TOP'),
                 'active': data.get('active', 'Yes'),
                 'verified': data.get('verified', 'Yes'),
+                'icon': data.get('icon', ''),  # Partner icon/logo URL
+                'image': data.get('image', ''),  # Partner image URL (alternative to icon)
             })
         
         # Sort by ROI Score (descending)
@@ -185,6 +187,8 @@ class PartnerService:
                 'referral_link': data.get('referral_link', ''),
                 'commission': float(data.get('commission', 0)),
                 'category': data.get('category', 'NEW'),
+                'icon': data.get('icon', ''),  # Partner icon/logo URL
+                'image': data.get('image', ''),  # Partner image URL (alternative to icon)
             })
         
         return partner_list[:limit]

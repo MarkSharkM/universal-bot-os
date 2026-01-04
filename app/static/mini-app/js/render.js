@@ -219,6 +219,20 @@ function renderPartnersList(partners, isExpanded = false) {
         const header = document.createElement('div');
         header.className = 'partner-header';
         
+        // Add partner icon if available
+        const iconUrl = partner.icon || partner.image || '';
+        if (iconUrl) {
+            const icon = document.createElement('img');
+            icon.className = 'partner-icon';
+            icon.src = iconUrl;
+            icon.alt = partner.name || 'Partner';
+            icon.onerror = function() {
+                // Hide icon if image fails to load
+                this.style.display = 'none';
+            };
+            header.appendChild(icon);
+        }
+        
         const name = document.createElement('h3');
         name.className = 'partner-name';
         name.textContent = partner.name || 'Unknown';
@@ -614,8 +628,12 @@ function renderTopUnlocked(container, topPartners) {
             card.className = 'partner-card top-partner';
             card.setAttribute('data-partner-id', String(partner.id));
             
+            const iconUrl = partner.icon || partner.image || '';
+            const iconHtml = iconUrl ? `<img class="partner-icon" src="${escapeHtml(iconUrl)}" alt="${escapeHtml(partner.name || 'Partner')}" onerror="this.style.display='none'">` : '';
+            
             card.innerHTML = `
                 <div class="partner-header">
+                    ${iconHtml}
                     <h3 class="partner-name">${escapeHtml(partner.name || 'Unknown')}</h3>
                     <span class="commission-badge top-badge">${partner.commission || 0}%</span>
                 </div>
