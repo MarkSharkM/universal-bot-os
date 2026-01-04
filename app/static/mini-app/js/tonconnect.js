@@ -29,12 +29,13 @@ function initTonConnect() {
         
         const tg = AppState.getTg();
         const manifestUrl = window.location.origin + '/api/v1/mini-apps/tonconnect-manifest.json';
-        console.log('TON Connect manifest URL:', manifestUrl);
+        console.log('📋 TON Connect manifest URL:', manifestUrl);
         
         // Get return URL for Telegram Mini App (universal for any bot)
         let twaReturnUrl = 'https://t.me/EarnHubAggregatorBot';
         if (typeof getBotUrl === 'function') {
             twaReturnUrl = getBotUrl();
+            console.log('📋 Using getBotUrl():', twaReturnUrl);
         } else {
             // Fallback: try to get from AppState
             const appData = AppState.getAppData();
@@ -42,13 +43,16 @@ function initTonConnect() {
                 // Try to get username from config (stored by sync-username endpoint)
                 if (appData.config.username) {
                     twaReturnUrl = `https://t.me/${appData.config.username.replace('@', '')}`;
+                    console.log('📋 Using config.username:', twaReturnUrl);
                 } else if (appData.config.name) {
                     // Fallback: use bot name (assuming it matches username)
                     const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '');
                     twaReturnUrl = `https://t.me/${botName}`;
+                    console.log('📋 Using config.name:', twaReturnUrl);
                 }
             }
         }
+        console.log('📋 Final twaReturnUrl:', twaReturnUrl);
         
         // Use TON_CONNECT_UI.TonConnectUI from CDN
         // Don't use buttonRootId since we have custom button in HTML
@@ -63,15 +67,24 @@ function initTonConnect() {
         
         // Listen for wallet connection status changes
         tonConnectUI.onStatusChange((walletInfo) => {
-            console.log('TON Connect status changed:', walletInfo);
+            console.log('🔔 TON Connect status changed callback fired!');
+            console.log('walletInfo:', walletInfo);
+            console.log('walletInfo type:', typeof walletInfo);
+            console.log('walletInfo keys:', walletInfo ? Object.keys(walletInfo) : 'null');
+            
             if (walletInfo) {
                 // Wallet connected - handle different possible formats
+                console.log('walletInfo.account:', walletInfo.account);
+                console.log('walletInfo.address:', walletInfo.address);
+                
                 const address = walletInfo.account?.address || walletInfo.address;
-                console.log('✅ TON Wallet connected:', address);
+                console.log('✅ TON Wallet connected, extracted address:', address);
+                
                 if (address) {
                     handleWalletConnected(address);
                 } else {
                     console.warn('⚠️ Wallet connected but no address found:', walletInfo);
+                    console.warn('Full walletInfo object:', JSON.stringify(walletInfo, null, 2));
                 }
             } else {
                 // Wallet disconnected
@@ -80,15 +93,23 @@ function initTonConnect() {
             }
         });
         
-        // Check current connection status
+        // Check current connection status (try multiple properties)
         try {
-            const currentWallet = tonConnectUI.wallet;
+            console.log('Checking current wallet status...');
+            console.log('tonConnectUI.wallet:', tonConnectUI.wallet);
+            console.log('tonConnectUI.walletInfo:', tonConnectUI.walletInfo);
+            
+            // Try wallet property
+            const currentWallet = tonConnectUI.wallet || tonConnectUI.walletInfo;
             if (currentWallet) {
                 console.log('TON Connect: Already connected to wallet:', currentWallet);
                 // If already connected, handle it
                 const address = currentWallet.account?.address || currentWallet.address;
                 if (address) {
+                    console.log('Found existing wallet address:', address);
                     handleWalletConnected(address);
+                } else {
+                    console.warn('Wallet object exists but no address found:', currentWallet);
                 }
             } else {
                 console.log('TON Connect: No wallet connected yet');
@@ -191,8 +212,49 @@ function connectTelegramWallet() {
             
             // Check if openModal exists
             if (typeof tonConnectUI.openModal === 'function') {
+                console.log('Calling tonConnectUI.openModal()...');
                 tonConnectUI.openModal();
                 console.log('✅ TON Connect modal opened successfully');
+                
+                // After opening modal, set up polling to check connection status
+                // This helps catch cases where onStatusChange doesn't fire immediately
+                let pollCount = 0;
+                const maxPolls = 30; // Check for 30 seconds
+                const pollInterval = setInterval(() => {
+                    pollCount++;
+                    console.log(`[Poll ${pollCount}/${maxPolls}] Checking wallet status...`);
+                    
+                    try {
+                        // Check both wallet and walletInfo properties
+                        const wallet = tonConnectUI.wallet || tonConnectUI.walletInfo;
+                        if (wallet) {
+                            console.log('✅ Wallet found via polling!', wallet);
+                            const address = wallet.account?.address || wallet.address;
+                            if (address) {
+                                clearInterval(pollInterval);
+                                handleWalletConnected(address);
+                            }
+                        } else {
+                            // Check if modal is still open (if we can detect it)
+                            if (pollCount >= maxPolls) {
+                                console.log('⚠️ Polling timeout - no wallet connection detected');
+                                clearInterval(pollInterval);
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('Error during wallet status poll:', err);
+                        if (pollCount >= maxPolls) {
+                            clearInterval(pollInterval);
+                        }
+                    }
+                }, 1000); // Check every second
+                
+                // Clear polling if modal is closed (we'll detect this via onStatusChange or timeout)
+                setTimeout(() => {
+                    clearInterval(pollInterval);
+                    console.log('Stopped polling for wallet status');
+                }, maxPolls * 1000);
+                
             } else {
                 console.error('❌ tonConnectUI.openModal is not a function!');
                 console.error('tonConnectUI object:', Object.keys(tonConnectUI));
