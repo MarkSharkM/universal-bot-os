@@ -256,6 +256,7 @@ async def _handle_message(
             logger.info(f"Not a referral or no inviter_id: is_referral={is_referral}, inviter_id={inviter_id}")
     
     # Handle command
+    response = {'message': '', 'buttons': []}  # Default empty response
     if command:
         logger.info(f"Handling command: {command} for user {user.id}")
         try:
@@ -319,6 +320,9 @@ async def _handle_message(
                 logger.error(f"Timeout sending message for command {command} after {send_elapsed:.2f}s (timeout=180s, message_size={message_length}, buttons={buttons_count})")
             except Exception as send_error:
                 logger.error(f"Error sending message via Telegram API for command {command}: {send_error}", exc_info=True)
+        except Exception as e:
+            logger.error(f"Error in message sending block for command {command}: {e}", exc_info=True)
+            # Don't raise - webhook should still return 200 OK to Telegram
     
     # Update inviter's total_invited count AFTER attempting to send message (even if command failed)
     # This ensures counter is updated even if command processing fails
@@ -359,22 +363,19 @@ async def _handle_message(
     
     # Save bot response to database AFTER attempting to send (non-blocking)
     if command and response.get('message'):
-                try:
-                    bot_message = Message(
-                        user_id=user.id,
-                        bot_id=bot_id,
-                        role='assistant',
-                        content=response.get('message', ''),
-                        custom_data={}
-                    )
-                    db.add(bot_message)
-                    db.commit()
-                except Exception as db_error:
-                    # Don't fail if DB save fails
-                    logger.warning(f"Failed to save bot message to DB: {db_error}")
-        except Exception as e:
-            logger.error(f"Error in message sending block for command {command}: {e}", exc_info=True)
-            # Don't raise - webhook should still return 200 OK to Telegram
+        try:
+            bot_message = Message(
+                user_id=user.id,
+                bot_id=bot_id,
+                role='assistant',
+                content=response.get('message', ''),
+                custom_data={}
+            )
+            db.add(bot_message)
+            db.commit()
+        except Exception as db_error:
+            # Don't fail if DB save fails
+            logger.warning(f"Failed to save bot message to DB: {db_error}")
     elif text:
         # Not a command, not a wallet - show wallet_invalid_format message (like in production)
         translation_service = TranslationService(db, bot_id)
