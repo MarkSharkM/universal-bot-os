@@ -408,6 +408,15 @@ class CommandService:
             lang = self.translation_service.detect_language(lang)
             logger.info(f"_handle_top: detected lang={lang}")
             
+            # Update total_invited count from database BEFORE checking status
+            # This ensures the count is up-to-date when user checks /top
+            logger.info(f"_handle_top: updating total_invited count from database")
+            try:
+                self.referral_service.update_total_invited(user_id)
+                logger.info(f"_handle_top: total_invited updated successfully")
+            except Exception as e:
+                logger.warning(f"_handle_top: failed to update total_invited: {e}, continuing with cached value")
+            
             # Check TOP unlock status
             logger.info(f"_handle_top: checking top unlock eligibility")
             can_unlock, invites_needed = self.referral_service.check_top_unlock_eligibility(user_id)
