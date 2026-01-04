@@ -2251,9 +2251,11 @@ async def test_bot_avatar(
     adapter = TelegramAdapter()
     
     try:
+        logger.info(f"Testing avatar fetch for @{target_username}")
         avatar_url = await adapter.get_bot_avatar_url(bot_id, target_username)
         
         if avatar_url:
+            logger.info(f"✅ Avatar found for @{target_username}: {avatar_url[:50]}...")
             return {
                 "ok": True,
                 "username": target_username,
@@ -2261,14 +2263,15 @@ async def test_bot_avatar(
                 "message": "Avatar fetched successfully"
             }
         else:
+            logger.warning(f"⚠️ Avatar not found for @{target_username} (bot may not have profile photo)")
             return {
                 "ok": False,
                 "username": target_username,
                 "avatar_url": None,
-                "message": "Avatar not found or bot has no profile photo"
+                "message": "Avatar not found or bot has no profile photo. Check logs for details."
             }
     except Exception as e:
-        logger.error(f"Error fetching bot avatar: {e}", exc_info=True)
+        logger.error(f"Error fetching bot avatar for @{target_username}: {e}", exc_info=True)
         return {
             "ok": False,
             "username": target_username,

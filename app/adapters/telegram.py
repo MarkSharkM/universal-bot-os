@@ -462,10 +462,17 @@ class TelegramAdapter(BaseAdapter):
                 )
                 
                 if chat_response.status_code != 200:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"getChat failed for @{target_bot_username}: HTTP {chat_response.status_code}")
                     return None
                 
                 chat_result = chat_response.json()
                 if not chat_result.get('ok'):
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    error_desc = chat_result.get('description', 'Unknown error')
+                    logger.warning(f"getChat failed for @{target_bot_username}: {error_desc}")
                     return None
                 
                 chat_info = chat_result.get('result', {})
