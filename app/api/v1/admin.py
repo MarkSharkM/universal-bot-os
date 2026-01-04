@@ -1726,6 +1726,106 @@ async def delete_user(
     }
 
 
+@router.get("/logs")
+async def get_logs(
+    limit: int = Query(50, ge=1, le=500, description="Number of log lines to return"),
+    level: Optional[str] = Query(None, description="Filter by log level: DEBUG, INFO, WARNING, ERROR"),
+    search: Optional[str] = Query(None, description="Search text in logs"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get recent application logs.
+    
+    Note: On Railway, logs are streamed to stdout/stderr and visible in Railway dashboard.
+    This endpoint reads from log files if available locally.
+    
+    Args:
+        limit: Number of log lines to return
+        level: Filter by log level
+        search: Search text in logs
+        db: Database session
+    
+    Returns:
+        Recent log entries
+    """
+    import os
+    from pathlib import Path
+    
+    logs_dir = Path("logs")
+    log_file = logs_dir / "app.log"
+    
+    if not log_file.exists():
+        return {
+            "success": False,
+            "message": "Log file not found. On Railway, view logs in Railway dashboard.",
+            "logs": [],
+            "hint": "View logs at: https://railway.app → Your Project → Deployments → View Logs"
+        }
+    
+    try:
+        # Read last N lines from log file
+        with open(log_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        # Get last N lines
+        recent_lines = lines[-limit:] if len(lines) > limit else lines
+        
+        # Parse and filter logs
+        parsed_logs = []
+        for line in recent_lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Simple parsing (format: timestamp - module - level - message)
+            log_entry = {
+                "raw": line,
+                "timestamp": None,
+                "level": None,
+                "module": None,
+                "message": line
+            }
+            
+            # Try to extract level
+            for level_name in ["ERROR", "WARNING", "INFO", "DEBUG"]:
+                if f" - {level_name} - " in line:
+                    log_entry["level"] = level_name
+                    parts = line.split(f" - {level_name} - ", 1)
+                    if len(parts) == 2:
+                        log_entry["message"] = parts[1]
+                        # Try to extract timestamp and module
+                        header = parts[0]
+                        if " - " in header:
+                            header_parts = header.split(" - ", 1)
+                            log_entry["timestamp"] = header_parts[0] if len(header_parts) > 0 else None
+                            log_entry["module"] = header_parts[1] if len(header_parts) > 1 else None
+                    break
+            
+            # Apply filters
+            if level and log_entry["level"] != level.upper():
+                continue
+            
+            if search and search.lower() not in line.lower():
+                continue
+            
+            parsed_logs.append(log_entry)
+        
+        return {
+            "success": True,
+            "total_lines": len(lines),
+            "returned": len(parsed_logs),
+            "logs": parsed_logs[-limit:]  # Limit after filtering
+        }
+        
+    except Exception as e:
+        logger.error(f"Error reading logs: {e}", exc_info=True)
+        return {
+            "success": False,
+            "message": f"Error reading logs: {str(e)}",
+            "logs": []
+        }
+
+
 @router.get("/bots/{bot_id}/users/{user_id}/check-invites")
 async def check_user_invites(
     bot_id: UUID,
