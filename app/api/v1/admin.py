@@ -1519,6 +1519,20 @@ async def update_user(
             if 'wallet_address' in user.custom_data:
                 del user.custom_data['wallet_address']
                 updated_fields.append('wallet_address (deleted)')
+            
+            # Also delete from business_data if exists
+            from app.models.business_data import BusinessData
+            from sqlalchemy.sql import func
+            business_wallets = db.query(BusinessData).filter(
+                BusinessData.bot_id == bot_id,
+                BusinessData.data_type == 'wallet',
+                BusinessData.data['user_id'].astext == str(user.id),
+                BusinessData.deleted_at.is_(None)
+            ).all()
+            for bw in business_wallets:
+                bw.deleted_at = func.now()
+            if business_wallets:
+                updated_fields.append('wallet (deleted from business_data)')
         else:
             # Set wallet address
             user.custom_data['wallet_address'] = wallet_address.strip()
