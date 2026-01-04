@@ -1570,6 +1570,144 @@ async def update_user(
     }
 
 
+@router.delete("/bots/{bot_id}/users/{user_id}")
+async def delete_user(
+    bot_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Delete user and all related data from database.
+    
+    This will delete:
+    - User record
+    - All business_data records (referral logs, wallet data, etc.)
+    - All analytics_events records
+    - All messages records
+    
+    Args:
+        bot_id: Bot UUID
+        user_id: User UUID
+        db: Database session
+    
+    Returns:
+        Deletion summary
+    """
+    from app.models.business_data import BusinessData
+    from app.models.analytics_event import AnalyticsEvent
+    from app.models.message import Message
+    
+    # Verify bot exists
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    # Verify user exists
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.bot_id == bot_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_external_id = user.external_id
+    
+    from sqlalchemy import or_, and_, text
+    from sqlalchemy.sql import func
+    
+    # Count related records before deletion
+    # Use text() for JSONB queries to ensure proper SQL generation
+    business_data_count = db.query(BusinessData).filter(
+        and_(
+            BusinessData.bot_id == bot_id,
+            BusinessData.deleted_at.is_(None),
+            # Match by user_id in data JSON or by external_id
+            or_(
+                text("(data->>'user_id') = :user_id_str"),
+                text("(data->>'external_id') = :external_id_str"),
+                text("(data->>'inviter_external_id') = :external_id_str")
+            )
+        )
+    ).params(
+        user_id_str=str(user_id),
+        external_id_str=str(user_external_id)
+    ).count()
+    
+    analytics_events_count = db.query(AnalyticsEvent).filter(
+        and_(
+            AnalyticsEvent.bot_id == bot_id,
+            or_(
+                AnalyticsEvent.user_id == user_id,
+                AnalyticsEvent.user_external_id == str(user_external_id)
+            )
+        )
+    ).count()
+    
+    messages_count = db.query(Message).filter(
+        Message.bot_id == bot_id,
+        Message.user_id == user_id
+    ).count()
+    
+    # Delete all related data
+    # 1. Delete business_data records (soft delete)
+    business_data_records = db.query(BusinessData).filter(
+        and_(
+            BusinessData.bot_id == bot_id,
+            BusinessData.deleted_at.is_(None),
+            or_(
+                text("(data->>'user_id') = :user_id_str"),
+                text("(data->>'external_id') = :external_id_str"),
+                text("(data->>'inviter_external_id') = :external_id_str")
+            )
+        )
+    ).params(
+        user_id_str=str(user_id),
+        external_id_str=str(user_external_id)
+    ).all()
+    for bd in business_data_records:
+        bd.deleted_at = func.now()
+    
+    # 2. Delete analytics_events records (hard delete)
+    db.query(AnalyticsEvent).filter(
+        and_(
+            AnalyticsEvent.bot_id == bot_id,
+            or_(
+                AnalyticsEvent.user_id == user_id,
+                AnalyticsEvent.user_external_id == str(user_external_id)
+            )
+        )
+    ).delete()
+    
+    # 3. Delete messages records (hard delete)
+    db.query(Message).filter(
+        Message.bot_id == bot_id,
+        Message.user_id == user_id
+    ).delete()
+    
+    # 4. Delete user record (hard delete)
+    db.delete(user)
+    
+    # Commit all deletions
+    db.commit()
+    
+    logger.info(f"Deleted user {user_id} (external_id: {user_external_id}) from bot {bot_id}")
+    logger.info(f"Deleted {business_data_count} business_data records, {analytics_events_count} analytics_events, {messages_count} messages")
+    
+    return {
+        "success": True,
+        "message": f"User {user_id} and all related data deleted successfully",
+        "deleted": {
+            "user_id": str(user_id),
+            "external_id": user_external_id,
+            "business_data_records": business_data_count,
+            "analytics_events": analytics_events_count,
+            "messages": messages_count,
+            "total_records": business_data_count + analytics_events_count + messages_count + 1  # +1 for user
+        }
+    }
+
+
 @router.get("/bots/{bot_id}/users")
 async def list_bot_users(
     bot_id: UUID,

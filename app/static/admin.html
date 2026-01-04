@@ -2069,6 +2069,61 @@
             }
         }
         
+        async function deleteUser(userId, userExternalId) {
+            if (!currentBotId) {
+                alert('Please select a bot first');
+                return;
+            }
+            
+            // Confirm deletion
+            const confirmMessage = `Are you sure you want to delete user ${userExternalId}?\n\nThis will permanently delete:\n- User record\n- All referral logs\n- All analytics events\n- All messages\n\nThis action cannot be undone!`;
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            // Double confirmation for safety
+            if (!confirm('⚠️ FINAL CONFIRMATION: Delete this user and ALL related data?\n\nThis action is IRREVERSIBLE!')) {
+                return;
+            }
+            
+            try {
+                const url = `${API_BASE}/bots/${currentBotId}/users/${userId}`;
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!res.ok) {
+                    let errorText = 'Failed to delete user';
+                    try {
+                        const error = await res.json();
+                        errorText = error.detail || error.message || JSON.stringify(error);
+                    } catch (e) {
+                        errorText = `HTTP ${res.status}: ${res.statusText}`;
+                    }
+                    throw new Error(errorText);
+                }
+                
+                const result = await res.json();
+                const deleted = result.deleted || {};
+                alert(`User deleted successfully!\n\nDeleted:\n- User record\n- ${deleted.business_data_records || 0} business data records\n- ${deleted.analytics_events || 0} analytics events\n- ${deleted.messages || 0} messages\n\nTotal: ${deleted.total_records || 0} records`);
+                
+                // Reload users list
+                loadUsers(0, true);
+            } catch (error) {
+                let errorMessage = 'Failed to delete user';
+                if (error && error.message) {
+                    errorMessage = error.message;
+                } else if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error && error.toString && error.toString() !== '[object Object]') {
+                    errorMessage = error.toString();
+                }
+                alert('Error deleting user: ' + errorMessage);
+                console.error('Error deleting user:', error);
+            }
+        }
+        
         async function loadUsers(offset = 0, reset = false) {
             if (!currentBotId) return;
             
@@ -2148,7 +2203,8 @@
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${new Date(user.created_at).toLocaleString()}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${lastActivity}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
-                            <button onclick="showEditUserForm('${user.id}')" style="background: #059669; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;">Edit</button>
+                            <button onclick="showEditUserForm('${user.id}')" style="background: #059669; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; margin-right: 5px;">Edit</button>
+                            <button onclick="deleteUser('${user.id}', '${user.external_id || user.id}')" style="background: #dc2626; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;">Delete</button>
                         </td>
                     `;
                     tbody.appendChild(row);
