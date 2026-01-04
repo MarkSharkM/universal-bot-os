@@ -551,6 +551,31 @@ async def get_mini_app_data(
     if not final_user_id:
         raise HTTPException(status_code=400, detail="user_id or init_data required")
     
+    # Auto-sync bot username if missing (critical for TON Connect twaReturnUrl)
+    bot_config = bot.config or {}
+    if not bot_config.get("username"):
+        try:
+            from app.adapters.telegram import TelegramAdapter
+            adapter = TelegramAdapter()
+            bot_info = await adapter.get_bot_info(bot_id)
+            bot_username = bot_info.get('username')
+            if bot_username:
+                # Save to bot.config for future use
+                if not bot.config:
+                    bot.config = {}
+                bot.config['username'] = bot_username
+                bot.config['bot_id'] = bot_info.get('id')
+                bot.config['first_name'] = bot_info.get('first_name')
+                from sqlalchemy.orm.attributes import flag_modified
+                flag_modified(bot, 'config')
+                db.commit()
+                db.refresh(bot)
+                logger.info(f"Auto-synced bot username: {bot_username} for bot_id={bot_id}")
+                # Update bot_config for use below
+                bot_config = bot.config
+        except Exception as sync_err:
+            logger.warning(f"Could not auto-sync bot username: {sync_err}")
+    
     # Initialize services
     user_service = UserService(db, bot_id)
     translation_service = TranslationService(db, bot_id)
@@ -658,10 +683,32 @@ async def get_mini_app_data(
             "config": {
                 # Contract:
                 # - `config.ui.*` is the canonical shape expected by Mini App frontend
-                "username": bot_config.get("username", ""),  # Bot username for TON Connect
+                # Get username - sync if missing (critical for TON Connect twaReturnUrl)
+                bot_username = bot_config.get("username")
+                if not bot_username:
+                    # Try to sync username automatically
+                    try:
+                        from app.adapters.telegram import TelegramAdapter
+                        adapter = TelegramAdapter()
+                        bot_info = await adapter.get_bot_info(bot_id)
+                        bot_username = bot_info.get('username')
+                        if bot_username:
+                            # Save to bot.config for future use
+                            if not bot.config:
+                                bot.config = {}
+                            bot.config['username'] = bot_username
+                            from sqlalchemy.orm.attributes import flag_modified
+                            flag_modified(bot, 'config')
+                            db.commit()
+                            logger.info(f"Auto-synced bot username: {bot_username} for bot_id={bot_id}")
+                    except Exception as sync_err:
+                        logger.warning(f"Could not auto-sync bot username: {sync_err}")
+                        # Fallback to empty string (frontend will use fallback)
+                        bot_username = ""
+                
+                "username": bot_username,  # Bot username for TON Connect (required!)
                 "name": bot_config.get("name", bot.name or "Mini App"),  # Bot name
                 # - `theme/colors/features` are kept for backward compatibility with older frontends
-                "name": bot_config.get("name", bot.name or "Bot"),
                 "ui": {
                     "theme": bot_config.get("ui", {}).get("theme", "dark"),
                     "colors": bot_config.get("ui", {}).get("colors", {}),
