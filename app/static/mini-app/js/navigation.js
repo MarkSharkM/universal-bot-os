@@ -27,11 +27,6 @@ function switchTab(tabName) {
         }
     });
     
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    
     // Show target page
     const targetPage = document.getElementById(`${tabName}-page`);
     if (!targetPage) {
@@ -39,7 +34,7 @@ function switchTab(tabName) {
         return;
     }
     
-    // Ensure all pages are hidden first
+    // Hide all pages first
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
