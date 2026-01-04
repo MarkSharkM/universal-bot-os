@@ -681,7 +681,19 @@ class CommandService:
             logger.error(f"{{bot_username}} placeholder not replaced in share_referral translation! bot_username={bot_username}, bot_id={self.bot_id}")
         
         # Replace referralLink placeholder with actual link
+        # NOTE: get_translation() already replaces placeholders, but we do it again here as a safety check
+        # This ensures both {{referralLink}} and [[referralLink]] formats are replaced
         message_text = message_text.replace('[[referralLink]]', referral_link).replace('{{referralLink}}', referral_link)
+        
+        # CRITICAL: Remove any duplicate links that might have been added
+        # Check if link appears at the start of the message (Telegram might add preview)
+        lines = message_text.split('\n')
+        if lines and lines[0].strip() == referral_link:
+            # Remove duplicate link at the start
+            lines = lines[1:]
+            message_text = '\n'.join(lines)
+            logger.warning(f"Removed duplicate referral link from start of /share message for bot_id={self.bot_id}")
+        
         # Remove trailing newlines and whitespace
         message_text = message_text.rstrip()
         # Message is ready - link is already in text from placeholder replacement
