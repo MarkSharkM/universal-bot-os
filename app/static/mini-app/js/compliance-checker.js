@@ -278,6 +278,9 @@
             complianceResult.pushNotifications.errors.push("service_worker_not_supported");
         }
     } catch(err) {
+        if (!complianceResult.pushNotifications) {
+            complianceResult.pushNotifications = { enabled: false, errors: [] };
+        }
         complianceResult.pushNotifications.errors.push("push_notifications_error:" + err.message);
     }
 

@@ -32,37 +32,70 @@ function initTonConnect() {
         console.log('📋 TON Connect manifest URL:', manifestUrl);
         
         // Get return URL for Telegram Mini App (universal for any bot)
+        // This is CRITICAL - wallet must return to this URL after connection
         let twaReturnUrl = 'https://t.me/EarnHubAggregatorBot';
+        
+        // Try multiple methods to get correct bot URL
         if (typeof getBotUrl === 'function') {
-            twaReturnUrl = getBotUrl();
-            console.log('📋 Using getBotUrl():', twaReturnUrl);
-        } else {
-            // Fallback: try to get from AppState
+            try {
+                twaReturnUrl = getBotUrl();
+                console.log('📋 Using getBotUrl():', twaReturnUrl);
+            } catch (err) {
+                console.warn('⚠️ Error calling getBotUrl():', err);
+            }
+        }
+        
+        // Fallback: try to get from AppState
+        if (twaReturnUrl === 'https://t.me/EarnHubAggregatorBot') {
             const appData = AppState.getAppData();
             if (appData && appData.config) {
                 // Try to get username from config (stored by sync-username endpoint)
                 if (appData.config.username) {
-                    twaReturnUrl = `https://t.me/${appData.config.username.replace('@', '')}`;
+                    twaReturnUrl = `https://t.me/${appData.config.username.replace('@', '').trim()}`;
                     console.log('📋 Using config.username:', twaReturnUrl);
                 } else if (appData.config.name) {
                     // Fallback: use bot name (assuming it matches username)
-                    const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '');
+                    const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '').trim();
                     twaReturnUrl = `https://t.me/${botName}`;
                     console.log('📋 Using config.name:', twaReturnUrl);
                 }
             }
         }
+        
+        // Validate twaReturnUrl format
+        if (!twaReturnUrl.startsWith('https://t.me/')) {
+            console.error('❌ Invalid twaReturnUrl format:', twaReturnUrl);
+            console.error('Expected format: https://t.me/username');
+            twaReturnUrl = 'https://t.me/EarnHubAggregatorBot'; // Fallback
+        }
+        
         console.log('📋 Final twaReturnUrl:', twaReturnUrl);
+        console.log('⚠️ IMPORTANT: Wallet must return to this URL after connection!');
         
         // Use TON_CONNECT_UI.TonConnectUI from CDN
         // Don't use buttonRootId since we have custom button in HTML
         // We'll call openModal() manually when button is clicked
+        console.log('🔧 Creating TON Connect UI instance with:', {
+            manifestUrl,
+            twaReturnUrl,
+            hasTON_CONNECT_UI: typeof TON_CONNECT_UI !== 'undefined',
+            hasTonConnectUI: typeof TON_CONNECT_UI?.TonConnectUI !== 'undefined'
+        });
+        
         tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: manifestUrl,
             // buttonRootId: 'wallet-connect-telegram', // Removed - we use custom button
             uiOptions: {
                 twaReturnUrl: twaReturnUrl,
             }
+        });
+        
+        console.log('✅ TON Connect UI instance created');
+        console.log('🔍 Instance properties:', {
+            hasWallet: 'wallet' in tonConnectUI,
+            hasWalletInfo: 'walletInfo' in tonConnectUI,
+            hasOnStatusChange: typeof tonConnectUI.onStatusChange === 'function',
+            hasOpenModal: typeof tonConnectUI.openModal === 'function'
         });
         
         // Listen for wallet connection status changes
