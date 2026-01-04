@@ -1726,6 +1726,146 @@ async def delete_user(
     }
 
 
+@router.get("/bots/{bot_id}/users/{user_id}/check-invites")
+async def check_user_invites(
+    bot_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Check and debug invites for a specific user.
+    Shows detailed information about referral counting.
+    
+    Args:
+        bot_id: Bot UUID
+        user_id: User UUID
+        db: Database session
+    
+    Returns:
+        Detailed invite information
+    """
+    from app.models.business_data import BusinessData
+    from app.services.referral_service import ReferralService
+    from sqlalchemy import text
+    
+    # Verify bot exists
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    # Verify user exists
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.bot_id == bot_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_external_id = user.external_id
+    current_total_invited = user.custom_data.get('total_invited', 0) if user.custom_data else 0
+    
+    # Get referral service count
+    referral_service = ReferralService(db, bot_id)
+    sql_count = referral_service.count_referrals(user_id)
+    
+    # Get all business_data logs for this inviter
+    all_logs = db.query(BusinessData).filter(
+        BusinessData.bot_id == bot_id,
+        BusinessData.data_type == 'log'
+    ).all()
+    
+    # Filter logs for this inviter
+    inviter_logs = []
+    for log in all_logs:
+        if log.data and log.data.get('inviter_external_id') == str(user_external_id):
+            inviter_logs.append(log)
+    
+    # Count by deleted_at status
+    active_logs = [log for log in inviter_logs if log.deleted_at is None]
+    deleted_logs = [log for log in inviter_logs if log.deleted_at is not None]
+    
+    # Check referral logs (is_referral = true)
+    referral_logs = []
+    for log in active_logs:
+        data = log.data or {}
+        is_referral = data.get('is_referral')
+        if is_referral == True or is_referral == 'true' or is_referral == 'True':
+            referral_logs.append(log)
+    
+    # Count unique external_ids
+    unique_external_ids = set()
+    referral_details = []
+    for log in referral_logs:
+        data = log.data or {}
+        external_id = data.get('external_id', '')
+        if external_id:
+            unique_external_ids.add(external_id)
+            referral_details.append({
+                "external_id": external_id,
+                "user_id": data.get('user_id'),
+                "created_at": log.created_at.isoformat() if log.created_at else None,
+                "is_referral": data.get('is_referral'),
+                "click_type": data.get('click_type', 'Unknown')
+            })
+    
+    # Execute raw SQL query (same as in count_referrals)
+    sql_query = text("""
+        SELECT COUNT(DISTINCT data->>'external_id') as count
+        FROM business_data
+        WHERE bot_id = CAST(:bot_id AS uuid)
+          AND data_type = 'log'
+          AND deleted_at IS NULL
+          AND (data->>'inviter_external_id') = :inviter_external_id
+          AND (
+            (data->>'is_referral') IN ('true', 'True')
+            OR (data->>'is_referral')::boolean = true
+          )
+          AND (data->>'external_id') IS NOT NULL
+          AND (data->>'external_id') != ''
+    """)
+    
+    result = db.execute(
+        sql_query,
+        {
+            'bot_id': str(bot_id),
+            'inviter_external_id': str(user_external_id)
+        }
+    ).first()
+    
+    sql_count_raw = result.count if result and hasattr(result, 'count') else 0
+    
+    # Check if counts match
+    counts_match = sql_count == len(unique_external_ids) == sql_count_raw
+    needs_update = current_total_invited != sql_count
+    
+    return {
+        "user": {
+            "id": str(user.id),
+            "external_id": user.external_id,
+            "username": user.custom_data.get('username', 'N/A') if user.custom_data else 'N/A',
+            "current_total_invited": current_total_invited
+        },
+        "counts": {
+            "user_custom_data_total_invited": current_total_invited,
+            "referral_service_count": sql_count,
+            "raw_sql_count": int(sql_count_raw),
+            "python_unique_count": len(unique_external_ids),
+            "counts_match": counts_match,
+            "needs_update": needs_update
+        },
+        "logs": {
+            "total_logs_for_inviter": len(inviter_logs),
+            "active_logs": len(active_logs),
+            "deleted_logs": len(deleted_logs),
+            "referral_logs": len(referral_logs),
+            "unique_external_ids": len(unique_external_ids)
+        },
+        "referral_details": sorted(referral_details, key=lambda x: x.get('created_at', ''), reverse=True),
+        "recommendation": "Update total_invited" if needs_update else "All counts match"
+    }
+
+
 @router.get("/bots/{bot_id}/users")
 async def list_bot_users(
     bot_id: UUID,
