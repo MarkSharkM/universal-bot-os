@@ -259,7 +259,7 @@ async def _handle_message(
     if command:
         logger.info(f"Handling command: {command} for user {user.id}")
         try:
-            response = command_service.handle_command(
+            response = await command_service.handle_command(
                 command,
                 user.id,
                 user_lang=user.language_code,

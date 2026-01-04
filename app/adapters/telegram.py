@@ -1,9 +1,10 @@
 """
 Telegram adapter implementation
 """
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from uuid import UUID
 import httpx
+import logging
 
 from app.adapters.base import BaseAdapter
 from app.core.database import SessionLocal
@@ -428,6 +429,116 @@ class TelegramAdapter(BaseAdapter):
                     return bot_info
                 else:
                     raise ValueError(f"Failed to get bot info: {result}")
+        finally:
+            db.close()
+    
+    async def get_bot_avatar_url(self, bot_id: UUID, target_bot_username: str) -> Optional[str]:
+        """
+        Get bot avatar URL from Telegram API.
+        Uses our bot's token to fetch another bot's avatar.
+        
+        Args:
+            bot_id: Our bot UUID (to get token)
+            target_bot_username: Target bot username (without @)
+        
+        Returns:
+            Avatar URL or None if not available
+        """
+        db = SessionLocal()
+        try:
+            bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if not bot:
+                return None
+            
+            token = bot.token
+            
+            # Step 1: Get bot chat info (to get user_id)
+            get_chat_url = f"{self.BASE_URL}{token}/getChat"
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                # Use @username format
+                chat_response = await client.post(
+                    get_chat_url,
+                    json={"chat_id": f"@{target_bot_username}"}
+                )
+                
+                if chat_response.status_code != 200:
+                    return None
+                
+                chat_result = chat_response.json()
+                if not chat_result.get('ok'):
+                    return None
+                
+                chat_info = chat_result.get('result', {})
+                user_id = chat_info.get('id')
+                
+                if not user_id:
+                    return None
+                
+                # Step 2: Get profile photos
+                photos_url = f"{self.BASE_URL}{token}/getUserProfilePhotos"
+                photos_response = await client.post(
+                    photos_url,
+                    json={"user_id": user_id, "limit": 1}
+                )
+                
+                if photos_response.status_code != 200:
+                    return None
+                
+                photos_result = photos_response.json()
+                if not photos_result.get('ok'):
+                    return None
+                
+                photos = photos_result.get('result', {})
+                total_count = photos.get('total_count', 0)
+                
+                if total_count == 0:
+                    return None
+                
+                # Step 3: Get file path for the largest photo
+                photos_list = photos.get('photos', [])
+                if not photos_list:
+                    return None
+                
+                # Get largest photo (first in array is usually the largest)
+                largest_photo = photos_list[0]
+                if not largest_photo:
+                    return None
+                
+                # Get largest file_size
+                file_sizes = largest_photo
+                if isinstance(file_sizes, list) and len(file_sizes) > 0:
+                    photo_file = file_sizes[-1]  # Last is usually largest
+                    file_id = photo_file.get('file_id')
+                    
+                    if not file_id:
+                        return None
+                    
+                    # Step 4: Get file path
+                    get_file_url = f"{self.BASE_URL}{token}/getFile"
+                    file_response = await client.post(
+                        get_file_url,
+                        json={"file_id": file_id}
+                    )
+                    
+                    if file_response.status_code != 200:
+                        return None
+                    
+                    file_result = file_response.json()
+                    if not file_result.get('ok'):
+                        return None
+                    
+                    file_path = file_result.get('result', {}).get('file_path')
+                    if not file_path:
+                        return None
+                    
+                    # Step 5: Return full URL
+                    return f"https://api.telegram.org/file/bot{token}/{file_path}"
+                
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Error getting bot avatar for @{target_bot_username}: {e}")
+            return None
         finally:
             db.close()
     

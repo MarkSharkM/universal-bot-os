@@ -604,10 +604,10 @@ async def get_mini_app_data(
         earnings_data = earnings_service.get_earnings_data(user.id)
         
         # Partners (with user language for localized descriptions)
-        partners = partner_service.get_partners(user_lang=user_lang)
+        partners = await partner_service.get_partners(user_lang=user_lang)
         
         # TOP partners (with user language for localized descriptions)
-        top_partners = partner_service.get_top_partners(user_lang=user_lang)
+        top_partners = await partner_service.get_top_partners(user_lang=user_lang)
         
         # User wallet
         wallet = user_service.get_wallet(user.id)

@@ -266,7 +266,7 @@ class CommandService:
         # Default: all commands enabled
         return True
     
-    def handle_command(
+    async def handle_command(
         self,
         command: str,
         user_id: UUID,
@@ -311,7 +311,11 @@ class CommandService:
             return {'error': f'Unknown command: {command}'}
         
         try:
-            response = handler(user_id, user_lang, start_param)
+            # Handle async handlers (top, partners)
+            if command in ('top', 'partners'):
+                response = await handler(user_id, user_lang, start_param)
+            else:
+                response = handler(user_id, user_lang, start_param)
             logger.info(f"handle_command: {command} completed successfully, response has message: {bool(response.get('message'))}")
             return response
         except Exception as e:
@@ -363,7 +367,7 @@ class CommandService:
             'parse_mode': 'HTML'
         }
     
-    def _handle_top(
+    async def _handle_top(
         self,
         user_id: UUID,
         user_lang: Optional[str],
@@ -462,7 +466,7 @@ class CommandService:
         logger.info(f"_handle_top: TOP is open, getting partners")
         try:
             logger.info(f"_handle_top: calling get_top_partners")
-            partners = self.partner_service.get_top_partners(limit=20, user_lang=lang)
+            partners = await self.partner_service.get_top_partners(limit=20, user_lang=lang)
             logger.info(f"_handle_top: found {len(partners) if partners else 0} top partners")
         except Exception as e:
             logger.error(f"_handle_top: error getting top partners: {e}", exc_info=True)
@@ -515,7 +519,7 @@ class CommandService:
             'top_status': 'open'
         }
     
-    def _handle_partners(
+    async def _handle_partners(
         self,
         user_id: UUID,
         user_lang: Optional[str],
@@ -534,7 +538,7 @@ class CommandService:
         logger.info(f"_handle_partners: detected lang={lang}")
         
         try:
-            partners = self.partner_service.get_partners(limit=50, user_lang=lang)
+            partners = await self.partner_service.get_partners(limit=50, user_lang=lang)
             logger.info(f"_handle_partners: found {len(partners) if partners else 0} partners")
         except Exception as e:
             logger.error(f"_handle_partners: error getting partners: {e}", exc_info=True)

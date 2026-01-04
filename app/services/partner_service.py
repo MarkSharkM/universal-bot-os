@@ -51,7 +51,7 @@ class PartnerService:
         partners_config = config.get('partners', {})
         return partners_config.get('enabled', True)  # Default: enabled
     
-    def get_top_partners(
+    async def get_top_partners(
         self,
         limit: int = 50,
         user_lang: str = 'en'
@@ -105,20 +105,42 @@ class PartnerService:
         for partner in partners:
             data = partner.data
             roi_score = float(data.get('roi_score', 0))
+            referral_link = data.get('referral_link', '')
+            
+            # Auto-detect bot icon from Telegram if referral_link is a t.me bot link
+            icon_url = data.get('icon', '') or data.get('image', '')
+            
+            # If no custom icon and referral_link is a Telegram bot link, try to get bot avatar
+            if not icon_url and referral_link:
+                import re
+                # Extract bot username from t.me/botname or t.me/botname?start=...
+                match = re.search(r't\.me/([a-zA-Z0-9_]+)', referral_link)
+                if match:
+                    bot_username = match.group(1)
+                    try:
+                        from app.adapters.telegram import TelegramAdapter
+                        adapter = TelegramAdapter()
+                        # Use our bot's token to fetch partner bot's avatar
+                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, bot_username)
+                        if avatar_url:
+                            icon_url = avatar_url
+                            logger.info(f"Auto-fetched avatar for TOP bot @{bot_username}: {icon_url[:50]}...")
+                    except Exception as e:
+                        logger.warning(f"Could not auto-fetch avatar for @{bot_username}: {e}")
             
             partner_list.append({
                 'id': str(partner.id),
                 'name': data.get('bot_name', 'Bot'),  # Use 'name' for frontend compatibility
                 'bot_name': data.get('bot_name', 'Bot'),  # Keep for backward compatibility
                 'description': self._get_localized_description(data, user_lang),
-                'referral_link': data.get('referral_link', ''),
+                'referral_link': referral_link,
                 'commission': float(data.get('commission', 0)),
                 'roi_score': roi_score,
                 'category': data.get('category', 'TOP'),
                 'active': data.get('active', 'Yes'),
                 'verified': data.get('verified', 'Yes'),
-                'icon': data.get('icon', ''),  # Partner icon/logo URL
-                'image': data.get('image', ''),  # Partner image URL (alternative to icon)
+                'icon': icon_url,  # Auto-fetched from Telegram or custom
+                'image': icon_url,  # Same as icon for backward compatibility
             })
         
         # Sort by ROI Score (descending)
@@ -126,7 +148,7 @@ class PartnerService:
         
         return partner_list[:limit]
     
-    def get_partners(
+    async def get_partners(
         self,
         limit: int = 100,
         user_lang: str = 'en'
@@ -178,17 +200,39 @@ class PartnerService:
         partner_list = []
         for partner in partners:
             data = partner.data
+            referral_link = data.get('referral_link', '')
+            
+            # Auto-detect bot icon from Telegram if referral_link is a t.me bot link
+            icon_url = data.get('icon', '') or data.get('image', '')
+            
+            # If no custom icon and referral_link is a Telegram bot link, try to get bot avatar
+            if not icon_url and referral_link:
+                import re
+                # Extract bot username from t.me/botname or t.me/botname?start=...
+                match = re.search(r't\.me/([a-zA-Z0-9_]+)', referral_link)
+                if match:
+                    bot_username = match.group(1)
+                    try:
+                        from app.adapters.telegram import TelegramAdapter
+                        adapter = TelegramAdapter()
+                        # Use our bot's token to fetch partner bot's avatar
+                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, bot_username)
+                        if avatar_url:
+                            icon_url = avatar_url
+                            logger.info(f"Auto-fetched avatar for bot @{bot_username}: {icon_url[:50]}...")
+                    except Exception as e:
+                        logger.warning(f"Could not auto-fetch avatar for @{bot_username}: {e}")
             
             partner_list.append({
                 'id': str(partner.id),
                 'name': data.get('bot_name', 'Bot'),  # Use 'name' for frontend compatibility
                 'bot_name': data.get('bot_name', 'Bot'),  # Keep for backward compatibility
                 'description': self._get_localized_description(data, user_lang),
-                'referral_link': data.get('referral_link', ''),
+                'referral_link': referral_link,
                 'commission': float(data.get('commission', 0)),
                 'category': data.get('category', 'NEW'),
-                'icon': data.get('icon', ''),  # Partner icon/logo URL
-                'image': data.get('image', ''),  # Partner image URL (alternative to icon)
+                'icon': icon_url,  # Auto-fetched from Telegram or custom
+                'image': icon_url,  # Same as icon for backward compatibility
             })
         
         return partner_list[:limit]
