@@ -537,6 +537,8 @@ class TelegramAdapter(BaseAdapter):
                 return None
                 
         except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
             logger.warning(f"Error getting bot avatar for @{target_bot_username}: {e}")
             return None
         finally:
