@@ -86,19 +86,18 @@ function switchTab(tabName) {
             }
         }
     }
-        
-        // Reload data when switching to tabs that need fresh data
-        // This ensures counters and stats are up-to-date
-        // BUT: Don't reload on initial load (AppState.getIsInitialLoad() = true) to prevent infinite loop
-        // AND: Only reload if we have existing data (to avoid double load on first visit)
-        if ((tabName === 'home' || tabName === 'top') && AppState.getAppData() && !AppState.getIsInitialLoad()) {
-            // Reload app data to get fresh counters (only if AppState.getAppData() already exists and not initial load)
-            // Use debounced version to prevent multiple rapid calls
-            loadAppData(false).catch(err => {
-                console.error('Error reloading data:', err);
-                // Data already rendered above, so user sees content even if reload fails
-            });
-        }
+    
+    // Reload data when switching to tabs that need fresh data
+    // This ensures counters and stats are up-to-date
+    // BUT: Don't reload on initial load (AppState.getIsInitialLoad() = true) to prevent infinite loop
+    // AND: Only reload if we have existing data (to avoid double load on first visit)
+    if ((tabName === 'home' || tabName === 'top') && AppState.getAppData() && !AppState.getIsInitialLoad()) {
+        // Reload app data to get fresh counters (only if AppState.getAppData() already exists and not initial load)
+        // Use debounced version to prevent multiple rapid calls
+        loadAppData(false).catch(err => {
+            console.error('Error reloading data:', err);
+            // Data already rendered above, so user sees content even if reload fails
+        });
     }
 }
 
