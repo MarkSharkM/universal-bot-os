@@ -297,11 +297,13 @@ class ReferralService:
         
         # Use raw SQL with DISTINCT for maximum performance
         # Simplified: check is_referral as text first (faster), then boolean
+        # IMPORTANT: Exclude soft-deleted records (deleted_at IS NULL)
         query = text("""
             SELECT COUNT(DISTINCT data->>'external_id') as count
             FROM business_data
             WHERE bot_id = CAST(:bot_id AS uuid)
               AND data_type = 'log'
+              AND deleted_at IS NULL
               AND (data->>'inviter_external_id') = :inviter_external_id
               AND (
                 (data->>'is_referral') IN ('true', 'True')
