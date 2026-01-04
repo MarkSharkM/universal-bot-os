@@ -102,40 +102,87 @@ class PartnerService:
         
         # Convert to dicts and sort by ROI Score
         partner_list = []
-        for partner in partners:
+        
+        # First pass: collect partner data and prepare avatar fetch tasks
+        partner_data_list = []
+        avatar_tasks = {}  # {partner_index: (bot_username, task)}
+        
+        for idx, partner in enumerate(partners):
             data = partner.data
             roi_score = float(data.get('roi_score', 0))
             referral_link = data.get('referral_link', '')
-            
-            # Auto-detect bot icon from Telegram if referral_link is a t.me bot link
             icon_url = data.get('icon', '') or data.get('image', '')
             
-            # If no custom icon and referral_link is a Telegram bot link, try to get bot avatar
+            # Prepare avatar fetch if needed
+            bot_username = None
             if not icon_url and referral_link:
                 import re
-                # Extract bot username from t.me/botname or t.me/botname?start=...
                 match = re.search(r't\.me/([a-zA-Z0-9_]+)', referral_link)
                 if match:
                     bot_username = match.group(1)
+                    avatar_tasks[idx] = bot_username
+            
+            partner_data_list.append({
+                'id': str(partner.id),
+                'data': data,
+                'referral_link': referral_link,
+                'icon_url': icon_url,
+                'roi_score': roi_score,
+                'bot_username': bot_username
+            })
+        
+        # Second pass: fetch avatars in parallel (if any)
+        if avatar_tasks:
+            try:
+                from app.adapters.telegram import TelegramAdapter
+                import asyncio
+                adapter = TelegramAdapter()
+                
+                # Create tasks for parallel fetching
+                async def fetch_avatar(idx, username):
                     try:
-                        from app.adapters.telegram import TelegramAdapter
-                        adapter = TelegramAdapter()
-                        # Use our bot's token to fetch partner bot's avatar
-                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, bot_username)
-                        if avatar_url:
-                            icon_url = avatar_url
-                            logger.info(f"Auto-fetched avatar for TOP bot @{bot_username}: {icon_url[:50]}...")
+                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, username)
+                        return idx, avatar_url
                     except Exception as e:
-                        logger.warning(f"Could not auto-fetch avatar for @{bot_username}: {e}")
+                        logger.warning(f"Could not auto-fetch avatar for @{username}: {e}")
+                        return idx, None
+                
+                # Fetch all avatars in parallel
+                tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Update icon_url for partners with fetched avatars
+                avatar_map = {}
+                for result in results:
+                    if isinstance(result, Exception):
+                        continue
+                    idx, avatar_url = result
+                    if avatar_url:
+                        avatar_map[idx] = avatar_url
+                        logger.info(f"Auto-fetched avatar for TOP partner {idx}: {avatar_url[:50]}...")
+                
+                # Update partner data with fetched avatars
+                for idx, avatar_url in avatar_map.items():
+                    if partner_data_list[idx]['icon_url']:
+                        continue  # Don't override custom icon
+                    partner_data_list[idx]['icon_url'] = avatar_url
+                    
+            except Exception as e:
+                logger.warning(f"Error fetching TOP avatars in parallel: {e}")
+        
+        # Third pass: build final partner list
+        for partner_data in partner_data_list:
+            data = partner_data['data']
+            icon_url = partner_data['icon_url']
             
             partner_list.append({
-                'id': str(partner.id),
+                'id': partner_data['id'],
                 'name': data.get('bot_name', 'Bot'),  # Use 'name' for frontend compatibility
                 'bot_name': data.get('bot_name', 'Bot'),  # Keep for backward compatibility
                 'description': self._get_localized_description(data, user_lang),
-                'referral_link': referral_link,
+                'referral_link': partner_data['referral_link'],
                 'commission': float(data.get('commission', 0)),
-                'roi_score': roi_score,
+                'roi_score': partner_data['roi_score'],
                 'category': data.get('category', 'TOP'),
                 'active': data.get('active', 'Yes'),
                 'verified': data.get('verified', 'Yes'),
@@ -198,37 +245,84 @@ class PartnerService:
         logger.info(f"get_partners: Found {len(partners)} partners (filtered in SQL) for bot {self.bot_id}")
         
         partner_list = []
-        for partner in partners:
+        
+        # First pass: collect partner data and prepare avatar fetch tasks
+        partner_data_list = []
+        avatar_tasks = {}  # {partner_index: (bot_username, task)}
+        
+        for idx, partner in enumerate(partners):
             data = partner.data
             referral_link = data.get('referral_link', '')
-            
-            # Auto-detect bot icon from Telegram if referral_link is a t.me bot link
             icon_url = data.get('icon', '') or data.get('image', '')
             
-            # If no custom icon and referral_link is a Telegram bot link, try to get bot avatar
+            # Prepare avatar fetch if needed
+            bot_username = None
             if not icon_url and referral_link:
                 import re
-                # Extract bot username from t.me/botname or t.me/botname?start=...
                 match = re.search(r't\.me/([a-zA-Z0-9_]+)', referral_link)
                 if match:
                     bot_username = match.group(1)
+                    # Store task for later parallel execution
+                    avatar_tasks[idx] = bot_username
+            
+            partner_data_list.append({
+                'id': str(partner.id),
+                'data': data,
+                'referral_link': referral_link,
+                'icon_url': icon_url,
+                'bot_username': bot_username
+            })
+        
+        # Second pass: fetch avatars in parallel (if any)
+        if avatar_tasks:
+            try:
+                from app.adapters.telegram import TelegramAdapter
+                import asyncio
+                adapter = TelegramAdapter()
+                
+                # Create tasks for parallel fetching
+                async def fetch_avatar(idx, username):
                     try:
-                        from app.adapters.telegram import TelegramAdapter
-                        adapter = TelegramAdapter()
-                        # Use our bot's token to fetch partner bot's avatar
-                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, bot_username)
-                        if avatar_url:
-                            icon_url = avatar_url
-                            logger.info(f"Auto-fetched avatar for bot @{bot_username}: {icon_url[:50]}...")
+                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, username)
+                        return idx, avatar_url
                     except Exception as e:
-                        logger.warning(f"Could not auto-fetch avatar for @{bot_username}: {e}")
+                        logger.warning(f"Could not auto-fetch avatar for @{username}: {e}")
+                        return idx, None
+                
+                # Fetch all avatars in parallel
+                tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Update icon_url for partners with fetched avatars
+                avatar_map = {}
+                for result in results:
+                    if isinstance(result, Exception):
+                        continue
+                    idx, avatar_url = result
+                    if avatar_url:
+                        avatar_map[idx] = avatar_url
+                        logger.info(f"Auto-fetched avatar for partner {idx}: {avatar_url[:50]}...")
+                
+                # Update partner data with fetched avatars
+                for idx, avatar_url in avatar_map.items():
+                    if partner_data_list[idx]['icon_url']:
+                        continue  # Don't override custom icon
+                    partner_data_list[idx]['icon_url'] = avatar_url
+                    
+            except Exception as e:
+                logger.warning(f"Error fetching avatars in parallel: {e}")
+        
+        # Third pass: build final partner list
+        for partner_data in partner_data_list:
+            data = partner_data['data']
+            icon_url = partner_data['icon_url']
             
             partner_list.append({
-                'id': str(partner.id),
+                'id': partner_data['id'],
                 'name': data.get('bot_name', 'Bot'),  # Use 'name' for frontend compatibility
                 'bot_name': data.get('bot_name', 'Bot'),  # Keep for backward compatibility
                 'description': self._get_localized_description(data, user_lang),
-                'referral_link': referral_link,
+                'referral_link': partner_data['referral_link'],
                 'commission': float(data.get('commission', 0)),
                 'category': data.get('category', 'NEW'),
                 'icon': icon_url,  # Auto-fetched from Telegram or custom
