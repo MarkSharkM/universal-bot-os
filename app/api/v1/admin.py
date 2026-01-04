@@ -1997,7 +1997,7 @@ async def list_bot_users(
     bot_id: UUID,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    sort_by: str = Query("created_at", description="Sort by: 'created_at' or 'last_activity'"),
+    sort_by: str = Query("last_activity", description="Sort by: 'created_at' or 'last_activity'"),
     user_id: Optional[UUID] = Query(None, description="Filter by user ID"),
     db: Session = Depends(get_db)
 ):
@@ -2028,6 +2028,25 @@ async def list_bot_users(
     
     users = query.order_by(order_by).offset(skip).limit(limit).all()
     
+    # Get last message for each user (for combined users+messages view)
+    from app.models.message import Message
+    user_ids = [u.id for u in users]
+    last_messages = {}
+    if user_ids:
+        # Get last message per user
+        for user_id in user_ids:
+            last_msg = db.query(Message).filter(
+                Message.user_id == user_id,
+                Message.bot_id == bot_id
+            ).order_by(Message.timestamp.desc()).first()
+            if last_msg:
+                last_messages[user_id] = {
+                    "content": last_msg.content[:100] + ('...' if len(last_msg.content) > 100 else ''),  # Preview
+                    "full_content": last_msg.content,  # Full content for expand
+                    "role": last_msg.role,
+                    "timestamp": last_msg.timestamp.isoformat() if last_msg.timestamp else None
+                }
+    
     return [
         {
             "id": str(u.id),
@@ -2053,6 +2072,8 @@ async def list_bot_users(
             # Normalize language_code - if it's iOS/Android, it's device, not language
             "device_os": u.language_code if u.language_code in ['iOS', 'Android'] else '',
             "language": u.language_code if u.language_code not in ['iOS', 'Android'] else (u.custom_data.get('language', 'uk') if u.custom_data else 'uk'),
+            # Last message info
+            "last_message": last_messages.get(u.id),
         }
         for u in users
     ]
