@@ -145,7 +145,31 @@ curl -X POST "https://backboard.railway.app/graphql/v2" \
   }'
 ```
 
-### 4. Через Application Health Endpoints
+### 4. Через Application API Endpoint (новий)
+
+#### Перегляд логів через API:
+```bash
+# Останні 50 логів
+curl -k "https://api-production-57e8.up.railway.app/api/v1/admin/logs"
+
+# Тільки помилки
+curl -k "https://api-production-57e8.up.railway.app/api/v1/admin/logs?level=ERROR"
+
+# Пошук по тексту
+curl -k "https://api-production-57e8.up.railway.app/api/v1/admin/logs?search=wallet"
+
+# Комбінація фільтрів
+curl -k "https://api-production-57e8.up.railway.app/api/v1/admin/logs?level=ERROR&search=TON&limit=20"
+```
+
+**Параметри:**
+- `limit` (1-500, за замовчуванням 50) - кількість рядків логів
+- `level` (DEBUG, INFO, WARNING, ERROR) - фільтр за рівнем
+- `search` - пошук тексту в логах
+
+⚠️ **Примітка:** На Railway логи зберігаються в stdout/stderr і доступні через Railway dashboard. Цей endpoint читає з файлів логів (якщо вони доступні локально).
+
+### 5. Через Application Health Endpoints
 
 #### Health check:
 ```bash
@@ -245,6 +269,17 @@ curl -H "Authorization: token $GITHUB_PAT_NEW" \
 curl -k "https://api-production-57e8.up.railway.app/health" | python3 -m json.tool
 ```
 
+### Переглянути логи через API:
+```bash
+# Останні помилки
+curl -k "https://api-production-57e8.up.railway.app/api/v1/admin/logs?level=ERROR&limit=20" | \
+  python3 -m json.tool
+
+# Пошук по тексту
+curl -k "https://api-production-57e8.up.railway.app/api/v1/admin/logs?search=wallet" | \
+  python3 -m json.tool
+```
+
 ### Тест команди:
 ```bash
 curl -k -X POST \
@@ -280,6 +315,37 @@ curl -k -X POST \
 - **Railway Dashboard:** https://railway.app
 - **Railway API Docs:** https://docs.railway.app/reference/api
 - **Railway CLI Docs:** https://docs.railway.app/develop/cli
+
+---
+
+---
+
+## 📝 Додаткова інформація
+
+### Структура логів в додатку
+
+Логи зберігаються в:
+- `logs/app.log` - всі логи (ротація 10MB, 5 файлів)
+- `logs/error.log` - тільки помилки (ротація 10MB, 5 файлів)
+
+**Формат логів:**
+```
+2024-12-28 10:30:45 - app.api.v1.webhooks - INFO - POST /api/v1/webhooks/telegram/... - Status: 200 - Time: 0.123s
+```
+
+**Рівні логування:**
+- `DEBUG` - детальна інформація (тільки в development)
+- `INFO` - загальна інформація
+- `WARNING` - попередження
+- `ERROR` - помилки
+
+### Railway логування
+
+На Railway:
+- Логи автоматично виводяться в stdout/stderr
+- Доступні в реальному часі через Railway dashboard
+- Зберігаються протягом обмеженого часу (залежить від плану Railway)
+- Для довготривалого зберігання використовуйте зовнішні сервіси (Datadog, Logtail, тощо)
 
 ---
 
