@@ -111,10 +111,16 @@ async def tonconnect_manifest(request: Request):
             
             # Update URL dynamically based on request
             base_url = str(request.base_url).rstrip('/')
+            # Ensure HTTPS in production
+            if base_url.startswith('http://') and 'railway' in base_url:
+                base_url = base_url.replace('http://', 'https://')
             manifest_content['url'] = base_url
             # If iconUrl is relative, make it absolute
             if manifest_content.get('iconUrl', '').startswith('/'):
                 manifest_content['iconUrl'] = base_url + manifest_content['iconUrl']
+            elif manifest_content.get('iconUrl', '').startswith('https://your-domain.com'):
+                # Replace placeholder with actual URL
+                manifest_content['iconUrl'] = base_url + '/static/mini-app/icon.png'
             
             return JSONResponse(content=manifest_content)
         except Exception as e:
@@ -123,6 +129,9 @@ async def tonconnect_manifest(request: Request):
     else:
         # Return default manifest
         base_url = str(request.base_url).rstrip('/')
+        # Ensure HTTPS in production
+        if base_url.startswith('http://') and 'railway' in base_url:
+            base_url = base_url.replace('http://', 'https://')
         return JSONResponse(content={
             "url": base_url,
             "name": "EarnHubAggregatorBot",
