@@ -748,7 +748,12 @@ class CommandService:
         lang = user_lang or user.language_code or 'en'
         lang = self.translation_service.detect_language(lang)
         
-        message = self.translation_service.get_translation('info_main', lang)
+        # Get bot username for translation variables
+        bot_username = self._get_bot_username() or ''
+        
+        message = self.translation_service.get_translation('info_main', lang, {
+            'bot_username': bot_username
+        })
         
         return {
             'message': message,
@@ -772,7 +777,12 @@ class CommandService:
         # Note: Referral logging is handled in webhook handler (_handle_message)
         # to avoid double logging when /start command is processed
         
-        message = self.translation_service.get_translation('welcome', lang)
+        # Get bot username for translation variables
+        bot_username = self._get_bot_username() or ''
+        
+        message = self.translation_service.get_translation('welcome', lang, {
+            'bot_username': bot_username
+        })
         
         return {
             'message': message,
