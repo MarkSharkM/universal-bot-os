@@ -278,7 +278,7 @@ async def reset_user_invites(
 ):
     """
     Reset user's invites count to 0 for testing.
-    This sets total_invited to 0 and locks TOP status.
+    This sets total_invited to 0, locks TOP status, and DELETES all referral logs.
     
     Args:
         bot_id: Bot UUID
@@ -290,6 +290,8 @@ async def reset_user_invites(
     """
     from app.models.user import User
     from app.services.referral_service import ReferralService
+    from app.models.business_data import BusinessData
+    from sqlalchemy import text, cast, String
     
     user = db.query(User).filter(
         User.id == user_id,
@@ -299,11 +301,44 @@ async def reset_user_invites(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    user_external_id = user.external_id
+    old_count = user.custom_data.get('total_invited', 0) if user.custom_data else 0
+    
+    # Count logs before deletion
+    logs_before = db.execute(
+        text("""
+            SELECT COUNT(*) as count
+            FROM business_data
+            WHERE bot_id = CAST(:bot_id AS uuid)
+              AND data_type = 'log'
+              AND deleted_at IS NULL
+              AND (data->>'inviter_external_id') = :inviter_external_id
+              AND (
+                (data->>'is_referral') IN ('true', 'True')
+                OR (data->>'is_referral')::boolean = true
+              )
+        """),
+        {
+            'bot_id': str(bot_id),
+            'inviter_external_id': str(user_external_id)
+        }
+    ).first()
+    logs_count_before = logs_before.count if logs_before else 0
+    
+    # Delete all referral logs for this inviter (HARD DELETE)
+    deleted_count = db.query(BusinessData).filter(
+        BusinessData.bot_id == bot_id,
+        BusinessData.data_type == 'log',
+        BusinessData.deleted_at.is_(None),  # Only active logs
+        cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
+    ).delete(synchronize_session=False)
+    
+    db.commit()
+    
     # Reset total_invited to 0
     if not user.custom_data:
         user.custom_data = {}
     
-    old_count = user.custom_data.get('total_invited', 0)
     user.custom_data['total_invited'] = 0
     user.custom_data['top_status'] = 'locked'
     user.custom_data['top_unlock_method'] = ''
@@ -313,45 +348,24 @@ async def reset_user_invites(
     db.commit()
     db.refresh(user)
     
-    # Verify count from database (force recount to see actual state)
+    # Verify count from database (should be 0 now)
     referral_service = ReferralService(db, bot_id)
     actual_count = referral_service.count_referrals(user_id)
     
-    # Also check if there are any soft-deleted logs that might be counted
-    from app.models.business_data import BusinessData
-    from sqlalchemy import text, cast, String, or_, and_
-    
-    deleted_logs_count = db.execute(
-        text("""
-            SELECT COUNT(*) as count
-            FROM business_data
-            WHERE bot_id = CAST(:bot_id AS uuid)
-              AND data_type = 'log'
-              AND deleted_at IS NOT NULL
-              AND (data->>'inviter_external_id') = :inviter_external_id
-              AND (
-                (data->>'is_referral') IN ('true', 'True')
-                OR (data->>'is_referral')::boolean = true
-              )
-        """),
-        {
-            'bot_id': str(bot_id),
-            'inviter_external_id': str(user.external_id)
-        }
-    ).first()
-    deleted_count = deleted_logs_count.count if deleted_logs_count else 0
+    logger.info(f"reset_user_invites: deleted {deleted_count} referral logs for user_id={user_id}, external_id={user_external_id}, old_count={old_count}, new_count={actual_count}")
     
     return {
         "success": True,
-        "message": f"User invites reset successfully",
+        "message": f"User invites reset successfully. Deleted {deleted_count} referral logs.",
         "user_id": str(user_id),
-        "external_id": user.external_id,
+        "external_id": user_external_id,
         "old_total_invited": old_count,
         "new_total_invited": 0,
         "actual_count_from_db": actual_count,
         "deleted_logs_count": deleted_count,
+        "logs_count_before": logs_count_before,
         "top_status": "locked",
-        "note": "If actual_count_from_db > 0, there are still active referral logs in database. Check if they should be deleted."
+        "note": "All referral logs were hard deleted. If actual_count_from_db > 0, there may be logs with different inviter_external_id format."
     }
 
 
