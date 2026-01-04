@@ -13,7 +13,7 @@ function openPartner(referralLink, partnerId) {
         }
         return;
     }
-    
+
     // Log partner click
     if (AppState.getBotId()) {
         const initData = AppState.getTg()?.initData || null;
@@ -22,16 +22,19 @@ function openPartner(referralLink, partnerId) {
             partner_id: partnerId || null
         }, initData).catch(err => console.error('Error logging partner click:', err));
     }
-    
+
     // Use correct Telegram WebApp API method based on link type
     // For t.me links: use openTelegramLink() to open in Telegram app
     // For external links: use openLink() to open in browser
     const tg = AppState.getTg();
     const isTelegramLink = referralLink && referralLink.startsWith('https://t.me/');
-    
+
     if (isTelegramLink && tg?.openTelegramLink) {
         // Open Telegram link in Telegram app (not browser)
         tg.openTelegramLink(referralLink);
+        // Explicitly close Mini App to prevent overlay issues on Web
+        // Mobile usually handles this automatically, but Web might keep iframe open
+        if (tg.close) tg.close();
     } else if (tg?.openLink) {
         // Open external link in browser
         tg.openLink(referralLink);
@@ -43,35 +46,35 @@ function openPartner(referralLink, partnerId) {
 
 async function handleWalletSubmit(event) {
     event.preventDefault();
-    
+
     const input = document.getElementById('wallet-input');
     const walletAddress = input.value.trim();
     const messageEl = document.getElementById('wallet-message');
-    
+
     if (!walletAddress) {
         showWalletMessage('Введіть адресу гаманця', 'error');
         return;
     }
-    
+
     // Validate format
     const walletPattern = /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/;
     if (!walletPattern.test(walletAddress)) {
         showWalletMessage('Невірний формат адреси гаманця', 'error');
         return;
     }
-    
+
     // Validate AppState.getBotId() before making request
     if (!AppState.getBotId()) {
         showWalletMessage('Помилка: Bot ID не знайдено', 'error');
         return;
     }
-    
+
     try {
         showWalletMessage('Збереження...', 'info');
-        
+
         const initData = AppState.getTg()?.initData || null;
         const result = await saveWallet(AppState.getBotId(), walletAddress, AppState.getUserId(), initData);
-        
+
         if (result && result.ok !== false) {
             // Show toast notification
             if (typeof Toast !== 'undefined') {
@@ -80,21 +83,21 @@ async function handleWalletSubmit(event) {
             if (typeof Haptic !== 'undefined') {
                 Haptic.success();
             }
-            
+
             showWalletMessage('✅ Гаманець збережено успішно!', 'success');
-            
+
             // Update app data locally (no need to reload all data, just update wallet)
             const appData = AppState.getAppData();
             if (appData && appData.user) {
                 appData.user.wallet = walletAddress;
                 AppState.setAppData(appData);
             }
-            
+
             // Update input after successful save
             if (input) {
                 input.value = walletAddress;
             }
-            
+
             // Re-render wallet section to show updated data
             // Don't call loadAppData here to avoid tab switching issues
             renderWallet();
@@ -127,9 +130,9 @@ function copyReferralLink() {
         }
         return;
     }
-    
+
     const link = AppState.getAppData().user.referral_link;
-    
+
     // Try modern clipboard API first
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(link).then(() => {
@@ -154,11 +157,11 @@ function shareReferralLink() {
         }
         return;
     }
-    
+
     const link = AppState.getAppData().user.referral_link;
     // Updated share text (Revenue Launcher approach - NO numbers, NO TON)
     const shareText = 'Я підʼєднався до партнерської програми Telegram. Це працює автоматично.';
-    
+
     // Track share event
     if (AppState.getBotId()) {
         const initData = AppState.getTg()?.initData || null;
@@ -170,14 +173,14 @@ function shareReferralLink() {
             }, initData).catch(err => console.error('Error tracking share:', err));
         }
     }
-    
+
     // Use Telegram share URL
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
-    
+
     // Share URL is t.me/share/url - use openTelegramLink for Telegram links
     const tg = AppState.getTg();
     const isTelegramLink = shareUrl && shareUrl.startsWith('https://t.me/');
-    
+
     if (isTelegramLink && tg?.openTelegramLink) {
         // Open Telegram share dialog in Telegram app
         tg.openTelegramLink(shareUrl);
@@ -188,7 +191,7 @@ function shareReferralLink() {
         // Fallback: open in same window
         window.location.href = shareUrl;
     }
-    
+
     // Haptic feedback
     if (typeof Haptic !== 'undefined') {
         Haptic.medium();
@@ -197,12 +200,12 @@ function shareReferralLink() {
 
 async function handleBuyTop(price) {
     if (!AppState.getAppData() || !AppState.getBotId()) return;
-    
+
     const botId = AppState.getBotId();
     const tg = AppState.getTg();
     const initData = tg?.initData || null;
     const userId = AppState.getUserId();
-    
+
     // Check if tg.openInvoice is available (Telegram WebApp API)
     if (!tg || !tg.openInvoice) {
         // Fallback: show modal with instructions
@@ -232,9 +235,9 @@ async function handleBuyTop(price) {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
-        
+
         // Close on overlay click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -243,7 +246,7 @@ async function handleBuyTop(price) {
         });
         return;
     }
-    
+
     // Use Telegram Stars Payment API (openInvoice in Mini App)
     try {
         // Show loading state
@@ -253,10 +256,10 @@ async function handleBuyTop(price) {
         if (typeof Haptic !== 'undefined') {
             Haptic.light();
         }
-        
+
         // Create invoice link via backend
         const invoiceLink = await Api.createInvoiceLink(botId, initData, userId);
-        
+
         // Open invoice in Mini App (stays in Mini App, no browser redirect)
         tg.openInvoice(invoiceLink, (status) => {
             console.log('Payment callback received, status:', status);
@@ -269,10 +272,10 @@ async function handleBuyTop(price) {
                 if (typeof Haptic !== 'undefined') {
                     Haptic.success();
                 }
-                
+
                 // Track event
                 trackEvent('top_purchase_success');
-                
+
                 // Reload app data to get updated TOP status
                 if (typeof loadAppData === 'function') {
                     loadAppData(true).then(() => {
@@ -284,18 +287,18 @@ async function handleBuyTop(price) {
                             AppState.setTopLocked(topStatus === 'locked');
                             console.log('Updated TOP status in AppState:', topStatus);
                         }
-                        
+
                         // Re-render ALL components to show updated state
                         const currentPage = AppState.getCurrentPage() || 'home';
                         console.log('Current page:', currentPage);
-                        
+
                         // Always re-render home page (has Primary Action Card)
                         if (typeof Render !== 'undefined' && Render.renderHome) {
                             Render.renderHome();
                         } else if (typeof renderHome === 'function') {
                             renderHome();
                         }
-                        
+
                         // Re-render TOP page if we're on it
                         if (currentPage === 'top') {
                             if (typeof Render !== 'undefined' && Render.renderTop) {
@@ -304,12 +307,12 @@ async function handleBuyTop(price) {
                                 renderTop();
                             }
                         }
-                        
+
                         // Re-render Primary Action Card (shows on home page)
                         if (typeof Render !== 'undefined' && Render.renderPrimaryActionCard) {
                             Render.renderPrimaryActionCard();
                         }
-                        
+
                         console.log('✅ UI updated after payment');
                     }).catch(err => {
                         console.error('Error reloading app data after payment:', err);
@@ -337,14 +340,14 @@ async function handleBuyTop(price) {
                 if (typeof Haptic !== 'undefined') {
                     Haptic.error();
                 }
-                
+
                 // Track event
                 trackEvent('top_purchase_cancelled');
             }
         });
     } catch (error) {
         console.error('Error creating invoice link:', error);
-        
+
         // Show error and fallback to bot
         if (typeof Toast !== 'undefined') {
             Toast.error('Помилка створення рахунку. Спробуйте через бота.');
@@ -352,7 +355,7 @@ async function handleBuyTop(price) {
         if (typeof Haptic !== 'undefined') {
             Haptic.error();
         }
-        
+
         // Fallback: open bot
         openTelegramBot();
     }
@@ -361,11 +364,11 @@ async function handleBuyTop(price) {
 function openTelegramBot() {
     // Get bot URL (universal for any bot)
     const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : 'https://t.me/EarnHubAggregatorBot';
-    
+
     // Use correct method: openTelegramLink for t.me links, openLink for external
     const tg = AppState.getTg();
     const isTelegramLink = botUrl && botUrl.startsWith('https://t.me/');
-    
+
     if (isTelegramLink && tg?.openTelegramLink) {
         // Open bot URL in Telegram app
         tg.openTelegramLink(botUrl);
@@ -380,21 +383,21 @@ function openTelegramBot() {
 
 function showActivate7Instructions() {
     if (!AppState.getAppData() || !AppState.getAppData().earnings) return;
-    
+
     const earnings = AppState.getAppData().earnings || {};
     const translations = earnings.translations || {};
     const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
-    
+
     // Get bot username (universal for any bot)
     const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : 'EarnHubAggregatorBot';
-    
+
     // Get instructions from translations or use default
-    const instructions = translations.block2_enable_steps || 
+    const instructions = translations.block2_enable_steps ||
         `1️⃣ Відкрий @${botUsername}
 2️⃣ «Партнерська програма»
 3️⃣ «Під'єднатись»
 → ${commissionPercent}% активуються назавжди`;
-    
+
     // Show modal with instructions
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
@@ -419,9 +422,9 @@ function showActivate7Instructions() {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Close on overlay click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -438,7 +441,7 @@ function fallbackCopyText(text) {
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
         document.execCommand('copy');
         showCopySuccess();
@@ -446,13 +449,13 @@ function fallbackCopyText(text) {
         console.error('Fallback copy failed:', err);
         if (AppState.getTg()?.showAlert) {
             if (typeof Toast !== 'undefined') {
-            Toast.error('Не вдалося скопіювати лінк');
-        } else if (AppState.getTg()?.showAlert) {
-            AppState.getTg().showAlert('Не вдалося скопіювати лінк');
-        }
+                Toast.error('Не вдалося скопіювати лінк');
+            } else if (AppState.getTg()?.showAlert) {
+                AppState.getTg().showAlert('Не вдалося скопіювати лінк');
+            }
         }
     }
-    
+
     document.body.removeChild(textArea);
 }
 
@@ -468,7 +471,7 @@ function showCopySuccess() {
         // Haptic feedback if available
         AppState.getTg().HapticFeedback.impactOccurred('light');
     }
-    
+
     // Visual feedback on button
     const copyBtn = document.querySelector('.copy-btn');
     if (copyBtn) {
