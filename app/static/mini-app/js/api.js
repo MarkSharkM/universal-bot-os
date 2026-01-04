@@ -93,6 +93,13 @@ async function getMiniAppData(botId, userId = null, initData = null, forceRefres
  * @returns {Promise<Object>} Success response
  */
 async function saveWallet(botId, walletAddress, userId = null, initData = null) {
+    console.log('📤 saveWallet called:', {
+        botId,
+        walletAddress: walletAddress ? `${walletAddress.substring(0, 10)}...` : 'null',
+        userId,
+        hasInitData: !!initData
+    });
+    
     // Check if online
     if (!navigator.onLine) {
         throw new Error('Немає інтернет-з\'єднання');
@@ -105,6 +112,7 @@ async function saveWallet(botId, walletAddress, userId = null, initData = null) 
         if (initData) params.append('init_data', initData);
         
         const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}/wallet?${params.toString()}`;
+        console.log('📡 POST request to:', url);
         
         const response = await fetch(url, {
             method: 'POST',
@@ -113,12 +121,16 @@ async function saveWallet(botId, walletAddress, userId = null, initData = null) 
             },
         });
         
+        console.log('📥 Response status:', response.status, response.statusText);
+        
         if (!response.ok) {
             const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            console.error('❌ Error response:', error);
             throw new Error(error.detail || `HTTP ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('✅ Wallet saved successfully:', data);
         
         // Clear cache after wallet save
         if (typeof ApiCache !== 'undefined') {

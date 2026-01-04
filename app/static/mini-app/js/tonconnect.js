@@ -134,6 +134,7 @@ function initTonConnect() {
  * Handle wallet connected
  */
 async function handleWalletConnected(address) {
+    console.log('🎉 handleWalletConnected called with address:', address);
     try {
         if (typeof Render !== 'undefined' && Render.trackEvent) {
             Render.trackEvent('wallet_connected_ton', { method: 'ton_connect' });
@@ -143,9 +144,20 @@ async function handleWalletConnected(address) {
         
         const botId = AppState.getBotId();
         const initData = AppState.getTg()?.initData || null;
+        const userId = AppState.getUserId();
+        
+        console.log('💾 Saving wallet to backend:', {
+            botId,
+            address: address ? `${address.substring(0, 10)}...` : 'null',
+            userId,
+            hasApi: typeof Api !== 'undefined',
+            hasSaveWallet: typeof Api !== 'undefined' && typeof Api.saveWallet === 'function'
+        });
         
         if (botId && typeof Api !== 'undefined' && Api.saveWallet) {
-            await Api.saveWallet(botId, address, AppState.getUserId(), initData);
+            console.log('📤 Calling Api.saveWallet...');
+            const saveResult = await Api.saveWallet(botId, address, userId, initData);
+            console.log('✅ Wallet saved successfully:', saveResult);
             
             // Update app data
             const appData = AppState.getAppData();
@@ -172,9 +184,16 @@ async function handleWalletConnected(address) {
             if (typeof Haptic !== 'undefined') {
                 Haptic.success();
             }
+        } else {
+            console.error('❌ Cannot save wallet - missing requirements:', {
+                botId: !!botId,
+                hasApi: typeof Api !== 'undefined',
+                hasSaveWallet: typeof Api !== 'undefined' && typeof Api.saveWallet === 'function'
+            });
         }
     } catch (error) {
-        console.error('Error saving connected wallet:', error);
+        console.error('❌ Error saving connected wallet:', error);
+        console.error('Error stack:', error.stack);
         if (typeof Toast !== 'undefined') {
             Toast.error('❌ Помилка збереження: ' + (error.message || 'Невідома помилка'));
         }
