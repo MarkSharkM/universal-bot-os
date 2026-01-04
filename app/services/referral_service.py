@@ -298,7 +298,6 @@ class ReferralService:
         # Use raw SQL with DISTINCT for maximum performance
         # Simplified: check is_referral as text first (faster), then boolean
         # IMPORTANT: Exclude soft-deleted records (deleted_at IS NULL)
-        # IMPORTANT: Exclude self-referrals (external_id != inviter_external_id)
         query = text("""
             SELECT COUNT(DISTINCT data->>'external_id') as count
             FROM business_data
@@ -306,7 +305,6 @@ class ReferralService:
               AND data_type = 'log'
               AND deleted_at IS NULL
               AND (data->>'inviter_external_id') = :inviter_external_id
-              AND (data->>'external_id') != :inviter_external_id
               AND (
                 (data->>'is_referral') IN ('true', 'True')
                 OR (data->>'is_referral')::boolean = true
