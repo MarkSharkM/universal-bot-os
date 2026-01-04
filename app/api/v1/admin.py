@@ -1772,12 +1772,13 @@ async def delete_user(
     ).count()
     
     # Delete all related data
-    # 1. Delete business_data records (soft delete)
+    # 1. Delete business_data records (HARD DELETE to prevent counting old logs for new users with same external_id)
     # Use same filter logic as count query
-    business_data_records = db.query(BusinessData).filter(
+    # IMPORTANT: Hard delete (not soft delete) to ensure logs are completely removed
+    # This prevents issues when a new user is created with the same external_id
+    business_data_deleted = db.query(BusinessData).filter(
         and_(
             BusinessData.bot_id == bot_id,
-            BusinessData.deleted_at.is_(None),
             or_(
                 and_(
                     BusinessData.data['user_id'].isnot(None),
@@ -1793,9 +1794,7 @@ async def delete_user(
                 )
             )
         )
-    ).all()
-    for bd in business_data_records:
-        bd.deleted_at = func.now()
+    ).delete(synchronize_session=False)
     
     # 2. Delete analytics_events records (hard delete)
     db.query(AnalyticsEvent).filter(
