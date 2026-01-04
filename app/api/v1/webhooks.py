@@ -497,7 +497,7 @@ async def _handle_callback(
         command_text = data.lstrip('=')
         command = command_service.parse_command(command_text)
         if command:
-            response = command_service.handle_command(
+            response = await command_service.handle_command(
                 command,
                 user.id,
                 user_lang=user.language_code
