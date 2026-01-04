@@ -65,10 +65,14 @@ function initTonConnect() {
         tonConnectUI.onStatusChange((walletInfo) => {
             console.log('TON Connect status changed:', walletInfo);
             if (walletInfo) {
-                // Wallet connected
-                const address = walletInfo.account.address;
+                // Wallet connected - handle different possible formats
+                const address = walletInfo.account?.address || walletInfo.address;
                 console.log('✅ TON Wallet connected:', address);
-                handleWalletConnected(address);
+                if (address) {
+                    handleWalletConnected(address);
+                } else {
+                    console.warn('⚠️ Wallet connected but no address found:', walletInfo);
+                }
             } else {
                 // Wallet disconnected
                 console.log('⚠️ TON Wallet disconnected');
@@ -77,12 +81,25 @@ function initTonConnect() {
         });
         
         // Check current connection status
-        const currentWallet = tonConnectUI.wallet;
-        if (currentWallet) {
-            console.log('TON Connect: Already connected to wallet:', currentWallet);
-        } else {
-            console.log('TON Connect: No wallet connected yet');
+        try {
+            const currentWallet = tonConnectUI.wallet;
+            if (currentWallet) {
+                console.log('TON Connect: Already connected to wallet:', currentWallet);
+                // If already connected, handle it
+                const address = currentWallet.account?.address || currentWallet.address;
+                if (address) {
+                    handleWalletConnected(address);
+                }
+            } else {
+                console.log('TON Connect: No wallet connected yet');
+            }
+        } catch (err) {
+            console.warn('Could not check current wallet status:', err);
         }
+        
+        console.log('TON Connect UI instance created:', tonConnectUI);
+        console.log('Available methods:', Object.keys(tonConnectUI));
+        console.log('openModal type:', typeof tonConnectUI.openModal);
         
         console.log('✅ TON Connect initialized successfully');
         return true;
