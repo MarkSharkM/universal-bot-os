@@ -14,6 +14,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_bot_id
 from app.models.bot import Bot
 from app.models.user import User
+from app.models.analytics_event import AnalyticsEvent
 from app.services import (
     UserService, TranslationService, PartnerService,
     ReferralService, EarningsService
@@ -238,8 +239,37 @@ async def mini_app_webhook(
         event = data.get("event")
         event_data = data.get("data", {})
         logger.info(f"Analytics event: bot_id={bot_id}, user_id={validated_user_id}, event={event}, data={event_data}")
-        # TODO: Store analytics events in database for metrics
-        return {"ok": True, "event": event, "logged": True}
+        
+        # Store analytics event in database
+        stored = False
+        try:
+            # Get user if exists
+            user = None
+            user_external_id = None
+            if validated_user_id:
+                user_external_id = validated_user_id
+                user_service = UserService(db, bot_id)
+                user = user_service.get_user(validated_user_id, platform="telegram")
+            
+            # Create analytics event
+            analytics_event = AnalyticsEvent(
+                bot_id=bot_id,
+                user_id=user.id if user else None,
+                user_external_id=user_external_id,
+                event_name=event or "unknown",
+                event_data=event_data or {},
+                platform="telegram"
+            )
+            db.add(analytics_event)
+            db.commit()
+            stored = True
+            logger.info(f"Analytics event stored: event={event}, bot_id={bot_id}, user_id={validated_user_id}")
+        except Exception as e:
+            # Log error but don't fail the request
+            logger.error(f"Error storing analytics event: {e}", exc_info=True)
+            db.rollback()
+        
+        return {"ok": True, "event": event, "logged": True, "stored": stored}
     
     # Default response
     return {"ok": True, "data": data}

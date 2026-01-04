@@ -6,6 +6,7 @@ from app.models.user import User
 from app.models.message import Message
 from app.models.translation import Translation
 from app.models.business_data import BusinessData
+from app.models.analytics_event import AnalyticsEvent
 
 __all__ = [
     "Bot",
@@ -13,6 +14,7 @@ __all__ = [
     "Message",
     "Translation",
     "BusinessData",
+    "AnalyticsEvent",
 ]
 
 # Import Base for Alembic
