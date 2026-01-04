@@ -345,25 +345,21 @@ body::after {
 }
 
 .tab-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     margin-bottom: 4px;
-    background-color: currentColor;
-    -webkit-mask: var(--tab-icon) no-repeat center / contain;
-    mask: var(--tab-icon) no-repeat center / contain;
+    /* Removed background-color and mask for inline SVG support */
+    fill: currentColor;
     opacity: 0.95;
+    transition: transform var(--transition-fast);
 }
 
-.tab-label {
-    font-size: var(--font-size-xs);
+.tab.active .tab-icon {
+    transform: scale(1.1);
 }
 
-.tab-icon-home { --tab-icon: var(--icon-home); }
-.tab-icon-partners { --tab-icon: var(--icon-partners); }
-.tab-icon-top { --tab-icon: var(--icon-top); }
-.tab-icon-earnings { --tab-icon: var(--icon-earnings); }
-.tab-icon-wallet { --tab-icon: var(--icon-wallet); }
-.tab-icon-info { --tab-icon: var(--icon-info); }
+/* Legacy support variables no longer needed for tabs but kept if used elsewhere */
+
 
 /* Content */
 .content {

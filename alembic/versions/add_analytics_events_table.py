@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'add_analytics_events'
-down_revision = 'add_soft_delete_to_business_data'
+down_revision = 'add_soft_delete_001'  # Matches revision from add_soft_delete_to_business_data.py
 branch_labels = None
 depends_on = None
 

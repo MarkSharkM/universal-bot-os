@@ -106,6 +106,53 @@ function setupEventHandlers() {
             }
         }
     });
+
+    // Wallet Connect Buttons (Telegram & External)
+    const telegramWalletBtn = document.getElementById('wallet-connect-telegram');
+    if (telegramWalletBtn) {
+        telegramWalletBtn.addEventListener('click', () => {
+            if (typeof TonConnect !== 'undefined' && TonConnect.connectTelegramWallet) {
+                TonConnect.connectTelegramWallet();
+            } else {
+                console.error('TonConnect module not loaded');
+            }
+        });
+    }
+
+    const walletOptions = document.querySelectorAll('.wallet-option');
+    walletOptions.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const wallet = btn.getAttribute('data-wallet');
+            if (wallet === 'view-all') {
+                // Open full modal via TON Connect SDK
+                if (typeof TonConnect !== 'undefined' && TonConnect.connectExternalWallet) {
+                    TonConnect.connectExternalWallet('all');
+                }
+            } else if (wallet) {
+                if (typeof TonConnect !== 'undefined' && TonConnect.connectExternalWallet) {
+                    TonConnect.connectExternalWallet(wallet);
+                }
+            }
+        });
+    });
+
+    // Wallet Modal Close
+    const walletModalClose = document.getElementById('wallet-modal-close');
+    if (walletModalClose) {
+        walletModalClose.addEventListener('click', () => {
+             const modal = document.getElementById('wallet-modal');
+             if (modal) modal.style.display = 'none';
+        });
+    }
+
+    // Wallet Banner Button (Show Modal)
+    const walletBannerBtn = document.getElementById('wallet-banner-btn');
+    if (walletBannerBtn) {
+        walletBannerBtn.addEventListener('click', () => {
+             const modal = document.getElementById('wallet-modal');
+             if (modal) modal.style.display = 'flex';
+        });
+    }
 }
 
 function setupSwipeGestures() {
