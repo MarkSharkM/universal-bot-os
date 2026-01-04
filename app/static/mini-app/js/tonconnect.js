@@ -33,40 +33,56 @@ function initTonConnect() {
         
         // Get return URL for Telegram Mini App (universal for any bot)
         // This is CRITICAL - wallet must return to this URL after connection
-        let twaReturnUrl = 'https://t.me/EarnHubAggregatorBot';
+        // Format: https://t.me/{bot_username}/mini-app (REQUIRED for Mini Apps!)
+        let twaReturnUrl = 'https://t.me/EarnHubAggregatorBot/mini-app';
         
-        // Try multiple methods to get correct bot URL
-        if (typeof getBotUrl === 'function') {
+        // DEBUG: Log AppState data to see what we have
+        const appData = AppState.getAppData();
+        console.log('🔍 DEBUG AppState config:', {
+            hasAppData: !!appData,
+            hasConfig: !!(appData && appData.config),
+            configUsername: appData?.config?.username,
+            configName: appData?.config?.name,
+            fullConfig: appData?.config
+        });
+        
+        // Priority 1: Use config.username from API (most reliable)
+        if (appData && appData.config && appData.config.username) {
+            const username = appData.config.username.replace('@', '').trim();
+            twaReturnUrl = `https://t.me/${username}/mini-app`;
+            console.log('📋 Using config.username (from API):', twaReturnUrl);
+        }
+        // Priority 2: Try getBotUrl() function
+        else if (typeof getBotUrl === 'function') {
             try {
-                twaReturnUrl = getBotUrl();
-                console.log('📋 Using getBotUrl():', twaReturnUrl);
+                const botUrl = getBotUrl();
+                console.log('📋 getBotUrl() returned:', botUrl);
+                // Add /mini-app suffix if not present (REQUIRED for TON Connect in Mini Apps)
+                twaReturnUrl = botUrl.endsWith('/mini-app') ? botUrl : `${botUrl}/mini-app`;
+                console.log('📋 Using getBotUrl() (with /mini-app):', twaReturnUrl);
             } catch (err) {
                 console.warn('⚠️ Error calling getBotUrl():', err);
             }
         }
-        
-        // Fallback: try to get from AppState
-        if (twaReturnUrl === 'https://t.me/EarnHubAggregatorBot') {
-            const appData = AppState.getAppData();
-            if (appData && appData.config) {
-                // Try to get username from config (stored by sync-username endpoint)
-                if (appData.config.username) {
-                    twaReturnUrl = `https://t.me/${appData.config.username.replace('@', '').trim()}`;
-                    console.log('📋 Using config.username:', twaReturnUrl);
-                } else if (appData.config.name) {
-                    // Fallback: use bot name (assuming it matches username)
-                    const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '').trim();
-                    twaReturnUrl = `https://t.me/${botName}`;
-                    console.log('📋 Using config.name:', twaReturnUrl);
-                }
+        // Priority 3: Fallback to config.name
+        if (twaReturnUrl === 'https://t.me/EarnHubAggregatorBot/mini-app' && appData && appData.config) {
+            if (appData.config.name) {
+                // Fallback: use bot name (assuming it matches username)
+                const botName = appData.config.name.toLowerCase().replace(/\s+/g, '').replace('@', '').trim();
+                twaReturnUrl = `https://t.me/${botName}/mini-app`;
+                console.log('📋 Using config.name (fallback):', twaReturnUrl);
             }
         }
         
-        // Validate twaReturnUrl format
+        // Validate twaReturnUrl format (must include /mini-app for Mini Apps)
         if (!twaReturnUrl.startsWith('https://t.me/')) {
             console.error('❌ Invalid twaReturnUrl format:', twaReturnUrl);
-            console.error('Expected format: https://t.me/username');
-            twaReturnUrl = 'https://t.me/EarnHubAggregatorBot'; // Fallback
+            console.error('Expected format: https://t.me/username/mini-app');
+            twaReturnUrl = 'https://t.me/EarnHubAggregatorBot/mini-app'; // Fallback
+        } else if (!twaReturnUrl.endsWith('/mini-app')) {
+            // Ensure /mini-app suffix is present (REQUIRED for TON Connect)
+            twaReturnUrl = `${twaReturnUrl}/mini-app`;
+            console.log('⚠️ Added /mini-app suffix to twaReturnUrl:', twaReturnUrl);
         }
         
         console.log('📋 Final twaReturnUrl:', twaReturnUrl);
