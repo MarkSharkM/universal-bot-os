@@ -254,6 +254,9 @@ async def _handle_message(
             logger.info(f"Will update inviter count for external_id={inviter_id} after sending message (log_data.id={log_data.id if log_data else 'None'})")
         else:
             logger.info(f"Not a referral or no inviter_id: is_referral={is_referral}, inviter_id={inviter_id}")
+            
+        # DEBUG: Log if we are about to update inviter
+        logger.info(f"Ref Check: is_referral={is_referral}, inviter_id={inviter_id}, start_param={start_param}")
     
     # Handle command
     response = {'message': '', 'buttons': []}  # Default empty response
@@ -343,10 +346,16 @@ async def _handle_message(
                 # Save old count BEFORE update
                 old_count = inviter.custom_data.get('total_invited', 0) if inviter.custom_data else 0
                 logger.info(f"Found inviter: user_id={inviter.id}, external_id={inviter.external_id}, current_total_invited={old_count}, updating total_invited")
+                
                 # Ensure DB sees the new log before counting
                 db.flush()
-                logger.info(f"DB flushed, calling update_total_invited for inviter user_id={inviter.id}")
+                # Force commit to be absolutely sure the log is persisted before counting
+                db.commit() 
+                
+                logger.info(f"DB committed, calling update_total_invited for inviter user_id={inviter.id}")
                 updated_user = referral_service.update_total_invited(inviter.id)
+                db.refresh(updated_user) # Double refresh
+                
                 # Note: update_total_invited already commits and refreshes, so we get the latest value
                 new_count = updated_user.custom_data.get('total_invited', 0) if updated_user.custom_data else 0
                 logger.info(f"Inviter total_invited updated successfully: new_count={new_count} (was {old_count}), user_id={inviter.id}, external_id={inviter.external_id}")

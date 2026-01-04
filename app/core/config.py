@@ -1,7 +1,8 @@
 """
 Application configuration using Pydantic Settings
 """
-from typing import List
+import os
+from typing import Any, Dict, List, Optional, Union
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
@@ -28,14 +29,19 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = Field(default="redis://localhost:6379", env="REDIS_URL")
     
-    # AI Providers
-    OPENAI_API_KEY: str | None = Field(default=None, env="OPENAI_API_KEY")
-    ANTHROPIC_API_KEY: str | None = Field(default=None, env="ANTHROPIC_API_KEY")
-    
     # Security
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES") # Modified
+    
+    # OpenAI
+    OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY") # Modified
+    
+    # Railway Environment
+    RAILWAY_ENVIRONMENT: str = Field(default="production", env="RAILWAY_ENVIRONMENT") # Added
+    
+    # Admin User
+    ADMIN_USERNAME: str = Field(default="admin", env="ADMIN_USERNAME") # Added
+    ADMIN_PASSWORD: str = Field(default="admin", env="ADMIN_PASSWORD") # Added
     
     # Railway
     PORT: int = Field(default=8000, env="PORT")

@@ -2512,11 +2512,93 @@ async def test_bot_avatar(
             }
     except Exception as e:
         logger.error(f"Error fetching bot avatar for @{target_username}: {e}", exc_info=True)
-        return {
-            "ok": False,
-            "username": target_username,
-            "avatar_url": None,
-            "error": str(e),
-            "message": f"Error fetching avatar: {str(e)}"
-        }
+
+@router.get("/bots/{bot_id}/users/{user_id}/debug-referrals")
+async def debug_referrals(
+    bot_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Debug endpoint to inspect referral state for a specific user.
+    Returns counts from different sources to identify discrepancies.
+    """
+    from app.models.user import User
+    from app.models.business_data import BusinessData
+    from app.services.referral_service import ReferralService
+    from sqlalchemy import text, cast, String
+    
+    user = db.query(User).filter(User.id == user_id, User.bot_id == bot_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    referral_service = ReferralService(db, bot_id)
+    
+    # 1. Stored Count
+    stored_count = user.custom_data.get('total_invited', 0) if user.custom_data else 0
+    
+    # 2. Calculated Count (via Service)
+    calculated_count = referral_service.count_referrals(user_id)
+    
+    # 3. Raw SQL Counts (Active vs Deleted)
+    user_external_id = str(user.external_id)
+    
+    query_active = text("""
+        SELECT COUNT(*) as count
+        FROM business_data
+        WHERE bot_id = CAST(:bot_id AS uuid)
+          AND data_type = 'log'
+          AND deleted_at IS NULL
+          AND (data->>'inviter_external_id') = :inviter_external_id
+          AND (
+            (data->>'is_referral') IN ('true', 'True')
+            OR (data->>'is_referral')::boolean = true
+          )
+    """)
+    result_active = db.execute(query_active, {'bot_id': str(bot_id), 'inviter_external_id': user_external_id}).first()
+    active_logs_count = result_active.count if result_active else 0
+    
+    query_deleted = text("""
+        SELECT COUNT(*) as count
+        FROM business_data
+        WHERE bot_id = CAST(:bot_id AS uuid)
+          AND data_type = 'log'
+          AND deleted_at IS NOT NULL
+          AND (data->>'inviter_external_id') = :inviter_external_id
+          AND (
+            (data->>'is_referral') IN ('true', 'True')
+            OR (data->>'is_referral')::boolean = true
+          )
+    """)
+    result_deleted = db.execute(query_deleted, {'bot_id': str(bot_id), 'inviter_external_id': user_external_id}).first()
+    deleted_logs_count = result_deleted.count if result_deleted else 0
+    
+    # 4. Sample Logs
+    sample_logs = []
+    logs = db.query(BusinessData).filter(
+        BusinessData.bot_id == bot_id,
+        BusinessData.data_type == 'log',
+        cast(BusinessData.data['inviter_external_id'], String) == user_external_id
+    ).order_by(BusinessData.created_at.desc()).limit(10).all()
+    
+    for log in logs:
+        sample_logs.append({
+            "id": str(log.id),
+            "created_at": log.created_at.isoformat() if log.created_at else None,
+            "deleted_at": log.deleted_at.isoformat() if log.deleted_at else None,
+            "data": log.data
+        })
+        
+    return {
+        "user_id": str(user_id),
+        "external_id": user_external_id,
+        "counts": {
+            "stored_total_invited": stored_count,
+            "calculated_service_count": calculated_count,
+            "raw_active_logs_count": active_logs_count,
+            "raw_deleted_logs_count": deleted_logs_count
+        },
+        "sample_logs": sample_logs
+    }
+
 
