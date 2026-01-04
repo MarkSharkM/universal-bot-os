@@ -2048,7 +2048,6 @@
                 window.usersData.push(...users);
                 
                 users.forEach(user => {
-                    const row = document.createElement('tr');
                     const username = user.username || '-';
                     const firstName = user.first_name || '';
                     const lastName = user.last_name || '';
@@ -2078,32 +2077,35 @@
                     }
                     const lastActivity = user.last_activity ? new Date(user.last_activity).toLocaleString() : '-';
                     
-                    // Last message preview (expandable)
+                    // Last message preview (just icon and preview, click to expand row)
                     let lastMessageCell = '-';
                     if (user.last_message) {
                         const msgPreview = user.last_message.content || '-';
                         const msgRole = user.last_message.role || 'user';
                         const msgIcon = msgRole === 'user' ? '👤' : '🤖';
-                        const msgTimestamp = user.last_message.timestamp ? new Date(user.last_message.timestamp).toLocaleString() : '';
-                        const rowId = `msg-row-${user.id}`;
-                        const expandId = `msg-expand-${user.id}`;
+                        const shortPreview = msgPreview.length > 30 ? msgPreview.substring(0, 30) + '...' : msgPreview;
                         lastMessageCell = `
-                            <div style="position: relative;">
-                                <div onclick="toggleMessage('${expandId}', '${user.id}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                    <span style="font-size: 10px;">${msgIcon}</span>
-                                    <span style="font-size: 9px; color: #6b7280; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${msgPreview}">${msgPreview}</span>
-                                    <span style="font-size: 8px; color: #9ca3af;">▼</span>
-                                </div>
-                                <div id="${expandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb; font-size: 9px; max-width: 300px; word-wrap: break-word;">
-                                    <div style="color: #6b7280; margin-bottom: 4px; font-size: 8px;">${msgTimestamp}</div>
-                                    <div style="color: #374151;">${user.last_message.full_content || msgPreview}</div>
-                                </div>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <span style="font-size: 10px;">${msgIcon}</span>
+                                <span style="font-size: 9px; color: #6b7280; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${msgPreview}">${shortPreview}</span>
                             </div>
                         `;
                     }
                     
+                    // Main user row (clickable to expand)
+                    const row = document.createElement('tr');
+                    row.style.cursor = 'pointer';
+                    row.onclick = (e) => {
+                        // Don't expand if clicking on buttons
+                        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                        toggleUserRow(user.id);
+                    };
+                    
                     row.innerHTML = `
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${user.id.substring(0, 8)}...</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">
+                            <span style="font-size: 8px; color: #9ca3af; margin-right: 4px;">▶</span>
+                            ${user.id.substring(0, 8)}...
+                        </td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${user.external_id}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${username}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${fullName}</td>
@@ -2122,12 +2124,25 @@
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${new Date(user.created_at).toLocaleDateString()}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${new Date(user.last_activity).toLocaleDateString()}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 250px;">${lastMessageCell}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
-                            <button onclick="showEditUserForm('${user.id}')" style="background: #059669; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600; margin-right: 4px;">Edit</button>
-                            <button onclick="deleteUser('${user.id}', '${user.external_id || user.id}')" style="background: #dc2626; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600;">Del</button>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;" onclick="event.stopPropagation();">
+                            <button onclick="event.stopPropagation(); showEditUserForm('${user.id}')" style="background: #059669; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600; margin-right: 4px;">Edit</button>
+                            <button onclick="event.stopPropagation(); deleteUser('${user.id}', '${user.external_id || user.id}')" style="background: #dc2626; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600;">Del</button>
                         </td>
                     `;
                     tbody.appendChild(row);
+                    
+                    // Expandable messages row (hidden by default)
+                    const messagesRow = document.createElement('tr');
+                    messagesRow.id = `messages-row-${user.id}`;
+                    messagesRow.style.display = 'none';
+                    messagesRow.innerHTML = `
+                        <td colspan="15" style="padding: 12px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                            <div id="messages-content-${user.id}" style="max-height: 400px; overflow-y: auto; padding: 8px;">
+                                <div style="text-align: center; color: #6b7280; font-size: 10px;">Завантаження повідомлень...</div>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(messagesRow);
                 });
                 
                 usersOffset += users.length;
@@ -2138,10 +2153,81 @@
             }
         }
         
-        function toggleMessage(expandId, userId) {
-            const expandDiv = document.getElementById(expandId);
-            if (expandDiv) {
-                expandDiv.style.display = expandDiv.style.display === 'none' ? 'block' : 'none';
+        async function toggleUserRow(userId) {
+            const messagesRow = document.getElementById(`messages-row-${userId}`);
+            const messagesContent = document.getElementById(`messages-content-${userId}`);
+            
+            if (!messagesRow) return;
+            
+            // Toggle row visibility
+            const isVisible = messagesRow.style.display !== 'none';
+            
+            if (isVisible) {
+                // Collapse
+                messagesRow.style.display = 'none';
+                // Update arrow icon
+                const arrow = document.querySelector(`tr[onclick*="toggleUserRow('${userId}')"] td:first-child span`);
+                if (arrow) arrow.textContent = '▶';
+            } else {
+                // Expand - load messages if not loaded yet
+                messagesRow.style.display = '';
+                // Update arrow icon
+                const arrow = document.querySelector(`tr[onclick*="toggleUserRow('${userId}')"] td:first-child span`);
+                if (arrow) arrow.textContent = '▼';
+                
+                // Check if messages already loaded
+                if (messagesContent.innerHTML.includes('Завантаження') || messagesContent.innerHTML.trim() === '') {
+                    await loadUserMessages(userId, messagesContent);
+                }
+            }
+        }
+        
+        async function loadUserMessages(userId, container) {
+            if (!currentBotId) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/messages?limit=50`);
+                const messages = await res.json();
+                
+                if (messages.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #6b7280; font-size: 10px; padding: 20px;">Немає повідомлень</div>';
+                    return;
+                }
+                
+                // Sort by timestamp (newest first)
+                messages.sort((a, b) => {
+                    const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+                    const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+                    return timeB - timeA;
+                });
+                
+                let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+                messages.forEach(msg => {
+                    const isUser = msg.role === 'user';
+                    const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString('uk-UA', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : '-';
+                    
+                    html += `
+                        <div style="display: flex; align-items: flex-start; gap: 8px; padding: 6px; background: ${isUser ? '#e0f2fe' : '#f3f4f6'}; border-radius: 4px; border-left: 3px solid ${isUser ? '#0284c7' : '#6b7280'};">
+                            <span style="font-size: 12px; flex-shrink: 0;">${isUser ? '👤' : '🤖'}</span>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px;">${timestamp}</div>
+                                <div style="font-size: 10px; color: #374151; word-wrap: break-word; white-space: pre-wrap;">${formatTelegramMessage(msg.content || '')}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading user messages:', error);
+                container.innerHTML = `<div style="text-align: center; color: #ef4444; font-size: 10px; padding: 20px;">Помилка завантаження: ${error.message}</div>`;
             }
         }
         
