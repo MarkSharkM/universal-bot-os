@@ -352,12 +352,12 @@ body::after {
 
 /* Pages (multi-page navigation) */
 .page {
-    display: none;
+    display: none !important;
     animation: fadeIn var(--transition-normal);
 }
 
 .page.active {
-    display: block;
+    display: block !important;
 }
 
 @keyframes fadeIn {
