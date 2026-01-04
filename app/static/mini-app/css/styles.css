@@ -728,6 +728,16 @@ body.hub-dark .partner-detail-card {
     align-items: center;
     justify-content: space-between;
     margin-bottom: var(--spacing-sm);
+    gap: var(--spacing-sm);
+}
+
+.partner-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--surface-2);
 }
 
 .partner-name {
