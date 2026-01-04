@@ -356,8 +356,43 @@ async def _handle_message(
                     logger.error(f"Failed to update inviter total_invited: {update_error}", exc_info=True)
             else:
                 logger.debug(f"No inviter_external_id_for_update to process")
+    
+    # Update inviter's total_invited count AFTER attempting to send message (even if command failed)
+    # This ensures counter is updated even if command processing fails
+    # Move outside of "if command:" block to ensure it always runs when there's a referral
+    if inviter_external_id_for_update:
+        logger.info(f"Updating inviter count (outside command block): inviter_external_id_for_update={inviter_external_id_for_update}")
+        try:
+            logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}, bot_id={bot_id}")
+            inviter = db.query(User).filter(
+                and_(
+                    User.bot_id == bot_id,
+                    User.external_id == str(inviter_external_id_for_update),  # Ensure string comparison
+                    User.platform == 'telegram'
+                )
+            ).first()
+            
+            if inviter:
+                # Save old count BEFORE update
+                old_count = inviter.custom_data.get('total_invited', 0) if inviter.custom_data else 0
+                logger.info(f"Found inviter: user_id={inviter.id}, external_id={inviter.external_id}, current_total_invited={old_count}, updating total_invited")
+                # Ensure DB sees the new log before counting
+                db.flush()
+                logger.info(f"DB flushed, calling update_total_invited for inviter user_id={inviter.id}")
+                updated_user = referral_service.update_total_invited(inviter.id)
+                # Note: update_total_invited already commits and refreshes, so we get the latest value
+                new_count = updated_user.custom_data.get('total_invited', 0) if updated_user.custom_data else 0
+                logger.info(f"Inviter total_invited updated successfully: new_count={new_count} (was {old_count}), user_id={inviter.id}, external_id={inviter.external_id}")
+            else:
+                logger.warning(f"Inviter not found for external_id={inviter_external_id_for_update}, bot_id={bot_id}. Checking all users with this external_id...")
+                # Debug: check if user exists with different platform
+                all_users = db.query(User).filter(User.external_id == str(inviter_external_id_for_update)).all()
+                logger.warning(f"Found {len(all_users)} users with external_id={inviter_external_id_for_update}: {[(u.id, u.bot_id, u.platform) for u in all_users]}")
+        except Exception as update_error:
+            # Don't fail if update fails - message already sent
+            logger.error(f"Failed to update inviter total_invited (outside command block): {update_error}", exc_info=True)
                     
-            # Save bot response to database AFTER attempting to send (non-blocking)
+    # Save bot response to database AFTER attempting to send (non-blocking)
             if response.get('message'):
                 try:
                     bot_message = Message(
