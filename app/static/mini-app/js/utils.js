@@ -4,6 +4,37 @@
  */
 
 /**
+ * Open link using correct Telegram WebApp API method
+ * @param {string} url - URL to open
+ * @param {object} options - Options (tryInstantView, tryBrowser)
+ */
+function openLinkCorrectly(url, options = {}) {
+    const tg = AppState.getTg();
+    if (!tg) {
+        // Fallback: open in same window
+        window.location.href = url;
+        return;
+    }
+    
+    // Check if it's a Telegram link (t.me/*)
+    const isTelegramLink = url && (url.startsWith('https://t.me/') || url.startsWith('http://t.me/'));
+    
+    if (isTelegramLink && tg.openTelegramLink) {
+        // Open Telegram link in Telegram app (not browser)
+        tg.openTelegramLink(url);
+    } else if (tg.openLink) {
+        // Open external link in browser with options
+        tg.openLink(url, options);
+    } else {
+        // Fallback: open in same window
+        window.location.href = url;
+    }
+}
+
+// Export to window for global access
+window.openLinkCorrectly = openLinkCorrectly;
+
+/**
  * Toast Notification System
  */
 const Toast = {

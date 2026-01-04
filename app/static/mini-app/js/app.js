@@ -51,7 +51,10 @@ async function initMiniApp() {
         
         // Initialize Telegram WebApp
         tg.ready();
+        // Expand to full height to prevent closing on scroll
         tg.expand();
+        // Enable closing confirmation (optional, prevents accidental closes)
+        tg.enableClosingConfirmation();
         
         // Get user data from initData
         const initDataUnsafe = tg.initDataUnsafe;

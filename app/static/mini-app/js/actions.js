@@ -23,12 +23,17 @@ function openPartner(referralLink, partnerId) {
         }, initData).catch(err => console.error('Error logging partner click:', err));
     }
     
-    // Use Telegram WebApp API: openLink for all links (best practice)
-    // openLink opens in browser within Telegram context, doesn't close Mini App
-    // openTelegramLink would redirect to Telegram app and close Mini App
-    // For t.me links, use openLink (not openTelegramLink) to keep user in Mini App context
+    // Use correct Telegram WebApp API method based on link type
+    // For t.me links: use openTelegramLink() to open in Telegram app
+    // For external links: use openLink() to open in browser
     const tg = AppState.getTg();
-    if (tg?.openLink) {
+    const isTelegramLink = referralLink && referralLink.startsWith('https://t.me/');
+    
+    if (isTelegramLink && tg?.openTelegramLink) {
+        // Open Telegram link in Telegram app (not browser)
+        tg.openTelegramLink(referralLink);
+    } else if (tg?.openLink) {
+        // Open external link in browser
         tg.openLink(referralLink);
     } else {
         // Fallback: open in same window
@@ -169,9 +174,15 @@ function shareReferralLink() {
     // Use Telegram share URL
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
     
-    // Use openLink to open share dialog in browser, keep user in Mini App context
+    // Share URL is t.me/share/url - use openTelegramLink for Telegram links
     const tg = AppState.getTg();
-    if (tg?.openLink) {
+    const isTelegramLink = shareUrl && shareUrl.startsWith('https://t.me/');
+    
+    if (isTelegramLink && tg?.openTelegramLink) {
+        // Open Telegram share dialog in Telegram app
+        tg.openTelegramLink(shareUrl);
+    } else if (tg?.openLink) {
+        // Fallback: open in browser
         tg.openLink(shareUrl);
     } else {
         // Fallback: open in same window
@@ -305,9 +316,15 @@ function openTelegramBot() {
     // Get bot URL (universal for any bot)
     const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : 'https://t.me/EarnHubAggregatorBot';
     
-    // Use openLink (not openTelegramLink) to open in browser, keep user in Mini App context
+    // Use correct method: openTelegramLink for t.me links, openLink for external
     const tg = AppState.getTg();
-    if (tg?.openLink) {
+    const isTelegramLink = botUrl && botUrl.startsWith('https://t.me/');
+    
+    if (isTelegramLink && tg?.openTelegramLink) {
+        // Open bot URL in Telegram app
+        tg.openTelegramLink(botUrl);
+    } else if (tg?.openLink) {
+        // Open external link in browser
         tg.openLink(botUrl);
     } else {
         // Fallback: open in same window
