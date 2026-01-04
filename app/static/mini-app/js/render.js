@@ -58,10 +58,20 @@ function renderApp() {
 
 function renderPartners() {
     const appData = AppState.getAppData();
-    if (!appData) return;
+    if (!appData) {
+        console.warn('[Render] renderPartners: appData not available');
+        return;
+    }
     
     // Track view_partners event
     trackEvent('view_partners');
+    
+    // Ensure we're on the partners page
+    const partnersPage = document.getElementById('partners-page');
+    if (!partnersPage || !partnersPage.classList.contains('active')) {
+        console.warn('[Render] renderPartners: partners page is not active');
+        return;
+    }
     
     AppState.setFilteredPartners([]);
     const partners = appData.partners || [];
@@ -337,9 +347,16 @@ function renderPartnerDetail(partnerId) {
 }
 
 function renderTop() {
+    // Ensure we're on the top page
+    const topPage = document.getElementById('top-page');
+    if (!topPage || !topPage.classList.contains('active')) {
+        console.warn('[Render] renderTop: top page is not active');
+        return;
+    }
+    
     const container = document.getElementById('top-content');
     if (!container) {
-        console.warn('TOP container not found');
+        console.warn('[Render] TOP container not found');
         return;
     }
     
@@ -355,7 +372,7 @@ function renderTop() {
     }
     
     if (!appData) {
-        console.warn('appData not loaded yet, showing loading state');
+        console.warn('[Render] appData not loaded yet, showing loading state');
         container.innerHTML = '<div class="loading-state"><p>Завантаження даних...</p></div>';
         return;
     }

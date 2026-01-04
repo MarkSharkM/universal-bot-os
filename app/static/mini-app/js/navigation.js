@@ -34,46 +34,58 @@ function switchTab(tabName) {
     
     // Show target page
     const targetPage = document.getElementById(`${tabName}-page`);
-    if (targetPage) {
-        targetPage.classList.add('active');
-        AppState.setCurrentPage(tabName);
-        
-        // Show skeleton while loading (if data not available)
-        if (!AppState.getAppData()) {
-            showSkeleton(tabName);
-        }
-        
-        // Render content immediately with existing data (if available)
-        // This ensures user sees content right away, not a blank screen
-        if (tabName === 'home') {
-            if (AppState.getAppData()) {
-                hideSkeleton('home');
-                if (typeof Render !== 'undefined' && Render.renderHome) {
-                    Render.renderHome();
-                } else {
-                    renderHome();
-                }
-            }
-        } else if (tabName === 'partners') {
-            if (AppState.getAppData()) {
-                hideSkeleton('partners');
-                if (typeof Render !== 'undefined' && Render.renderPartners) {
-                    Render.renderPartners();
-                } else {
-                    renderPartners();
-                }
-                setupSearchAndFilters();
-            }
-        } else if (tabName === 'top') {
-            if (AppState.getAppData()) {
-                hideSkeleton('top');
-                if (typeof Render !== 'undefined' && Render.renderTop) {
-                    Render.renderTop();
-                } else {
-                    renderTop();
-                }
+    if (!targetPage) {
+        console.error(`Page not found: ${tabName}-page`);
+        return;
+    }
+    
+    // Ensure all pages are hidden first
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show target page (CSS will handle display via .page.active)
+    targetPage.classList.add('active');
+    AppState.setCurrentPage(tabName);
+    
+    console.log(`[Navigation] Switched to tab: ${tabName}, page ID: ${targetPage.id}`);
+    
+    // Show skeleton while loading (if data not available)
+    if (!AppState.getAppData()) {
+        showSkeleton(tabName);
+    }
+    
+    // Render content immediately with existing data (if available)
+    // This ensures user sees content right away, not a blank screen
+    if (tabName === 'home') {
+        if (AppState.getAppData()) {
+            hideSkeleton('home');
+            if (typeof Render !== 'undefined' && Render.renderHome) {
+                Render.renderHome();
+            } else {
+                renderHome();
             }
         }
+    } else if (tabName === 'partners') {
+        if (AppState.getAppData()) {
+            hideSkeleton('partners');
+            if (typeof Render !== 'undefined' && Render.renderPartners) {
+                Render.renderPartners();
+            } else {
+                renderPartners();
+            }
+            setupSearchAndFilters();
+        }
+    } else if (tabName === 'top') {
+        if (AppState.getAppData()) {
+            hideSkeleton('top');
+            if (typeof Render !== 'undefined' && Render.renderTop) {
+                Render.renderTop();
+            } else {
+                renderTop();
+            }
+        }
+    }
         
         // Reload data when switching to tabs that need fresh data
         // This ensures counters and stats are up-to-date
