@@ -2136,6 +2136,130 @@ async def list_bot_messages(
     return result
 
 
+@router.get("/bots/{bot_id}/messages")
+async def list_bot_messages(
+    bot_id: UUID,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    user_id: Optional[UUID] = Query(None, description="Filter by user ID"),
+    command: Optional[str] = Query(None, description="Filter by command (e.g., /start, /top)"),
+    sort_by: str = Query("timestamp", description="Sort by: 'timestamp' or 'response_time'"),
+    db: Session = Depends(get_db)
+):
+    """
+    List messages grouped by command-response pairs with Response Time calculation.
+    Each row represents: user command + bot response + response time.
+    
+    Args:
+        bot_id: Bot UUID
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        user_id: Optional filter by user ID
+        command: Optional filter by command (e.g., /start, /top)
+        sort_by: Sort by 'timestamp' (default) or 'response_time'
+        db: Database session
+    
+    Returns:
+        List of message pairs with response time metrics
+    """
+    from app.models.message import Message
+    from app.models.user import User
+    from sqlalchemy import and_, or_, func, desc, asc
+    from datetime import datetime, timedelta
+    
+    # Base query for user messages (commands)
+    query = db.query(Message).join(User).filter(
+        Message.bot_id == bot_id,
+        Message.role == 'user'
+    )
+    
+    if user_id:
+        query = query.filter(Message.user_id == user_id)
+    
+    if command:
+        # Filter by command (e.g., /start, /top)
+        query = query.filter(Message.content.like(f'{command}%'))
+    
+    # Get user messages ordered by timestamp
+    user_messages = query.order_by(Message.timestamp.desc()).offset(skip).limit(limit).all()
+    
+    result = []
+    for user_msg in user_messages:
+        # Find the next assistant message (bot response) after this user message
+        response_msg = db.query(Message).filter(
+            Message.bot_id == bot_id,
+            Message.user_id == user_msg.user_id,
+            Message.role == 'assistant',
+            Message.timestamp > user_msg.timestamp
+        ).order_by(Message.timestamp.asc()).first()
+        
+        # Calculate response time
+        response_time_ms = None
+        response_time_seconds = None
+        if response_msg and user_msg.timestamp and response_msg.timestamp:
+            delta = response_msg.timestamp - user_msg.timestamp
+            response_time_ms = int(delta.total_seconds() * 1000)
+            response_time_seconds = round(delta.total_seconds(), 2)
+        
+        # Get user data
+        user = db.query(User).filter(User.id == user_msg.user_id).first()
+        if not user:
+            continue
+        
+        # Extract command from content (remove /start params if present)
+        command_text = user_msg.content.split()[0] if user_msg.content else user_msg.content
+        
+        # Get user fields
+        custom_data = user.custom_data or {}
+        username = custom_data.get('username', '')
+        first_name = custom_data.get('first_name', '')
+        last_name = custom_data.get('last_name', '')
+        device_os = user.language_code if user.language_code in ['iOS', 'Android'] else ''
+        device_version = custom_data.get('device_version', '')
+        device = f"{device_os} {device_version}".strip() if device_os else custom_data.get('device', '')
+        language = user.language_code if user.language_code not in ['iOS', 'Android'] else (custom_data.get('language', 'uk'))
+        wallet_address = custom_data.get('wallet_address', '')
+        total_invited = custom_data.get('total_invited', 0)
+        top_status = custom_data.get('top_status', 'locked')
+        balance = float(user.balance) if user.balance else 0.0
+        
+        result.append({
+            "id": str(user_msg.id),
+            "user_id": str(user.id),
+            "external_id": user.external_id,
+            "username": username,
+            "first_name": first_name,
+            "last_name": last_name,
+            "device": device,
+            "device_os": device_os,
+            "device_version": device_version,
+            "language": language,
+            "wallet_address": wallet_address,
+            "total_invited": total_invited,
+            "top_status": top_status,
+            "balance": balance,
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+            "last_activity": user.updated_at.isoformat() if user.updated_at else (user.created_at.isoformat() if user.created_at else None),
+            # Command data
+            "command": command_text,
+            "command_content": user_msg.content,
+            "command_timestamp": user_msg.timestamp.isoformat() if user_msg.timestamp else None,
+            # Response data
+            "response_content": response_msg.content if response_msg else None,
+            "response_timestamp": response_msg.timestamp.isoformat() if response_msg and response_msg.timestamp else None,
+            "response_time_ms": response_time_ms,
+            "response_time_seconds": response_time_seconds,
+        })
+    
+    # Sort by response_time if requested
+    if sort_by == "response_time":
+        result.sort(key=lambda x: x["response_time_seconds"] if x["response_time_seconds"] is not None else float('inf'), reverse=True)
+    
+    return result
+
+
 @router.get("/bots/{bot_id}/users/{user_id}/messages")
 async def list_user_messages(
     bot_id: UUID,

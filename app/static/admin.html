@@ -610,48 +610,61 @@
                 
                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px;">
                     <div style="padding: 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                        <label style="font-weight: 600; color: #374151;">Sort by:</label>
-                        <select id="users-sort-by" onchange="loadUsers(0, true)" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
-                            <option value="last_activity" selected>Last Activity (recent first)</option>
-                            <option value="created_at">Created (newest first)</option>
+                        <label style="font-weight: 600; color: #374151; font-size: 12px;">Sort by:</label>
+                        <select id="messages-sort-by" onchange="loadMessages(0, true)" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer;">
+                            <option value="timestamp" selected>Timestamp (recent first)</option>
+                            <option value="response_time">Response Time (slowest first)</option>
                         </select>
-                        <label style="font-weight: 600; color: #374151; margin-left: 20px;">Filter by user:</label>
-                        <select id="users-user-filter" onchange="loadUsers(0, true)" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; min-width: 250px;">
+                        <label style="font-weight: 600; color: #374151; margin-left: 20px; font-size: 12px;">Filter by command:</label>
+                        <select id="messages-command-filter" onchange="loadMessages(0, true)" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer; min-width: 150px;">
+                            <option value="">All commands</option>
+                            <option value="/start">/start</option>
+                            <option value="/top">/top</option>
+                            <option value="/partners">/partners</option>
+                            <option value="/wallet">/wallet</option>
+                            <option value="/earnings">/earnings</option>
+                            <option value="/share">/share</option>
+                            <option value="/info">/info</option>
+                        </select>
+                        <label style="font-weight: 600; color: #374151; margin-left: 20px; font-size: 12px;">Filter by user:</label>
+                        <select id="messages-user-filter" onchange="loadMessages(0, true)" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer; min-width: 200px;">
                             <option value="">All users</option>
                         </select>
                     </div>
                 </div>
                 <div style="background: white; border-radius: 8px; overflow-x: auto; overflow-y: visible; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <div style="min-width: 1600px;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; min-width: 1600px;">
+                    <div style="min-width: 2000px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 10px; min-width: 2000px;">
                             <thead style="background: #f9fafb;">
                                 <tr>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">ID</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">External ID</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Username</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Name</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Platform</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Device</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Language</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Wallet</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Invited</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">TOP</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Balance</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Active</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Created</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Last Activity</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600;">Last Message</th>
-                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 10px; white-space: nowrap; font-weight: 600; position: sticky; right: 0; background: #f9fafb; z-index: 10;">Actions</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Дата</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Час</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">User ID</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Username</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Device</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Language</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Wallet</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Invited</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">TOP</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Balance</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Active</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Created</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Last Activity</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Команда</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Відповідь</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Час відповіді</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">Response Time</th>
+                                    <th style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; position: sticky; right: 0; background: #f9fafb; z-index: 10;">Дії</th>
                                 </tr>
                             </thead>
-                            <tbody id="database-users-tbody">
-                                <tr><td colspan="15" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view users</td></tr>
+                            <tbody id="database-messages-tbody">
+                                <tr><td colspan="17" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <div id="database-users-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
-                        <button onclick="loadMoreUsers()" style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show More (10 more)</button>
-                        <button onclick="loadAllUsers()" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load All</button>
+                    <div id="database-messages-more" style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
+                        <button onclick="loadMoreMessages()" style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show More (10 more)</button>
+                        <button onclick="loadAllMessages()" style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load All</button>
                     </div>
                 </div>
             </div>
@@ -851,7 +864,8 @@
             // No tabs anymore - always show users+messages combined
             if (currentBotId) {
                 loadUsersForUsersFilter();
-                loadUsers(0, true);
+                loadMessages(0, true);
+                loadUsersForMessagesFilter();
             }
         }
         
@@ -1549,9 +1563,9 @@
             translationsOffset = 0;
             messagesOffset = 0;
             
-            // Always load users+messages combined
-            await loadUsersForUsersFilter();
-            await loadUsers(0, true);
+            // Always load messages table
+            await loadUsersForMessagesFilter();
+            await loadMessages(0, true);
         }
         
         async function loadUsersForMessages() {
@@ -1943,7 +1957,8 @@
                 alert('User updated successfully!');
                 hideEditUserForm();
                 // Reload users to show updated data
-                loadUsers(0, true);
+                loadMessages(0, true);
+                loadUsersForMessagesFilter();
             } catch (error) {
                 let errorMessage = 'Failed to update user';
                 if (error && error.message) {
@@ -1998,7 +2013,8 @@
                 alert(`User deleted successfully!\n\nDeleted:\n- User record\n- ${deleted.business_data_records || 0} business data records\n- ${deleted.analytics_events || 0} analytics events\n- ${deleted.messages || 0} messages\n\nTotal: ${deleted.total_records || 0} records`);
                 
                 // Reload users list
-                loadUsers(0, true);
+                loadMessages(0, true);
+                loadUsersForMessagesFilter();
             } catch (error) {
                 let errorMessage = 'Failed to delete user';
                 if (error && error.message) {
@@ -2013,144 +2029,170 @@
             }
         }
         
-        async function loadUsers(offset = 0, reset = false) {
+        let messagesOffset = 0;
+        const MESSAGES_PER_PAGE = 10;
+        
+        async function loadMessages(offset = 0, reset = false) {
             if (!currentBotId) return;
             
             try {
-                const sortBy = document.getElementById('users-sort-by')?.value || 'created_at';
-                const userId = document.getElementById('users-user-filter')?.value || '';
-                const url = `${API_BASE}/bots/${currentBotId}/users?skip=${offset}&limit=${ROWS_PER_PAGE}&sort_by=${sortBy}${userId ? `&user_id=${userId}` : ''}`;
+                const sortBy = document.getElementById('messages-sort-by')?.value || 'timestamp';
+                const command = document.getElementById('messages-command-filter')?.value || '';
+                const userId = document.getElementById('messages-user-filter')?.value || '';
+                let url = `${API_BASE}/bots/${currentBotId}/messages?skip=${offset}&limit=${MESSAGES_PER_PAGE}&sort_by=${sortBy}`;
+                if (command) url += `&command=${encodeURIComponent(command)}`;
+                if (userId) url += `&user_id=${userId}`;
+                
                 const res = await fetch(url);
-                const users = await res.json();
-                const tbody = document.getElementById('database-users-tbody');
+                const messages = await res.json();
+                const tbody = document.getElementById('database-messages-tbody');
                 
                 if (reset) {
                     tbody.innerHTML = '';
-                    usersOffset = 0;
+                    messagesOffset = 0;
                 }
                 
-                if (users.length === 0 && reset) {
-                    tbody.innerHTML = '<tr><td colspan="15" style="padding: 20px; text-align: center; color: #6b7280;">No users found</td></tr>';
-                    document.getElementById('database-users-more').style.display = 'none';
+                if (messages.length === 0 && reset) {
+                    tbody.innerHTML = '<tr><td colspan="17" style="padding: 20px; text-align: center; color: #6b7280;">No messages found</td></tr>';
+                    document.getElementById('database-messages-more').style.display = 'none';
                     return;
                 }
                 
-                // Update colspan for empty message
-                const emptyRow = tbody.querySelector('tr td[colspan]');
-                if (emptyRow) {
-                    emptyRow.setAttribute('colspan', '15');
-                }
-                
-                // Store users data for editing
-                if (reset) {
-                    window.usersData = [];
-                }
-                window.usersData.push(...users);
-                
-                users.forEach(user => {
-                    const username = user.username || '-';
-                    const firstName = user.first_name || '';
-                    const lastName = user.last_name || '';
+                messages.forEach(msg => {
+                    const username = msg.username || '-';
+                    const firstName = msg.first_name || '';
+                    const lastName = msg.last_name || '';
                     const fullName = `${firstName} ${lastName}`.trim() || '-';
-                    const wallet = user.wallet_address || '-';
-                    const totalInvited = user.total_invited || 0;
-                    const topStatus = user.top_status || 'locked';
-                    const topUnlockMethod = user.top_unlock_method || '';
+                    const wallet = msg.wallet_address || '-';
+                    const totalInvited = msg.total_invited || 0;
+                    const topStatus = msg.top_status || 'locked';
                     let topBadge;
                     if (topStatus === 'open') {
-                        // Determine unlock method if not set
-                        let method = topUnlockMethod;
-                        if (!method) {
-                            // If total_invited >= 5, likely unlocked via invites
-                            // Otherwise, likely via payment (or unknown)
-                            method = totalInvited >= 5 ? 'invites' : 'payment';
-                        }
-                        
-                        const tooltip = method === 'payment' 
-                            ? 'TOP відкрито за оплату (1⭐)' 
-                            : method === 'invites' 
-                            ? `TOP відкрито за запрошених друзів (${totalInvited} запрошених)`
-                            : 'TOP відкрито';
-                        topBadge = `<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; cursor: help;" title="${tooltip}">OPEN</span>`;
+                        topBadge = '<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">OPEN</span>';
                     } else {
-                        topBadge = '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; cursor: help;" title="TOP заблоковано (потрібно 5 запрошених друзів або оплата 1⭐)">LOCKED</span>';
-                    }
-                    const lastActivity = user.last_activity ? new Date(user.last_activity).toLocaleString() : '-';
-                    
-                    // Last message preview (just icon and preview, click to expand row)
-                    let lastMessageCell = '-';
-                    if (user.last_message) {
-                        const msgPreview = user.last_message.content || '-';
-                        const msgRole = user.last_message.role || 'user';
-                        const msgIcon = msgRole === 'user' ? '👤' : '🤖';
-                        const shortPreview = msgPreview.length > 30 ? msgPreview.substring(0, 30) + '...' : msgPreview;
-                        lastMessageCell = `
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <span style="font-size: 10px;">${msgIcon}</span>
-                                <span style="font-size: 9px; color: #6b7280; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${msgPreview}">${shortPreview}</span>
-                            </div>
-                        `;
+                        topBadge = '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">LOCKED</span>';
                     }
                     
-                    // Main user row (clickable to expand)
+                    // Format dates
+                    const commandDate = msg.command_timestamp ? new Date(msg.command_timestamp) : null;
+                    const dateStr = commandDate ? commandDate.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) : '-';
+                    const timeStr = commandDate ? commandDate.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '-';
+                    const createdDate = msg.created_at ? new Date(msg.created_at).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) : '-';
+                    const lastActivityDate = msg.last_activity ? new Date(msg.last_activity).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) : '-';
+                    
+                    // Response time formatting with color coding
+                    let responseTimeCell = '-';
+                    if (msg.response_time_seconds !== null && msg.response_time_seconds !== undefined) {
+                        const rt = msg.response_time_seconds;
+                        let color, icon;
+                        if (rt < 1) {
+                            color = '#10b981'; // green
+                            icon = '✅';
+                        } else if (rt <= 3) {
+                            color = '#f59e0b'; // yellow
+                            icon = '⚠️';
+                        } else {
+                            color = '#ef4444'; // red
+                            icon = '❌';
+                        }
+                        responseTimeCell = `<span style="background: ${color}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">${rt.toFixed(1)}s ${icon}</span>`;
+                    } else {
+                        responseTimeCell = '<span style="background: #9ca3af; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px;">-</span>';
+                    }
+                    
+                    // Response timestamp
+                    const responseTimestamp = msg.response_timestamp ? new Date(msg.response_timestamp).toLocaleString('uk-UA', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        second: '2-digit'
+                    }) : '-';
+                    
+                    // Command and response previews (expandable)
+                    const commandPreview = msg.command_content ? (msg.command_content.length > 20 ? msg.command_content.substring(0, 20) + '...' : msg.command_content) : '-';
+                    const responsePreview = msg.response_content ? (msg.response_content.length > 30 ? msg.response_content.substring(0, 30) + '...' : msg.response_content) : '-';
+                    const commandExpandId = `cmd-expand-${msg.id}`;
+                    const responseExpandId = `resp-expand-${msg.id}`;
+                    
                     const row = document.createElement('tr');
-                    row.style.cursor = 'pointer';
-                    row.onclick = (e) => {
-                        // Don't expand if clicking on buttons
-                        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
-                        toggleUserRow(user.id);
-                    };
-                    
                     row.innerHTML = `
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">
-                            <span style="font-size: 8px; color: #9ca3af; margin-right: 4px;">▶</span>
-                            ${user.id.substring(0, 8)}...
-                        </td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${user.external_id}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${username}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${fullName}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${user.platform}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${dateStr}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${timeStr}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.user_id.substring(0, 8)}...</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${username}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
-                            ${user.device_os ? `<span style="background: #e5e7eb; color: #374151; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 500;" title="${user.device_version || ''}">${user.device_os}${user.device_version ? ' ' + user.device_version : ''}</span>` : (user.device ? `<span style="background: #e5e7eb; color: #374151; padding: 1px 4px; border-radius: 3px; font-size: 9px;">${user.device}</span>` : '-')}
+                            ${msg.device ? `<span style="background: #e5e7eb; color: #374151; padding: 1px 4px; border-radius: 3px; font-size: 9px;">${msg.device}</span>` : '-'}
                         </td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">
-                            ${user.language ? `<span style="background: #dbeafe; color: #1e40af; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 500;">${user.language.toUpperCase()}</span>` : '-'}
+                            ${msg.language ? `<span style="background: #dbeafe; color: #1e40af; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 500;">${msg.language.toUpperCase()}</span>` : '-'}
                         </td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; word-break: break-all; max-width: 120px;">${wallet}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px; text-align: center;">${totalInvited}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; word-break: break-all; max-width: 100px;">${wallet}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${totalInvited}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${topBadge}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px;">${user.balance || 0}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px; text-align: center;">${user.is_active ? '✅' : '❌'}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${new Date(user.created_at).toLocaleDateString()}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${new Date(user.last_activity).toLocaleDateString()}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 250px;">${lastMessageCell}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 10px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;" onclick="event.stopPropagation();">
-                            <button onclick="event.stopPropagation(); showEditUserForm('${user.id}')" style="background: #059669; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600; margin-right: 4px;">Edit</button>
-                            <button onclick="event.stopPropagation(); deleteUser('${user.id}', '${user.external_id || user.id}')" style="background: #dc2626; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600;">Del</button>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.balance || 0}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${msg.is_active ? '✅' : '❌'}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${createdDate}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${lastActivityDate}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 150px;">
+                            <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                <span style="font-size: 9px; color: #6b7280;">${commandPreview}</span>
+                                <span style="font-size: 8px; color: #9ca3af;">▼</span>
+                            </div>
+                            <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.command_content || '-'}</div>
+                        </td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 200px;">
+                            <div onclick="toggleExpand('${responseExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                <span style="font-size: 9px; color: #6b7280;">${responsePreview}</span>
+                                <span style="font-size: 8px; color: #9ca3af;">▼</span>
+                            </div>
+                            <div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.response_content || '-'}</div>
+                        </td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${responseTimestamp}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${responseTimeCell}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
+                            <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600; margin-right: 4px;">Edit</button>
+                            <button onclick="deleteUser('${msg.user_id}', '${msg.external_id || msg.user_id}')" style="background: #dc2626; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600;">Del</button>
                         </td>
                     `;
                     tbody.appendChild(row);
-                    
-                    // Expandable messages row (hidden by default)
-                    const messagesRow = document.createElement('tr');
-                    messagesRow.id = `messages-row-${user.id}`;
-                    messagesRow.style.display = 'none';
-                    messagesRow.innerHTML = `
-                        <td colspan="15" style="padding: 12px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
-                            <div id="messages-content-${user.id}" style="max-height: 400px; overflow-y: auto; padding: 8px;">
-                                <div style="text-align: center; color: #6b7280; font-size: 10px;">Завантаження повідомлень...</div>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(messagesRow);
                 });
                 
-                usersOffset += users.length;
-                document.getElementById('database-users-more').style.display = users.length === ROWS_PER_PAGE ? 'block' : 'none';
+                messagesOffset += messages.length;
+                document.getElementById('database-messages-more').style.display = messages.length === MESSAGES_PER_PAGE ? 'block' : 'none';
             } catch (error) {
-                console.error('Error loading users:', error);
-                document.getElementById('database-users-tbody').innerHTML = '<tr><td colspan="15" style="padding: 20px; text-align: center; color: #ef4444;">Error loading users</td></tr>';
+                console.error('Error loading messages:', error);
+                document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="17" style="padding: 20px; text-align: center; color: #ef4444;">Error loading messages: ' + error.message + '</td></tr>';
             }
+        }
+        
+        function toggleExpand(expandId) {
+            const expandDiv = document.getElementById(expandId);
+            if (expandDiv) {
+                expandDiv.style.display = expandDiv.style.display === 'none' ? 'block' : 'none';
+                // Update arrow icon
+                const arrow = expandDiv.previousElementSibling?.querySelector('span:last-child');
+                if (arrow) {
+                    arrow.textContent = expandDiv.style.display === 'none' ? '▼' : '▲';
+                }
+            }
+        }
+        
+        function loadMoreMessages() {
+            loadMessages(messagesOffset, false);
+        }
+        
+        function loadAllMessages() {
+            // Load all messages (with reasonable limit)
+            loadMessages(0, true);
+            // Then load more until no more
+            const checkMore = setInterval(() => {
+                if (document.getElementById('database-messages-more').style.display === 'none') {
+                    clearInterval(checkMore);
+                } else {
+                    loadMoreMessages();
+                }
+            }, 500);
         }
         
         async function toggleUserRow(userId) {
@@ -2316,14 +2358,6 @@
             }
         }
         
-        function loadMoreUsers() {
-            loadUsers(usersOffset, false);
-        }
-        
-        function loadAllUsers() {
-            // Reset and load first page (pagination handles the rest)
-            loadUsers(0, true);
-        }
         
         function loadMorePartners() {
             loadPartnersData(partnersOffset, false);
