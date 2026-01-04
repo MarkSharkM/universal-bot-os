@@ -323,7 +323,7 @@ async def _handle_message(
             # Update inviter's total_invited count AFTER attempting to send message (even if it failed)
             # This ensures counter is updated even if Telegram API fails (e.g., test users)
             # This prevents blocking webhook on slow SQL queries
-            logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update} (type={type(inviter_external_id_for_update)})")
+            logger.info(f"Checking if need to update inviter: inviter_external_id_for_update={inviter_external_id_for_update} (type={type(inviter_external_id_for_update)}), command={command}, start_param={start_param}")
             if inviter_external_id_for_update:
                 try:
                     logger.info(f"Looking for inviter with external_id={inviter_external_id_for_update}, bot_id={bot_id}")
