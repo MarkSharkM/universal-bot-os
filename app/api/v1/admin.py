@@ -1038,7 +1038,7 @@ async def test_command(
     # Handle command
     try:
         logger.info(f"test_command: handling command {parsed_command} for user {user.id}")
-        response = command_service.handle_command(
+        response = await command_service.handle_command(
             parsed_command,
             user.id,
             user_lang=user_lang,
