@@ -37,13 +37,19 @@ function switchTab(tabName) {
     // Hide all pages first
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
+        // Force hide to ensure no display issues
+        if (page !== targetPage) {
+            page.style.display = 'none';
+        }
     });
     
     // Show target page (CSS will handle display via .page.active)
     targetPage.classList.add('active');
+    targetPage.style.display = 'block';
     AppState.setCurrentPage(tabName);
     
     console.log(`[Navigation] Switched to tab: ${tabName}, page ID: ${targetPage.id}`);
+    console.log(`[Navigation] Active pages:`, Array.from(document.querySelectorAll('.page.active')).map(p => p.id));
     
     // Show skeleton while loading (if data not available)
     if (!AppState.getAppData()) {

@@ -57,21 +57,35 @@ function renderApp() {
 }
 
 function renderPartners() {
+    console.log('[Render] renderPartners: starting');
+    
     const appData = AppState.getAppData();
     if (!appData) {
         console.warn('[Render] renderPartners: appData not available');
         return;
     }
     
-    // Track view_partners event
-    trackEvent('view_partners');
-    
     // Ensure we're on the partners page
     const partnersPage = document.getElementById('partners-page');
-    if (!partnersPage || !partnersPage.classList.contains('active')) {
-        console.warn('[Render] renderPartners: partners page is not active');
+    const topPage = document.getElementById('top-page');
+    const homePage = document.getElementById('home-page');
+    
+    console.log('[Render] renderPartners: partners-page active?', partnersPage?.classList.contains('active'));
+    console.log('[Render] renderPartners: top-page active?', topPage?.classList.contains('active'));
+    console.log('[Render] renderPartners: home-page active?', homePage?.classList.contains('active'));
+    
+    if (!partnersPage) {
+        console.error('[Render] renderPartners: partners-page element not found');
         return;
     }
+    
+    if (!partnersPage.classList.contains('active')) {
+        console.warn('[Render] renderPartners: partners page is not active, skipping render');
+        return;
+    }
+    
+    // Track view_partners event
+    trackEvent('view_partners');
     
     AppState.setFilteredPartners([]);
     const partners = appData.partners || [];
@@ -347,10 +361,24 @@ function renderPartnerDetail(partnerId) {
 }
 
 function renderTop() {
+    console.log('[Render] renderTop: starting');
+    
     // Ensure we're on the top page
     const topPage = document.getElementById('top-page');
-    if (!topPage || !topPage.classList.contains('active')) {
-        console.warn('[Render] renderTop: top page is not active');
+    const partnersPage = document.getElementById('partners-page');
+    const homePage = document.getElementById('home-page');
+    
+    console.log('[Render] renderTop: top-page active?', topPage?.classList.contains('active'));
+    console.log('[Render] renderTop: partners-page active?', partnersPage?.classList.contains('active'));
+    console.log('[Render] renderTop: home-page active?', homePage?.classList.contains('active'));
+    
+    if (!topPage) {
+        console.error('[Render] renderTop: top-page element not found');
+        return;
+    }
+    
+    if (!topPage.classList.contains('active')) {
+        console.warn('[Render] renderTop: top page is not active, skipping render');
         return;
     }
     
