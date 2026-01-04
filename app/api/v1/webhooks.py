@@ -680,10 +680,25 @@ async def _handle_activate_7(
     db: Session
 ):
     """Handle activate_7 callback - show instructions"""
-    translation_service = TranslationService(db)
+    translation_service = TranslationService(db, bot_id)
     lang = translation_service.detect_language(user.language_code)
     
-    message = translation_service.get_translation('earnings_7_instructions', lang)
+    # Get bot username for translation variables
+    from app.models.bot import Bot
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    bot_username = ''
+    if bot:
+        config = bot.config or {}
+        username = config.get('username')
+        if username:
+            bot_username = username.replace('@', '').strip()
+        elif bot.name:
+            import re
+            bot_username = re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
+    
+    message = translation_service.get_translation('earnings_7_instructions', lang, {
+        'bot_username': bot_username
+    })
     
     buttons = [[
         {

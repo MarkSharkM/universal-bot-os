@@ -679,13 +679,13 @@ class CommandService:
         # Double-check: if placeholder is still present, log error
         if '{{bot_username}}' in message_text:
             logger.error(f"{{bot_username}} placeholder not replaced in share_referral translation! bot_username={bot_username}, bot_id={self.bot_id}")
-        # Remove placeholder and clean up extra newlines
-        # Replace placeholders first
-        message_text = message_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '')
+        
+        # Replace referralLink placeholder with actual link
+        message_text = message_text.replace('[[referralLink]]', referral_link).replace('{{referralLink}}', referral_link)
         # Remove trailing newlines and whitespace
         message_text = message_text.rstrip()
-        # Add URL to message so it appears in /share (single newline)
-        message = f"{message_text}\n{referral_link}"
+        # Message is ready - link is already in text from placeholder replacement
+        message = message_text
         
         # For share button text, use text WITHOUT URL to avoid duplicate links
         # URL is already in the 'url' parameter, Telegram will add preview automatically
