@@ -259,8 +259,10 @@ async function handleBuyTop(price) {
         
         // Open invoice in Mini App (stays in Mini App, no browser redirect)
         tg.openInvoice(invoiceLink, (status) => {
+            console.log('Payment callback received, status:', status);
             if (status === 'paid') {
                 // Payment successful
+                console.log('✅ Payment successful, updating UI...');
                 if (typeof Toast !== 'undefined') {
                     Toast.success('✅ TOP розблоковано!');
                 }
@@ -274,14 +276,58 @@ async function handleBuyTop(price) {
                 // Reload app data to get updated TOP status
                 if (typeof loadAppData === 'function') {
                     loadAppData(true).then(() => {
-                        // Re-render to show updated state
+                        console.log('App data reloaded after payment, re-rendering...');
+                        // Update AppState with new TOP status
+                        const appData = AppState.getAppData();
+                        if (appData && appData.user) {
+                            const topStatus = appData.user.top_status || 'locked';
+                            AppState.setTopLocked(topStatus === 'locked');
+                            console.log('Updated TOP status in AppState:', topStatus);
+                        }
+                        
+                        // Re-render ALL components to show updated state
+                        const currentPage = AppState.getCurrentPage() || 'home';
+                        console.log('Current page:', currentPage);
+                        
+                        // Always re-render home page (has Primary Action Card)
+                        if (typeof Render !== 'undefined' && Render.renderHome) {
+                            Render.renderHome();
+                        } else if (typeof renderHome === 'function') {
+                            renderHome();
+                        }
+                        
+                        // Re-render TOP page if we're on it
+                        if (currentPage === 'top') {
+                            if (typeof Render !== 'undefined' && Render.renderTop) {
+                                Render.renderTop();
+                            } else if (typeof renderTop === 'function') {
+                                renderTop();
+                            }
+                        }
+                        
+                        // Re-render Primary Action Card (shows on home page)
                         if (typeof Render !== 'undefined' && Render.renderPrimaryActionCard) {
                             Render.renderPrimaryActionCard();
                         }
-                        if (typeof Render !== 'undefined' && Render.renderTop) {
-                            Render.renderTop();
+                        
+                        console.log('✅ UI updated after payment');
+                    }).catch(err => {
+                        console.error('Error reloading app data after payment:', err);
+                        // Force re-render even if loadAppData fails
+                        if (typeof Render !== 'undefined' && Render.renderApp) {
+                            Render.renderApp();
+                        } else if (typeof renderApp === 'function') {
+                            renderApp();
                         }
                     });
+                } else {
+                    console.warn('loadAppData function not available, forcing re-render');
+                    // Fallback: force re-render
+                    if (typeof Render !== 'undefined' && Render.renderApp) {
+                        Render.renderApp();
+                    } else if (typeof renderApp === 'function') {
+                        renderApp();
+                    }
                 }
             } else if (status === 'failed' || status === 'cancelled') {
                 // Payment failed or cancelled

@@ -157,7 +157,9 @@ function handleWalletDisconnected() {
  * Connect Telegram Wallet using TON Connect
  */
 function connectTelegramWallet() {
-    console.log('connectTelegramWallet called, tonConnectUI:', tonConnectUI);
+    console.log('connectTelegramWallet called');
+    console.log('tonConnectUI:', tonConnectUI);
+    console.log('TON_CONNECT_UI available:', typeof TON_CONNECT_UI !== 'undefined');
     
     if (tonConnectUI) {
         try {
@@ -168,11 +170,22 @@ function connectTelegramWallet() {
             }
             
             console.log('Opening TON Connect modal...');
-            tonConnectUI.openModal();
-            console.log('TON Connect modal opened');
+            console.log('tonConnectUI.openModal type:', typeof tonConnectUI.openModal);
+            
+            // Check if openModal exists
+            if (typeof tonConnectUI.openModal === 'function') {
+                tonConnectUI.openModal();
+                console.log('✅ TON Connect modal opened successfully');
+            } else {
+                console.error('❌ tonConnectUI.openModal is not a function!');
+                console.error('tonConnectUI object:', Object.keys(tonConnectUI));
+                throw new Error('openModal is not a function');
+            }
         } catch (error) {
-            console.error('Error opening TON Connect modal:', error);
+            console.error('❌ Error opening TON Connect modal:', error);
             console.error('Error details:', error.message, error.stack);
+            console.error('tonConnectUI object:', tonConnectUI);
+            
             // Fallback to manual input
             if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
                 Render.showManualWalletInput();
@@ -181,7 +194,20 @@ function connectTelegramWallet() {
             }
         }
     } else {
-        console.warn('TON Connect UI not initialized, using fallback');
+        console.warn('⚠️ TON Connect UI not initialized');
+        console.warn('Attempting to re-initialize...');
+        
+        // Try to re-initialize
+        if (typeof TonConnect !== 'undefined' && TonConnect.initTonConnect) {
+            const initialized = TonConnect.initTonConnect();
+            if (initialized && tonConnectUI) {
+                console.log('✅ Re-initialized TON Connect, retrying...');
+                connectTelegramWallet();
+                return;
+            }
+        }
+        
+        console.warn('Using fallback to manual input');
         // Fallback to manual input
         if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
             Render.showManualWalletInput();
