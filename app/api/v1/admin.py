@@ -313,9 +313,33 @@ async def reset_user_invites(
     db.commit()
     db.refresh(user)
     
-    # Verify count from database
+    # Verify count from database (force recount to see actual state)
     referral_service = ReferralService(db, bot_id)
     actual_count = referral_service.count_referrals(user_id)
+    
+    # Also check if there are any soft-deleted logs that might be counted
+    from app.models.business_data import BusinessData
+    from sqlalchemy import text, cast, String, or_, and_
+    
+    deleted_logs_count = db.execute(
+        text("""
+            SELECT COUNT(*) as count
+            FROM business_data
+            WHERE bot_id = CAST(:bot_id AS uuid)
+              AND data_type = 'log'
+              AND deleted_at IS NOT NULL
+              AND (data->>'inviter_external_id') = :inviter_external_id
+              AND (
+                (data->>'is_referral') IN ('true', 'True')
+                OR (data->>'is_referral')::boolean = true
+              )
+        """),
+        {
+            'bot_id': str(bot_id),
+            'inviter_external_id': str(user.external_id)
+        }
+    ).first()
+    deleted_count = deleted_logs_count.count if deleted_logs_count else 0
     
     return {
         "success": True,
@@ -325,7 +349,9 @@ async def reset_user_invites(
         "old_total_invited": old_count,
         "new_total_invited": 0,
         "actual_count_from_db": actual_count,
-        "top_status": "locked"
+        "deleted_logs_count": deleted_count,
+        "top_status": "locked",
+        "note": "If actual_count_from_db > 0, there are still active referral logs in database. Check if they should be deleted."
     }
 
 
