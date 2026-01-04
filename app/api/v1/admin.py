@@ -1513,8 +1513,16 @@ async def update_user(
         updated_fields.append('total_invited')
     
     if wallet_address is not None:
-        user.custom_data['wallet_address'] = wallet_address
-        updated_fields.append('wallet_address')
+        # Allow deletion by passing empty string
+        if wallet_address.strip() == '':
+            # Delete wallet from custom_data
+            if 'wallet_address' in user.custom_data:
+                del user.custom_data['wallet_address']
+                updated_fields.append('wallet_address (deleted)')
+        else:
+            # Set wallet address
+            user.custom_data['wallet_address'] = wallet_address.strip()
+            updated_fields.append('wallet_address')
     
     if balance is not None:
         user.balance = balance
