@@ -254,10 +254,10 @@ class ReferralService:
             data_type='log',
             data={
                 'user_id': str(user_id),
-                'external_id': user.external_id,
+                'external_id': str(user.external_id),  # Ensure string for consistency
                 'ref_parameter': ref_param or 'NO_REF',
                 'referral_tag': referral_tag,
-                'inviter_external_id': inviter_external_id,
+                'inviter_external_id': str(inviter_external_id) if inviter_external_id else None,  # CRITICAL: Always store as string for SQL query matching
                 'is_referral': is_referral,
                 'click_type': click_type,
                 'event_type': event_type,
