@@ -1820,7 +1820,7 @@ async def delete_user(
     db.commit()
     
     logger.info(f"Deleted user {user_id} (external_id: {user_external_id}) from bot {bot_id}")
-    logger.info(f"Deleted {business_data_count} business_data records, {analytics_events_count} analytics_events, {messages_count} messages")
+    logger.info(f"Deleted {business_data_deleted} business_data records (hard delete), {analytics_events_count} analytics_events, {messages_count} messages")
     
     return {
         "success": True,
