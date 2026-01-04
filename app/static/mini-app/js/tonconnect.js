@@ -47,10 +47,28 @@ function initTonConnect() {
         });
         
         // Priority 1: Use config.username from API (most reliable)
-        if (appData && appData.config && appData.config.username) {
-            const username = appData.config.username.replace('@', '').trim();
-            twaReturnUrl = `https://t.me/${username}/mini-app`;
-            console.log('📋 Using config.username (from API):', twaReturnUrl);
+        // BUT: If config.name contains "Earn" and looks more correct, prefer it
+        if (appData && appData.config) {
+            const apiUsername = appData.config.username ? appData.config.username.replace('@', '').trim() : null;
+            const configName = appData.config.name ? appData.config.name.replace('@', '').trim().toLowerCase() : null;
+            
+            // Check if config.name looks more correct (contains "Earn" and is longer)
+            const shouldUseName = configName && 
+                                 configName.includes('earn') && 
+                                 apiUsername && 
+                                 !apiUsername.toLowerCase().includes('earn') &&
+                                 configName.length > apiUsername.length;
+            
+            if (shouldUseName) {
+                // Extract username from name (remove spaces, keep only alphanumeric and underscores)
+                const nameUsername = appData.config.name.replace(/[^a-zA-Z0-9_]/g, '').trim();
+                twaReturnUrl = `https://t.me/${nameUsername}/mini-app`;
+                console.log('📋 Using config.name (preferred over API username):', twaReturnUrl);
+                console.log('⚠️ API username was:', apiUsername, 'but config.name looks more correct');
+            } else if (apiUsername) {
+                twaReturnUrl = `https://t.me/${apiUsername}/mini-app`;
+                console.log('📋 Using config.username (from API):', twaReturnUrl);
+            }
         }
         // Priority 2: Try getBotUrl() function
         else if (typeof getBotUrl === 'function') {
