@@ -326,27 +326,29 @@ async def reset_user_invites(
     logs_count_before = logs_before.count if logs_before else 0
     
     # Delete all referral logs for this inviter (HARD DELETE)
-    # Use SQL query to match inviter_external_id format (same as count_referrals)
-    delete_query = text("""
-        DELETE FROM business_data
-        WHERE bot_id = CAST(:bot_id AS uuid)
-          AND data_type = 'log'
-          AND deleted_at IS NULL
-          AND (data->>'inviter_external_id') = :inviter_external_id
-          AND (
-            (data->>'is_referral') IN ('true', 'True')
-            OR (data->>'is_referral')::boolean = true
-          )
-    """)
+    # Use Python filtering (same approach as check-invites) to handle type mismatches
+    all_logs = db.query(BusinessData).filter(
+        BusinessData.bot_id == bot_id,
+        BusinessData.data_type == 'log',
+        BusinessData.deleted_at.is_(None)  # Only active logs
+    ).all()
     
-    result = db.execute(
-        delete_query,
-        {
-            'bot_id': str(bot_id),
-            'inviter_external_id': str(user_external_id)
-        }
-    )
-    deleted_count = result.rowcount
+    # Filter logs for this inviter (handle both string and number formats)
+    logs_to_delete = []
+    for log in all_logs:
+        if log.data:
+            log_inviter_id = log.data.get('inviter_external_id')
+            # Compare as strings to handle type mismatches
+            if str(log_inviter_id) == str(user_external_id):
+                is_referral = log.data.get('is_referral')
+                if is_referral == True or is_referral == 'true' or is_referral == 'True':
+                    logs_to_delete.append(log)
+    
+    deleted_count = len(logs_to_delete)
+    # Hard delete (remove from database)
+    for log in logs_to_delete:
+        db.delete(log)
+    
     db.commit()
     
     # Reset total_invited to 0
