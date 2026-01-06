@@ -326,13 +326,27 @@ async def reset_user_invites(
     logs_count_before = logs_before.count if logs_before else 0
     
     # Delete all referral logs for this inviter (HARD DELETE)
-    deleted_count = db.query(BusinessData).filter(
-        BusinessData.bot_id == bot_id,
-        BusinessData.data_type == 'log',
-        BusinessData.deleted_at.is_(None),  # Only active logs
-        cast(BusinessData.data['inviter_external_id'], String) == str(user_external_id)
-    ).delete(synchronize_session=False)
+    # Use SQL query to match inviter_external_id format (same as count_referrals)
+    delete_query = text("""
+        DELETE FROM business_data
+        WHERE bot_id = CAST(:bot_id AS uuid)
+          AND data_type = 'log'
+          AND deleted_at IS NULL
+          AND (data->>'inviter_external_id') = :inviter_external_id
+          AND (
+            (data->>'is_referral') IN ('true', 'True')
+            OR (data->>'is_referral')::boolean = true
+          )
+    """)
     
+    result = db.execute(
+        delete_query,
+        {
+            'bot_id': str(bot_id),
+            'inviter_external_id': str(user_external_id)
+        }
+    )
+    deleted_count = result.rowcount
     db.commit()
     
     # Reset total_invited to 0
