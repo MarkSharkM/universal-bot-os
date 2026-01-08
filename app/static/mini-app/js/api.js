@@ -24,7 +24,7 @@ async function getMiniAppData(botId, userId = null, initData = null, forceRefres
 
     // Check if online
     if (!navigator.onLine) {
-        throw new Error('Немає інтернет-з\'єднання');
+        throw new Error(AppState.getAppData()?.translations?.offline || 'Немає інтернет-з\'єднання');
     }
 
     // Retry with exponential backoff
@@ -32,13 +32,13 @@ async function getMiniAppData(botId, userId = null, initData = null, forceRefres
         const params = new URLSearchParams();
         if (userId) params.append('user_id', userId);
         if (initData) params.append('init_data', initData);
-        
+
         const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}/data?${params.toString()}`;
-        
+
         // Add timeout (30 seconds)
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
-        
+
         try {
             const response = await fetch(url, {
                 method: 'GET',
@@ -48,24 +48,24 @@ async function getMiniAppData(botId, userId = null, initData = null, forceRefres
                 signal: controller.signal,
             });
             clearTimeout(timeoutId);
-            
+
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
                 throw new Error(error.detail || `HTTP ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             // Cache the data
             if (typeof ApiCache !== 'undefined') {
                 ApiCache.set(data);
             }
-            
+
             return data;
         } catch (fetchError) {
             clearTimeout(timeoutId);
             if (fetchError.name === 'AbortError') {
-                throw new Error('Час очікування вичерпано. Спробуйте ще раз.');
+                throw new Error(AppState.getAppData()?.translations?.timeout || 'Час очікування вичерпано. Спробуйте ще раз.');
             }
             throw fetchError;
         }
@@ -99,10 +99,10 @@ async function saveWallet(botId, walletAddress, userId = null, initData = null) 
         userId,
         hasInitData: !!initData
     });
-    
+
     // Check if online
     if (!navigator.onLine) {
-        throw new Error('Немає інтернет-з\'єднання');
+        throw new Error(AppState.getAppData()?.translations?.offline || 'Немає інтернет-з\'єднання');
     }
 
     const saveData = async () => {
@@ -110,33 +110,33 @@ async function saveWallet(botId, walletAddress, userId = null, initData = null) 
         params.append('wallet_address', walletAddress);
         if (userId) params.append('user_id', userId);
         if (initData) params.append('init_data', initData);
-        
+
         const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}/wallet?${params.toString()}`;
         console.log('📡 POST request to:', url);
-        
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
         });
-        
+
         console.log('📥 Response status:', response.status, response.statusText);
-        
+
         if (!response.ok) {
             const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
             console.error('❌ Error response:', error);
             throw new Error(error.detail || `HTTP ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('✅ Wallet saved successfully:', data);
-        
+
         // Clear cache after wallet save
         if (typeof ApiCache !== 'undefined') {
             ApiCache.clear();
         }
-        
+
         return data;
     };
 
@@ -165,21 +165,21 @@ async function createInvoiceLink(botId, initData = null, userId = null) {
         const params = new URLSearchParams();
         if (initData) params.append('init_data', initData);
         if (userId) params.append('user_id', userId);
-        
+
         const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}/create-invoice?${params.toString()}`;
-        
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
         });
-        
+
         if (!response.ok) {
             const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
             throw new Error(error.detail || `HTTP ${response.status}`);
         }
-        
+
         const result = await response.json();
         if (result.ok && result.invoice_link) {
             return result.invoice_link;
@@ -203,9 +203,9 @@ async function sendCallback(botId, data, initData = null) {
     try {
         const params = new URLSearchParams();
         if (initData) params.append('init_data', initData);
-        
+
         const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}?${params.toString()}`;
-        
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -213,12 +213,12 @@ async function sendCallback(botId, data, initData = null) {
             },
             body: JSON.stringify(data),
         });
-        
+
         if (!response.ok) {
             const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
             throw new Error(error.detail || `HTTP ${response.status}`);
         }
-        
+
         const result = await response.json();
         return result;
     } catch (error) {

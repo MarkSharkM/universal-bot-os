@@ -8,13 +8,13 @@ function switchTab(tabName) {
     if (typeof Haptic !== 'undefined') {
         Haptic.light();
     }
-    
+
     // If user manually switches tabs, mark that initial load is done
     // This prevents loadAppData from auto-switching to earnings
     if (AppState.getIsInitialLoad()) {
         AppState.setIsInitialLoad(false);
     }
-    
+
     // Update tab buttons
     document.querySelectorAll('.tab').forEach(tab => {
         const isActive = tab.getAttribute('data-tab') === tabName;
@@ -26,14 +26,14 @@ function switchTab(tabName) {
             tab.removeAttribute('aria-current');
         }
     });
-    
+
     // Show target page
     const targetPage = document.getElementById(`${tabName}-page`);
     if (!targetPage) {
         console.error(`Page not found: ${tabName}-page`);
         return;
     }
-    
+
     // Hide all pages first
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
@@ -42,12 +42,12 @@ function switchTab(tabName) {
             page.style.display = 'none';
         }
     });
-    
+
     // Show target page (CSS will handle display via .page.active)
     targetPage.classList.add('active');
     targetPage.style.display = 'block';
     AppState.setCurrentPage(tabName);
-    
+
     // Scroll to top when switching tabs (works for all tabs: Home, Partners, TOP)
     // Find the scrollable container (usually .content or the page itself)
     const contentContainer = document.querySelector('.content') || targetPage;
@@ -65,15 +65,15 @@ function switchTab(tabName) {
             }
         });
     }
-    
+
     console.log(`[Navigation] Switched to tab: ${tabName}, page ID: ${targetPage.id}`);
     console.log(`[Navigation] Active pages:`, Array.from(document.querySelectorAll('.page.active')).map(p => p.id));
-    
+
     // Show skeleton while loading (if data not available)
     if (!AppState.getAppData()) {
         showSkeleton(tabName);
     }
-    
+
     // Render content immediately with existing data (if available)
     // This ensures user sees content right away, not a blank screen
     if (tabName === 'home') {
@@ -105,7 +105,7 @@ function switchTab(tabName) {
             }
         }
     }
-    
+
     // Reload data when switching to tabs that need fresh data
     // This ensures counters and stats are up-to-date
     // BUT: Don't reload on initial load (AppState.getIsInitialLoad() = true) to prevent infinite loop
@@ -125,14 +125,14 @@ function showPartnerDetail(partnerId) {
         console.error('Partner ID is required');
         return;
     }
-    
+
     AppState.pushNavigationHistory(AppState.getCurrentPage());
-    
+
     // Hide current page
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    
+
     // Show detail page
     const detailPage = document.getElementById('partner-detail-page');
     if (detailPage) {
@@ -172,7 +172,7 @@ function setupSearchAndFilters() {
             }, 300); // Debounce
         });
     }
-    
+
     // Filter button
     const filterBtn = document.getElementById('filter-btn');
     const filterPanel = document.getElementById('filter-panel');
@@ -181,7 +181,7 @@ function setupSearchAndFilters() {
             filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
         });
     }
-    
+
     // Sort select
     const sortSelect = document.getElementById('sort-select');
     if (sortSelect) {
@@ -190,7 +190,7 @@ function setupSearchAndFilters() {
             applyFilters();
         });
     }
-    
+
     // Filter chips
     document.querySelectorAll('.chip').forEach(chip => {
         chip.addEventListener('click', (e) => {
@@ -205,10 +205,10 @@ function setupSearchAndFilters() {
 function filterPartners(query) {
     const appData = AppState.getAppData();
     if (!appData) return;
-    
+
     const partners = appData.partners || [];
     const searchQuery = query.toLowerCase().trim();
-    
+
     if (searchQuery === '') {
         AppState.setFilteredPartners([...partners]);
     } else {
@@ -219,7 +219,7 @@ function filterPartners(query) {
         });
         AppState.setFilteredPartners(filtered);
     }
-    
+
     if (typeof Navigation !== 'undefined' && Navigation.applyFilters) {
         Navigation.applyFilters();
     } else {
@@ -230,10 +230,10 @@ function filterPartners(query) {
 function applyFilters() {
     const appData = AppState.getAppData();
     if (!appData) return;
-    
+
     const filteredPartners = AppState.getFilteredPartners();
     let partners = filteredPartners.length > 0 ? filteredPartners : (appData.partners || []);
-    
+
     // Apply category filter
     const currentFilter = AppState.getCurrentFilter();
     if (currentFilter !== 'all') {
@@ -244,7 +244,7 @@ function applyFilters() {
             partners = partners.filter(p => topPartnerIds.includes(p.id));
         }
     }
-    
+
     // Apply sorting
     const currentSort = AppState.getCurrentSort();
     partners.sort((a, b) => {
@@ -260,7 +260,7 @@ function applyFilters() {
                 return 0;
         }
     });
-    
+
     if (typeof Render !== 'undefined' && Render.renderPartnersList) {
         Render.renderPartnersList(partners);
     } else {
@@ -269,11 +269,73 @@ function applyFilters() {
 }
 
 
+
+function handleDeepLink() {
+    const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+    if (!startParam) return;
+
+    console.log(`[Navigation] Handling start_param: ${startParam}`);
+
+    // Commands mapping
+    switch (startParam) {
+        case 'wallet':
+            // Show Home tab first, then open wallet modal
+            switchTab('home');
+            setTimeout(() => {
+                if (typeof Render !== 'undefined' && Render.showWalletModal) {
+                    Render.showWalletModal();
+                } else if (typeof showWalletModal === 'function') {
+                    showWalletModal();
+                }
+            }, 300);
+            break;
+        case 'top':
+            switchTab('top');
+            break;
+        case 'partners':
+            switchTab('partners');
+            break;
+        case 'info':
+            switchTab('home');
+            // Expand info section
+            setTimeout(() => {
+                const infoBtn = document.getElementById('info-collapse-btn');
+                const infoContent = document.getElementById('info-content');
+                if (infoBtn && infoContent) {
+                    if (infoContent.style.display === 'none') {
+                        infoBtn.click();
+                    }
+                    infoBtn.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 500);
+            break;
+        case 'earnings':
+            switchTab('home');
+            // Scroll to gamification (which has the earnings overview)
+            setTimeout(() => {
+                const gamification = document.getElementById('gamification');
+                if (gamification) {
+                    gamification.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 500);
+            break;
+        default:
+            // Check if it's a partner ID
+            if (startParam.startsWith('p_')) {
+                const partnerId = startParam.substring(2);
+                showPartnerDetail(partnerId);
+            }
+            break;
+    }
+}
+
 window.Navigation = {
     switchTab,
     showPartnerDetail,
     goBack,
     setupSearchAndFilters,
     filterPartners,
-    applyFilters
+    applyFilters,
+    handleDeepLink
 };
+

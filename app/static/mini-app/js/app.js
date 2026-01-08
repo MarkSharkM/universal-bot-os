@@ -31,14 +31,14 @@ async function initMiniApp() {
             setTimeout(initMiniApp, 100);
             return;
         }
-        
+
         // Reset retry counter on success
         appStateRetryCount = 0;
-        
+
         // Get Telegram WebApp instance
         const tg = window.Telegram?.WebApp;
         AppState.setTg(tg);
-        
+
         if (!tg) {
             console.error('Telegram WebApp SDK not loaded');
             if (typeof Render !== 'undefined' && Render.showError) {
@@ -48,29 +48,29 @@ async function initMiniApp() {
             }
             return;
         }
-        
+
         // Initialize Telegram WebApp
         tg.ready();
         // Expand to full height to prevent closing on scroll
         tg.expand();
         // Enable closing confirmation (optional, prevents accidental closes)
         tg.enableClosingConfirmation();
-        
+
         // Get user data from initData
         const initDataUnsafe = tg.initDataUnsafe;
         const user = initDataUnsafe?.user;
         const userId = user?.id?.toString();
         AppState.setUserId(userId);
-        
+
         // Warn if userId is missing (but continue - API can use initData)
         if (!userId) {
             console.warn('User ID not found in initData, will use initData for validation');
         }
-        
+
         // Get bot_id from URL or initData (async)
         const botId = await getBotIdFromUrl();
         AppState.setBotId(botId);
-        
+
         if (!botId) {
             console.error('Bot ID not found');
             if (typeof Render !== 'undefined' && Render.showError) {
@@ -80,31 +80,31 @@ async function initMiniApp() {
             }
             return;
         }
-        
+
         // Initialize TON Connect (after app data is loaded)
         // Will be initialized in loadAppData after data is fetched
-        
+
         // Apply theme from Telegram
         applyTheme();
-        
+
         // Register Service Worker for Push Notifications (optional feature)
         registerServiceWorker();
-        
+
         // Setup event handlers
         if (typeof Events !== 'undefined' && Events.setupEventHandlers) {
             Events.setupEventHandlers();
         } else {
             setupEventHandlers();
         }
-        
+
         // Setup offline detection
         if (typeof Events !== 'undefined' && Events.setupOfflineDetection) {
             Events.setupOfflineDetection();
         }
-        
+
         // Load app data
         loadAppData();
-        
+
     } catch (error) {
         console.error('Error initializing Mini App:', error);
         const errorType = error.type || 'general';
@@ -119,7 +119,7 @@ async function initMiniApp() {
 async function getBotIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     let botId = params.get('bot_id');
-    
+
     const tg = AppState.getTg();
     // If not in URL, try to get from initData via API
     if (!botId && tg?.initData) {
@@ -135,21 +135,21 @@ async function getBotIdFromUrl() {
             console.error('Error getting bot_id from initData:', error);
         }
     }
-    
+
     return botId;
 }
 
 function applyTheme() {
     const tg = AppState.getTg();
     if (!tg) return;
-    
+
     const colorScheme = tg.colorScheme; // 'light' or 'dark'
     const themeColor = tg.themeParams?.bg_color || '#ffffff';
-    
+
     // Apply theme to body
     document.body.setAttribute('data-theme', colorScheme);
     document.documentElement.style.setProperty('--tg-theme-bg-color', themeColor);
-    
+
     // Apply other Telegram theme colors
     if (tg.themeParams) {
         const params = tg.themeParams;
@@ -169,7 +169,7 @@ function applyTheme() {
             document.documentElement.style.setProperty('--tg-theme-button-text-color', params.button_text_color);
         }
     }
-    
+
     // Apply bot.config customizations (after app data is loaded)
     const appData = AppState.getAppData();
     if (appData && appData.config) {
@@ -189,7 +189,7 @@ async function registerServiceWorker() {
                 scope: '/static/mini-app/'
             });
             console.log('[Service Worker] Registered successfully:', registration.scope);
-            
+
             // Request notification permission (optional)
             if ('Notification' in window && Notification.permission === 'default') {
                 try {
@@ -199,7 +199,7 @@ async function registerServiceWorker() {
                     console.warn('[Service Worker] Notification permission error:', err);
                 }
             }
-            
+
             return registration;
         } catch (error) {
             console.warn('[Service Worker] Registration failed:', error);
@@ -241,7 +241,7 @@ function applyBotConfig(config) {
             document.documentElement.style.setProperty('--error-color', colors.error);
         }
     }
-    
+
     // Apply custom theme from bot.config.ui.theme
     if (config.ui && config.ui.theme) {
         const theme = config.ui.theme;
@@ -270,11 +270,11 @@ function applyBotConfig(config) {
     }
     const isDark = document.body.getAttribute('data-theme') === 'dark';
     document.body.classList.toggle('hub-dark', isDark || forceDark);
-    
+
     // Show/hide features based on bot.config.ui.features
     if (config.ui && config.ui.features) {
         const features = config.ui.features;
-        
+
         // Hide tabs if features are disabled
         if (features.home === false) {
             const homeTab = document.querySelector('[data-tab="home"]');
@@ -289,7 +289,7 @@ function applyBotConfig(config) {
             if (topTab) topTab.style.display = 'none';
         }
     }
-    
+
     // Update bot name from config
     const botNameEl = document.getElementById('bot-name');
     if (botNameEl && config.name) {
@@ -303,14 +303,14 @@ async function loadAppData(showRefreshIndicator = false) {
         console.log('Data already loading, skipping duplicate request');
         return Promise.resolve(); // Return resolved promise to prevent errors
     }
-    
+
     // Debounce: cancel previous pending request if not a refresh
     const timeout = AppState.getLoadDataTimeout();
     if (!showRefreshIndicator && timeout) {
         clearTimeout(timeout);
         AppState.setLoadDataTimeout(null);
     }
-    
+
     // If not a refresh, debounce the request by 100ms to batch rapid calls
     if (!showRefreshIndicator && !AppState.getIsLoadingData()) {
         return new Promise((resolve, reject) => {
@@ -326,7 +326,7 @@ async function loadAppData(showRefreshIndicator = false) {
             AppState.setLoadDataTimeout(newTimeout);
         });
     }
-    
+
     // For refresh or if already loading, call directly
     return loadAppDataInternal(showRefreshIndicator);
 }
@@ -334,7 +334,7 @@ async function loadAppData(showRefreshIndicator = false) {
 async function loadAppDataInternal(showRefreshIndicator = false) {
     try {
         AppState.setIsLoadingData(true);
-        
+
         // Don't show loading screen if we're just refreshing data (not initial load)
         // Only show loading on first load or when explicitly requested via showRefreshIndicator
         if (!showRefreshIndicator && AppState.getIsInitialLoad()) {
@@ -355,31 +355,31 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
             }
         }
         // showRefreshIndicator is handled by pull-to-refresh UI
-        
+
         // Get initData for validation
         const tg = AppState.getTg();
         const botId = AppState.getBotId();
         const userId = AppState.getUserId();
         const initData = tg?.initData || null;
-        
+
         // Validate we have botId before making request
         if (!botId) {
             throw new Error('Bot ID is required');
         }
-        
+
         // Fetch data (userId can be null if initData is provided)
         const data = await getMiniAppData(botId, userId, initData);
-        
+
         // Check if data is valid
         if (!data) {
             throw new Error('No data received from server');
         }
-        
+
         // API returns {ok: true, ...} or throws error
         if (data.ok === true || data.ok === undefined) {
             // If ok is undefined, assume success (backward compatibility)
             AppState.setAppData(data);
-            
+
             // Initialize TON Connect after app data is loaded
             // Check if TON Connect SDK is loaded from CDN first
             function tryInitTonConnect() {
@@ -395,14 +395,14 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                     setTimeout(tryInitTonConnect, 500);
                 }
             }
-            
+
             // Try to initialize immediately, then retry if needed
             tryInitTonConnect();
-            
+
             // Show onboarding on first visit (check localStorage)
             const storage = typeof SafeStorage !== 'undefined' ? SafeStorage : localStorage;
-            const hasSeenOnboarding = AppState.getHasSeenOnboarding() || 
-                                      storage.getItem('has_seen_onboarding') === 'true';
+            const hasSeenOnboarding = AppState.getHasSeenOnboarding() ||
+                storage.getItem('has_seen_onboarding') === 'true';
             if (!hasSeenOnboarding) {
                 // Hide loading screen when showing onboarding
                 if (typeof Render !== 'undefined' && Render.showLoading) {
@@ -410,7 +410,7 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                 } else {
                     showLoading(false);
                 }
-                
+
                 if (typeof Render !== 'undefined' && Render.showOnboarding) {
                     Render.showOnboarding();
                 } else if (typeof Render !== 'undefined' && Render.showWelcomeScreen) {
@@ -426,7 +426,7 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                 // Only switch to HOME tab on initial load (when app is first shown)
                 // Don't switch if this is just a data refresh (showRefreshIndicator or not isInitialLoad)
                 const isFirstLoad = AppState.getIsInitialLoad() && !showRefreshIndicator;
-                
+
                 if (isFirstLoad) {
                     // Show HOME tab first (Action Engine)
                     if (typeof Render !== 'undefined' && Render.renderApp) {
@@ -434,7 +434,7 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                     } else {
                         renderApp();
                     }
-                    
+
                     // Only auto-switch to home if isInitialLoad is still true
                     // (user hasn't manually switched tabs yet)
                     // Check again right before switching to handle race conditions
@@ -445,6 +445,11 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                             Navigation.switchTab('home');
                         } else {
                             switchTab('home');
+                        }
+
+                        // Handle any start_param deep links after initial tab is set
+                        if (typeof Navigation !== 'undefined' && Navigation.handleDeepLink) {
+                            Navigation.handleDeepLink();
                         }
                     }
                     // If isInitialLoad is false, user already switched tabs manually, don't force switch
@@ -495,7 +500,7 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                     showLoading(false);
                 }
             }
-            
+
             if (showRefreshIndicator) {
                 if (typeof Events !== 'undefined' && Events.hidePullToRefresh) {
                     Events.hidePullToRefresh();
@@ -506,14 +511,14 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         } else {
             throw new Error(data.detail || 'Failed to load data');
         }
-        } catch (error) {
-            console.error('Error loading app data:', error);
-            const errorType = error.type || (error.message.includes('інтернет') ? 'network' : 'api');
-            if (typeof Render !== 'undefined' && Render.showError) {
-                Render.showError('Помилка завантаження даних: ' + error.message, errorType);
-            } else {
-                showError('Помилка завантаження даних: ' + error.message, errorType);
-            }
+    } catch (error) {
+        console.error('Error loading app data:', error);
+        const errorType = error.type || (error.message.includes('інтернет') ? 'network' : 'api');
+        if (typeof Render !== 'undefined' && Render.showError) {
+            Render.showError('Помилка завантаження даних: ' + error.message, errorType);
+        } else {
+            showError('Помилка завантаження даних: ' + error.message, errorType);
+        }
         if (typeof Render !== 'undefined' && Render.showLoading) {
             Render.showLoading(false);
         } else {
@@ -533,20 +538,20 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
 
 
 // Initialize when DOM is ready AND all scripts are loaded
-(function() {
+(function () {
     let initAttempts = 0;
     const MAX_INIT_ATTEMPTS = 20; // 1 second max (20 * 50ms)
-    
+
     function tryInit() {
         initAttempts++;
-        
+
         // Check if all required modules are loaded
         if (typeof AppState === 'undefined' || typeof AppState.setTg !== 'function') {
             if (initAttempts >= MAX_INIT_ATTEMPTS) {
                 console.error('Failed to load AppState after', MAX_INIT_ATTEMPTS, 'attempts');
                 console.error('AppState type:', typeof AppState);
                 console.error('AppState value:', AppState);
-                
+
                 const errorEl = document.getElementById('error-message');
                 const errorText = document.getElementById('error-text');
                 const loading = document.getElementById('loading');
@@ -557,12 +562,12 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
                 }
                 return;
             }
-            
+
             // Only log first few attempts
             if (initAttempts <= 3) {
                 console.warn('Waiting for AppState... attempt', initAttempts, 'of', MAX_INIT_ATTEMPTS);
             }
-            
+
             // Wait a bit more for modules to load
             if (document.readyState === 'complete') {
                 // If DOM is complete but AppState still not loaded, wait a bit more
@@ -577,7 +582,7 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
             }
             return;
         }
-        
+
         // All modules loaded, initialize
         console.log('✅ All modules loaded, initializing Mini App...');
         if (document.readyState === 'loading') {
@@ -586,7 +591,7 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
             initMiniApp();
         }
     }
-    
+
     // Start trying to initialize after a small delay to ensure scripts are parsed
     // Use requestAnimationFrame for better timing
     if (typeof requestAnimationFrame !== 'undefined') {

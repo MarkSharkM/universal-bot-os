@@ -1171,6 +1171,183 @@
             loadPartners();
         }
         
+        async function updatePartnerRowInTable(partnerId, updatedPartner) {
+            // Update only row for specific partner_id instead of reloading entire table
+            if (!updatedPartner) {
+                // Fallback to full reload if partner data not provided
+                await loadPartners();
+                return;
+            }
+            
+            try {
+                const tbody = document.getElementById('partners-tbody');
+                const rows = tbody.querySelectorAll('tr');
+                let updated = false;
+                
+                rows.forEach(row => {
+                    const editButton = row.querySelector('button[onclick*="showEditPartnerForm"]');
+                    if (editButton) {
+                        const onclickAttr = editButton.getAttribute('onclick');
+                        const match = onclickAttr.match(/showEditPartnerForm\('([^']+)'\)/);
+                        if (match && match[1] === partnerId) {
+                            // Found the row - update it
+                            const refLink = updatedPartner.referral_link || '';
+                            row.innerHTML = `
+                                <td><strong>${updatedPartner.bot_name}</strong></td>
+                                <td><span style="background: ${updatedPartner.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${updatedPartner.category}</span></td>
+                                <td style="word-break: break-all; max-width: 300px; padding: 10px;">
+                                    <a href="${refLink}" target="_blank" style="font-size: 11px; color: #2563eb; text-decoration: none; line-height: 1.4; display: block;">
+                                        ${refLink || '-'}
+                                    </a>
+                                </td>
+                                <td>${updatedPartner.commission}%</td>
+                                <td>${updatedPartner.active === 'Yes' ? '✅' : '❌'}</td>
+                                <td>${updatedPartner.verified === 'Yes' ? '✅' : '❌'}</td>
+                                <td>${updatedPartner.duration ? String(updatedPartner.duration).replace(/\s/g, '') : '-'}</td>
+                                <td>${updatedPartner.roi_score || 0}</td>
+                                <td>
+                                    <button onclick="showEditPartnerForm('${updatedPartner.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
+                                    <button class="btn-danger" onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${updatedPartner.id}')" style="font-size: 12px; padding: 6px 10px;">Delete</button>
+                                </td>
+                            `;
+                            updated = true;
+                        }
+                    }
+                });
+                
+                // Update cache
+                if (window.partnersData) {
+                    const index = window.partnersData.findIndex(p => p.id === partnerId);
+                    if (index !== -1) {
+                        window.partnersData[index] = updatedPartner;
+                    }
+                }
+                
+                // Check if partner visibility changed (active/inactive filter)
+                const showInactive = document.getElementById('show-inactive-partners')?.checked || false;
+                const shouldBeVisible = showInactive || updatedPartner.active === 'Yes';
+                
+                if (!updated && shouldBeVisible) {
+                    // Partner not found in table but should be visible - might need to add it
+                    // For now, fallback to reload (could be optimized further)
+                    console.log('Partner not found in table, reloading...');
+                    await loadPartners();
+                } else if (updated && !shouldBeVisible) {
+                    // Partner was updated but should not be visible - remove it
+                    rows.forEach(row => {
+                        const editButton = row.querySelector('button[onclick*="showEditPartnerForm"]');
+                        if (editButton) {
+                            const onclickAttr = editButton.getAttribute('onclick');
+                            const match = onclickAttr.match(/showEditPartnerForm\('([^']+)'\)/);
+                            if (match && match[1] === partnerId) {
+                                row.remove();
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating partner row:', error);
+                // Fallback to full reload if update fails
+                await loadPartners();
+            }
+        }
+        
+        async function addPartnerRowToTable(partnerResponse) {
+            // Add new partner row instead of reloading entire table
+            try {
+                let partner;
+                if (partnerResponse instanceof Response) {
+                    partner = await partnerResponse.json();
+                } else {
+                    partner = partnerResponse;
+                }
+                
+                if (!partner || !partner.id) {
+                    // Fallback to full reload if partner data not provided
+                    await loadPartners();
+                    return;
+                }
+                
+                const showInactive = document.getElementById('show-inactive-partners')?.checked || false;
+                const shouldBeVisible = showInactive || partner.active === 'Yes';
+                
+                if (!shouldBeVisible) {
+                    // Partner is inactive and filter hides inactive - no need to add
+                    return;
+                }
+                
+                const tbody = document.getElementById('partners-tbody');
+                const refLink = partner.referral_link || '';
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td><strong>${partner.bot_name}</strong></td>
+                    <td><span style="background: ${partner.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${partner.category}</span></td>
+                    <td style="word-break: break-all; max-width: 300px; padding: 10px;">
+                        <a href="${refLink}" target="_blank" style="font-size: 11px; color: #2563eb; text-decoration: none; line-height: 1.4; display: block;">
+                            ${refLink || '-'}
+                        </a>
+                    </td>
+                    <td>${partner.commission}%</td>
+                    <td>${partner.active === 'Yes' ? '✅' : '❌'}</td>
+                    <td>${partner.verified === 'Yes' ? '✅' : '❌'}</td>
+                    <td>${partner.duration ? String(partner.duration).replace(/\s/g, '') : '-'}</td>
+                    <td>${partner.roi_score || 0}</td>
+                    <td>
+                        <button onclick="showEditPartnerForm('${partner.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
+                        <button class="btn-danger" onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${partner.id}')" style="font-size: 12px; padding: 6px 10px;">Delete</button>
+                    </td>
+                `;
+                
+                // Insert at the beginning (newest first) or maintain sort order
+                tbody.insertBefore(newRow, tbody.firstChild);
+                
+                // Update cache
+                if (window.partnersData) {
+                    window.partnersData.unshift(partner);
+                } else {
+                    window.partnersData = [partner];
+                }
+            } catch (error) {
+                console.error('Error adding partner row:', error);
+                // Fallback to full reload if add fails
+                await loadPartners();
+            }
+        }
+        
+        async function removePartnerRowFromTable(partnerId) {
+            // Remove partner row instead of reloading entire table
+            try {
+                const tbody = document.getElementById('partners-tbody');
+                const rows = tbody.querySelectorAll('tr');
+                let removed = false;
+                
+                rows.forEach(row => {
+                    const editButton = row.querySelector('button[onclick*="showEditPartnerForm"]');
+                    if (editButton) {
+                        const onclickAttr = editButton.getAttribute('onclick');
+                        const match = onclickAttr.match(/showEditPartnerForm\('([^']+)'\)/);
+                        if (match && match[1] === partnerId) {
+                            row.remove();
+                            removed = true;
+                        }
+                    }
+                });
+                
+                // Update cache
+                if (window.partnersData) {
+                    window.partnersData = window.partnersData.filter(p => p.id !== partnerId);
+                }
+                
+                if (!removed) {
+                    console.log('Partner row not found, might already be removed');
+                }
+            } catch (error) {
+                console.error('Error removing partner row:', error);
+                // Fallback to full reload if remove fails
+                await loadPartners();
+            }
+        }
+        
         function showPartnerPreview(data) {
             const previewCard = document.getElementById('partner-preview-card');
             const previewContent = document.getElementById('partner-preview-content');
@@ -1297,14 +1474,8 @@
                     const result = await res.json();
                     showMessage('partners-message', 'Partner updated successfully!', 'success');
                     hideEditPartnerForm();
-                    // Force reload partners - check if we need to show inactive
-                    const showInactive = document.getElementById('show-inactive-partners')?.checked || false;
-                    // If partner became active, make sure we can see it
-                    if (data.active === 'Yes' && !showInactive) {
-                        // Partner is now active, will show in list
-                    }
-                    // Reload with current filter settings
-                    await loadPartners();
+                    // Update only affected row instead of reloading entire table
+                    await updatePartnerRowInTable(partnerId, result);
                 } else {
                     const error = await res.json().catch(() => ({ detail: 'Unknown error' }));
                     showMessage('partners-message', 'Error: ' + (error.detail || 'Unknown error'), 'error');
@@ -1346,6 +1517,7 @@
                 });
                 
                 if (res.ok) {
+                    const result = await res.json();
                     const active = document.getElementById('partner-active').value || 'Yes';
                     let message = 'Partner added successfully!';
                     if (active === 'No') {
@@ -1356,7 +1528,8 @@
                     const previewCard = document.getElementById('partner-preview-card');
                     if (previewCard) previewCard.style.display = 'none';
                     hideCreatePartnerForm();
-                    loadPartners();
+                    // Add new row instead of reloading entire table
+                    await addPartnerRowToTable(result);
                 } else {
                     const error = await res.json();
                     showMessage('partners-message', 'Error adding partner: ' + (error.detail || 'Unknown error'), 'error');
@@ -1377,8 +1550,8 @@
                 
                 if (res.ok) {
                     showMessage('partners-message', 'Partner deleted (can be restored)', 'success');
-                    // Reload partners list
-                    await loadPartners();
+                    // Remove row from table instead of reloading entire table
+                    await removePartnerRowFromTable(partnerId);
                 } else {
                     const error = await res.json().catch(() => ({ detail: 'Unknown error' }));
                     showMessage('partners-message', 'Error deleting partner: ' + (error.detail || 'Unknown error'), 'error');
@@ -1430,9 +1603,11 @@
             try {
                 const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}/restore`, {method: 'POST'});
                 if (res.ok) {
+                    const result = await res.json();
                     showMessage('partners-message', 'Partner restored successfully!', 'success');
                     hideDeletedPartners();
-                    loadPartners();
+                    // Add restored row instead of reloading entire table
+                    await addPartnerRowToTable(result);
                 } else {
                     const error = await res.json();
                     showMessage('partners-message', 'Error: ' + (error.detail || 'Unknown error'), 'error');
@@ -1944,7 +2119,8 @@
                 alert(`✅ Invites reset successfully!\n\nOld count: ${result.old_total_invited}\nNew count: ${result.new_total_invited}\nActual DB count: ${result.actual_count_from_db}\n\nNote: If actual_count_from_db > 0, there are still referral logs in the database.`);
                 
                 // Reload messages to show updated data
-                loadMessages(0, true);
+                // Update only affected rows instead of reloading entire table
+                await updateUserRowsInTable(userId);
             } catch (error) {
                 alert('Error resetting invites: ' + error.message);
                 console.error('Error resetting invites:', error);
@@ -1988,7 +2164,8 @@
                 console.log('Test results:', result);
                 
                 // Reload messages to show updated data
-                loadMessages(0, true);
+                // Update only affected rows instead of reloading entire table
+                await updateUserRowsInTable(userId);
             } catch (error) {
                 alert('Error testing invites: ' + error.message);
                 console.error('Error testing invites:', error);
@@ -2042,8 +2219,8 @@
                 const result = await res.json();
                 alert('User updated successfully!');
                 hideEditUserForm();
-                // Reload users to show updated data
-                loadMessages(0, true);
+                // Update only affected rows instead of reloading entire table
+                await updateUserRowsInTable(userId);
                 loadUsersForMessagesFilter();
             } catch (error) {
                 let errorMessage = 'Failed to update user';
@@ -2288,6 +2465,93 @@
             } catch (error) {
                 console.error('Error loading messages:', error);
                 document.getElementById('database-messages-tbody').innerHTML = '<tr><td colspan="17" style="padding: 20px; text-align: center; color: #ef4444;">Error loading messages: ' + error.message + '</td></tr>';
+            }
+        }
+        
+        async function updateUserRowsInTable(userId) {
+            // Update only rows for specific user_id instead of reloading entire table
+            if (!currentBotId || !userId) return;
+            
+            try {
+                // Fetch latest user data by external_id from cache
+                const cachedUser = window.usersData.find(u => u.id === userId);
+                if (!cachedUser || !cachedUser.external_id) {
+                    console.warn('User not found in cache, falling back to full reload');
+                    loadMessages(0, true);
+                    return;
+                }
+                
+                const userRes = await fetch(`${API_BASE}/bots/${currentBotId}/users?external_id=${cachedUser.external_id}`);
+                if (!userRes.ok) {
+                    console.warn('Could not fetch updated user data, falling back to full reload');
+                    loadMessages(0, true);
+                    return;
+                }
+                
+                const users = await userRes.json();
+                const userList = Array.isArray(users) ? users : users.users || [];
+                const updatedUser = userList.find(u => u.id === userId) || userList[0];
+                
+                if (!updatedUser) {
+                    console.warn('User not found in response, falling back to full reload');
+                    loadMessages(0, true);
+                    return;
+                }
+                
+                const totalInvited = updatedUser.total_invited || updatedUser.custom_data?.total_invited || 0;
+                const topStatus = updatedUser.top_status || updatedUser.custom_data?.top_status || 'locked';
+                
+                // Update only rows with matching user_id
+                const tbody = document.getElementById('database-messages-tbody');
+                const rows = tbody.querySelectorAll('tr');
+                let updatedCount = 0;
+                
+                rows.forEach(row => {
+                    const rowUserIdCell = row.querySelector('td:nth-child(2)');
+                    if (!rowUserIdCell) return;
+                    
+                    const rowUserIdText = rowUserIdCell.textContent?.trim() || '';
+                    // Check if row belongs to this user (user_id starts with first 8 chars)
+                    if (rowUserIdText && userId && rowUserIdText.startsWith(userId.substring(0, 8))) {
+                        // Update INVITED column (8th column)
+                        const invitedCell = row.querySelector('td:nth-child(8)');
+                        if (invitedCell && invitedCell.textContent !== String(totalInvited)) {
+                            invitedCell.textContent = totalInvited;
+                            updatedCount++;
+                        }
+                        
+                        // Update TOP column (9th column)
+                        const topCell = row.querySelector('td:nth-child(9)');
+                        if (topCell) {
+                            const currentTopStatus = topCell.querySelector('span')?.textContent?.trim();
+                            const newTopStatus = topStatus === 'open' ? 'OPEN' : 'LOCKED';
+                            
+                            if (currentTopStatus !== newTopStatus) {
+                                if (topStatus === 'open') {
+                                    topCell.innerHTML = '<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">OPEN</span>';
+                                } else {
+                                    topCell.innerHTML = '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600;">LOCKED</span>';
+                                }
+                                updatedCount++;
+                            }
+                        }
+                    }
+                });
+                
+                // Update window.usersData cache
+                const cachedUser = window.usersData.find(u => u.id === userId);
+                if (cachedUser) {
+                    cachedUser.total_invited = totalInvited;
+                    cachedUser.top_status = topStatus;
+                }
+                
+                if (updatedCount > 0) {
+                    console.log(`Updated ${updatedCount} row(s) for user ${userId.substring(0, 8)}...`);
+                }
+            } catch (error) {
+                console.error('Error updating user rows:', error);
+                // Fallback to full reload if update fails
+                loadMessages(0, true);
             }
         }
         

@@ -21,21 +21,21 @@ function initTonConnect() {
             });
             return false;
         }
-        
+
         console.log('TON Connect SDK loaded successfully:', {
             TON_CONNECT_UI: typeof TON_CONNECT_UI,
             TonConnectUI: typeof TON_CONNECT_UI.TonConnectUI
         });
-        
+
         const tg = AppState.getTg();
         const manifestUrl = window.location.origin + '/api/v1/mini-apps/tonconnect-manifest.json';
         console.log('📋 TON Connect manifest URL:', manifestUrl);
-        
+
         // Get return URL for Telegram Mini App (universal for any bot)
         // This is CRITICAL - wallet must return to this URL after connection
         // Format: https://t.me/{bot_username}/mini-app (REQUIRED for Mini Apps!)
         let twaReturnUrl = null;
-        
+
         // DEBUG: Log AppState data to see what we have
         const appData = AppState.getAppData();
         console.log('🔍 DEBUG AppState config:', {
@@ -45,7 +45,7 @@ function initTonConnect() {
             configName: appData?.config?.name,
             fullConfig: appData?.config
         });
-        
+
         // Priority 1: Use config.username from API (most reliable)
         if (appData && appData.config && appData.config.username) {
             const apiUsername = appData.config.username.replace('@', '').trim();
@@ -75,7 +75,7 @@ function initTonConnect() {
                 console.log('📋 Using config.name (fallback):', twaReturnUrl);
             }
         }
-        
+
         // Validate twaReturnUrl format (must include /mini-app for Mini Apps)
         if (!twaReturnUrl || !twaReturnUrl.startsWith('https://t.me/')) {
             console.error('❌ Invalid twaReturnUrl format:', twaReturnUrl);
@@ -87,10 +87,10 @@ function initTonConnect() {
             twaReturnUrl = `${twaReturnUrl}/mini-app`;
             console.log('⚠️ Added /mini-app suffix to twaReturnUrl:', twaReturnUrl);
         }
-        
+
         console.log('📋 Final twaReturnUrl:', twaReturnUrl);
         console.log('⚠️ IMPORTANT: Wallet must return to this URL after connection!');
-        
+
         // Use TON_CONNECT_UI.TonConnectUI from CDN
         // Don't use buttonRootId since we have custom button in HTML
         // We'll call openModal() manually when button is clicked
@@ -100,7 +100,7 @@ function initTonConnect() {
             hasTON_CONNECT_UI: typeof TON_CONNECT_UI !== 'undefined',
             hasTonConnectUI: typeof TON_CONNECT_UI?.TonConnectUI !== 'undefined'
         });
-        
+
         tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: manifestUrl,
             // buttonRootId: 'wallet-connect-telegram', // Removed - we use custom button
@@ -108,7 +108,7 @@ function initTonConnect() {
                 twaReturnUrl: twaReturnUrl,
             }
         });
-        
+
         console.log('✅ TON Connect UI instance created');
         console.log('🔍 Instance properties:', {
             hasWallet: 'wallet' in tonConnectUI,
@@ -116,22 +116,22 @@ function initTonConnect() {
             hasOnStatusChange: typeof tonConnectUI.onStatusChange === 'function',
             hasOpenModal: typeof tonConnectUI.openModal === 'function'
         });
-        
+
         // Listen for wallet connection status changes
         tonConnectUI.onStatusChange((walletInfo) => {
             console.log('🔔 TON Connect status changed callback fired!');
             console.log('walletInfo:', walletInfo);
             console.log('walletInfo type:', typeof walletInfo);
             console.log('walletInfo keys:', walletInfo ? Object.keys(walletInfo) : 'null');
-            
+
             if (walletInfo) {
                 // Wallet connected - handle different possible formats
                 console.log('walletInfo.account:', walletInfo.account);
                 console.log('walletInfo.address:', walletInfo.address);
-                
+
                 const address = walletInfo.account?.address || walletInfo.address;
                 console.log('✅ TON Wallet connected, extracted address:', address);
-                
+
                 if (address) {
                     handleWalletConnected(address);
                 } else {
@@ -144,13 +144,13 @@ function initTonConnect() {
                 handleWalletDisconnected();
             }
         });
-        
+
         // Check current connection status (try multiple properties)
         try {
             console.log('Checking current wallet status...');
             console.log('tonConnectUI.wallet:', tonConnectUI.wallet);
             console.log('tonConnectUI.walletInfo:', tonConnectUI.walletInfo);
-            
+
             // Try wallet property
             const currentWallet = tonConnectUI.wallet || tonConnectUI.walletInfo;
             if (currentWallet) {
@@ -169,11 +169,11 @@ function initTonConnect() {
         } catch (err) {
             console.warn('Could not check current wallet status:', err);
         }
-        
+
         console.log('TON Connect UI instance created:', tonConnectUI);
         console.log('Available methods:', Object.keys(tonConnectUI));
         console.log('openModal type:', typeof tonConnectUI.openModal);
-        
+
         console.log('✅ TON Connect initialized successfully');
         return true;
     } catch (error) {
@@ -193,11 +193,11 @@ async function handleWalletConnected(address) {
         } else if (typeof trackEvent === 'function') {
             trackEvent('wallet_connected_ton', { method: 'ton_connect' });
         }
-        
+
         const botId = AppState.getBotId();
         const initData = AppState.getTg()?.initData || null;
         const userId = AppState.getUserId();
-        
+
         console.log('💾 Saving wallet to backend:', {
             botId,
             address: address ? `${address.substring(0, 10)}...` : 'null',
@@ -205,33 +205,33 @@ async function handleWalletConnected(address) {
             hasApi: typeof Api !== 'undefined',
             hasSaveWallet: typeof Api !== 'undefined' && typeof Api.saveWallet === 'function'
         });
-        
+
         if (botId && typeof Api !== 'undefined' && Api.saveWallet) {
             console.log('📤 Calling Api.saveWallet...');
             const saveResult = await Api.saveWallet(botId, address, userId, initData);
             console.log('✅ Wallet saved successfully:', saveResult);
-            
+
             // Update app data
             const appData = AppState.getAppData();
             if (appData && appData.user) {
                 appData.user.wallet = address;
                 AppState.setAppData(appData);
             }
-            
+
             // Hide modals
             const tonConnectModal = document.getElementById('wallet-modal');
             if (tonConnectModal) tonConnectModal.style.display = 'none';
-            
+
             const manualModal = document.getElementById('wallet-manual-modal');
             if (manualModal) manualModal.style.display = 'none';
-            
+
             // Update wallet banner
             if (typeof Render !== 'undefined' && Render.renderWalletBanner) {
                 Render.renderWalletBanner();
             }
-            
+
             if (typeof Toast !== 'undefined') {
-                Toast.success('✅ Гаманець підключено успішно!');
+                Toast.success(AppState.getAppData()?.translations?.wallet_connected || '✅ Гаманець підключено успішно!');
             }
             if (typeof Haptic !== 'undefined') {
                 Haptic.success();
@@ -247,7 +247,8 @@ async function handleWalletConnected(address) {
         console.error('❌ Error saving connected wallet:', error);
         console.error('Error stack:', error.stack);
         if (typeof Toast !== 'undefined') {
-            Toast.error('❌ Помилка збереження: ' + (error.message || 'Невідома помилка'));
+            const errorMsg = (AppState.getAppData()?.translations?.save_error || '❌ Помилка збереження: ') + (error.message || 'Невідома помилка');
+            Toast.error(errorMsg);
         }
     }
 }
@@ -269,7 +270,7 @@ function connectTelegramWallet() {
     console.log('connectTelegramWallet called');
     console.log('tonConnectUI:', tonConnectUI);
     console.log('TON_CONNECT_UI available:', typeof TON_CONNECT_UI !== 'undefined');
-    
+
     if (tonConnectUI) {
         try {
             if (typeof Render !== 'undefined' && Render.trackEvent) {
@@ -277,16 +278,16 @@ function connectTelegramWallet() {
             } else if (typeof trackEvent === 'function') {
                 trackEvent('wallet_connect_telegram_clicked');
             }
-            
+
             console.log('Opening TON Connect modal...');
             console.log('tonConnectUI.openModal type:', typeof tonConnectUI.openModal);
-            
+
             // Check if openModal exists
             if (typeof tonConnectUI.openModal === 'function') {
                 console.log('Calling tonConnectUI.openModal()...');
                 tonConnectUI.openModal();
                 console.log('✅ TON Connect modal opened successfully');
-                
+
                 // After opening modal, set up polling to check connection status
                 // This helps catch cases where onStatusChange doesn't fire immediately
                 let pollCount = 0;
@@ -294,7 +295,7 @@ function connectTelegramWallet() {
                 const pollInterval = setInterval(() => {
                     pollCount++;
                     console.log(`[Poll ${pollCount}/${maxPolls}] Checking wallet status...`);
-                    
+
                     try {
                         // Check both wallet and walletInfo properties
                         const wallet = tonConnectUI.wallet || tonConnectUI.walletInfo;
@@ -319,13 +320,13 @@ function connectTelegramWallet() {
                         }
                     }
                 }, 1000); // Check every second
-                
+
                 // Clear polling if modal is closed (we'll detect this via onStatusChange or timeout)
                 setTimeout(() => {
                     clearInterval(pollInterval);
                     console.log('Stopped polling for wallet status');
                 }, maxPolls * 1000);
-                
+
             } else {
                 console.error('❌ tonConnectUI.openModal is not a function!');
                 console.error('tonConnectUI object:', Object.keys(tonConnectUI));
@@ -335,7 +336,7 @@ function connectTelegramWallet() {
             console.error('❌ Error opening TON Connect modal:', error);
             console.error('Error details:', error.message, error.stack);
             console.error('tonConnectUI object:', tonConnectUI);
-            
+
             // Fallback to manual input
             if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
                 Render.showManualWalletInput();
@@ -346,7 +347,7 @@ function connectTelegramWallet() {
     } else {
         console.warn('⚠️ TON Connect UI not initialized');
         console.warn('Attempting to re-initialize...');
-        
+
         // Try to re-initialize
         if (typeof TonConnect !== 'undefined' && TonConnect.initTonConnect) {
             const initialized = TonConnect.initTonConnect();
@@ -356,7 +357,7 @@ function connectTelegramWallet() {
                 return;
             }
         }
-        
+
         console.warn('Using fallback to manual input');
         // Fallback to manual input
         if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
