@@ -6,7 +6,7 @@ import time
 # Configuration from HOW_TO_VIEW_LOGS.md
 API_BASE = "https://api-production-57e8.up.railway.app"
 BOT_ID = "4f3c45a5-39ac-4d6e-a0eb-263765d70b1a"
-USER_EXTERNAL_ID = "380927579"
+USER_EXTERNAL_ID = "test_user_v2"
 TEST_ENDPOINT_TEMPLATE = "https://api-production-57e8.up.railway.app/api/v1/admin/bots/{bot_id}/test-command?command={command}&user_lang=uk&user_external_id={user_id}"
 
 COMMANDS = [
