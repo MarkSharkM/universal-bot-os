@@ -179,8 +179,6 @@ async def mini_app_html(
         raise HTTPException(status_code=404, detail="Mini App HTML not found")
 
 
-
-
 @router.post("/mini-app/{bot_id}")
 async def mini_app_webhook(
     request: Request,
@@ -317,12 +315,42 @@ async def mini_app_webhook(
                 platform="telegram"
             )
             db.add(analytics_event)
+            
+            # ALSO CREATE MESSAGE RECORD for Admin Panel visibility
+            # This satisfies the requirement to see "commands" in the admin panel
+            if user:
+                from app.models.message import Message
+                import datetime
+                
+                # Map event to command style
+                command_name = f"/{event}"
+                if event == "view_home": command_name = "/start"
+                elif event == "view_partners": command_name = "/partners"
+                elif event == "view_top": command_name = "/top"
+                elif event == "view_earnings": command_name = "/earnings"
+                
+                # Create message
+                msg = Message(
+                    bot_id=bot_id,
+                    user_id=user.id,
+                    role="user",
+                    content=command_name,
+                    custom_data={
+                        "source": "mini_app",
+                        "event": event,
+                        "platform": "telegram_miniapp"
+                    },
+                    timestamp=datetime.datetime.utcnow()
+                )
+                db.add(msg)
+                logger.info(f"Created Message record for analytics event: {command_name} (user_id={user.id})")
+            
             db.commit()
             stored = True
-            logger.info(f"Analytics event stored: event={event}, bot_id={bot_id}, user_id={validated_user_id}")
+            
         except Exception as e:
             # Log error but don't fail the request
-            logger.error(f"Error storing analytics event: {e}", exc_info=True)
+            logger.error(f"Error storing analytics/message event: {e}", exc_info=True)
             db.rollback()
         
         return {"ok": True, "event": event, "logged": True, "stored": stored}
@@ -657,6 +685,34 @@ async def get_mini_app_data(
         # Get user custom_data for Revenue Launcher
         user_custom_data = user.custom_data or {}
         
+        # RECORD SESSION IN MESSAGES (Admin Panel Visibility)
+        try:
+            from app.models.message import Message
+            import datetime
+            
+            # Check if we recently logged a start message (avoid spam on refresh)
+            # For now, just log it. Admin panel shows recent messages.
+            
+            # Create message
+            msg = Message(
+                bot_id=bot_id,
+                user_id=user.id,
+                role="user",
+                # Use a distinct command for app load, but /start is standard
+                content="/start (Mini App)", 
+                custom_data={
+                    "source": "mini_app_load",
+                    "platform": "telegram_miniapp"
+                },
+                timestamp=datetime.datetime.utcnow()
+            )
+            db.add(msg)
+            db.commit()
+            logger.info(f"Created Message record for Mini App load: /start (user_id={user.id})")
+        except Exception as msg_err:
+            logger.error(f"Error logging Mini App load message: {msg_err}")
+            # Don't fail the request
+            
         return {
             "ok": True,
             "user": {
