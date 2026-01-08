@@ -1082,6 +1082,7 @@ async def test_command(
     command: str = Query(..., description="Command to test (e.g., /start, /wallet, /partners)"),
     user_external_id: Optional[str] = Query(None, description="Test user external ID (default: test_user)"),
     user_lang: Optional[str] = Query("uk", description="User language code"),
+    source: Optional[str] = Query("admin_test", description="Source of the test"),
     db: Session = Depends(get_db)
 ):
     """
@@ -1093,6 +1094,7 @@ async def test_command(
         command: Command to test (e.g., "/start", "/wallet", "/partners")
         user_external_id: Test user ID (default: "test_user")
         user_lang: User language (default: "uk")
+        source: Source of the test (default: "admin_test")
         db: Database session
     
     Returns:
@@ -1100,7 +1102,7 @@ async def test_command(
     """
     import logging
     logger = logging.getLogger(__name__)
-    logger.info(f"test_command: bot_id={bot_id}, command={command}, user_external_id={user_external_id}, user_lang={user_lang}")
+    logger.info(f"test_command: bot_id={bot_id}, command={command}, user_external_id={user_external_id}, user_lang={user_lang}, source={source}")
     
     from app.services import (
         UserService, TranslationService, CommandService,
@@ -1160,7 +1162,7 @@ async def test_command(
             bot_id=bot_id,
             role='user',
             content=command,
-            custom_data={'is_test': True}
+            custom_data={'is_test': True, 'source': source}
         )
         db.add(user_message)
         
@@ -1185,7 +1187,7 @@ async def test_command(
                 bot_id=bot_id,
                 role='assistant',
                 content=message,
-                custom_data={'is_test': True}
+                custom_data={'is_test': True, 'source': source}
             )
             db.add(bot_message)
             
@@ -1198,6 +1200,7 @@ async def test_command(
             "start_param": start_param,
             "user_id": str(user.id),
             "user_lang": user_lang,
+            "source": source,
             "response": {
                 "message": message,
                 "buttons": response.get('buttons', []),
