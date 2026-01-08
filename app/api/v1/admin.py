@@ -2335,6 +2335,10 @@ async def list_bot_messages(
         top_status = custom_data.get('top_status', 'locked')
         balance = float(user.balance) if user.balance else 0.0
         
+        # Get source from message custom_data
+        msg_custom_data = user_msg.custom_data or {}
+        source = msg_custom_data.get('source', '')
+        
         result.append({
             "id": str(user_msg.id),
             "user_id": str(user.id),
@@ -2358,6 +2362,7 @@ async def list_bot_messages(
             "command": command_text,
             "command_content": user_msg.content,
             "command_timestamp": user_msg.timestamp.isoformat() if user_msg.timestamp else None,
+            "source": source,
             # Response data
             "response_content": response_msg.content if response_msg else None,
             "response_timestamp": response_msg.timestamp.isoformat() if response_msg and response_msg.timestamp else None,

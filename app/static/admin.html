@@ -2543,6 +2543,7 @@
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 150px;">
                             <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                 <span style="font-size: 9px; color: #6b7280;">${commandPreview}</span>
+                                ${msg.source ? `<span style="background: #8b5cf6; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px;">${msg.source}</span>` : ''}
                                 <span style="font-size: 8px; color: #9ca3af;">▼</span>
                             </div>
                             <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.command_content || '-'}</div>
