@@ -722,7 +722,7 @@
                                         style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 30px;">
                                         Language</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; max-width: 80px;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 80px;">
                                         Wallet</th>
                                     <th
                                         style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 40px;">
@@ -2553,17 +2553,11 @@
                         <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 200px;">
                             <div onclick="toggleExpand('${responseExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                 <span style="font-size: 9px; color: #6b7280;">
-                                    ${(msg.source && msg.source.includes('mini_app') && (!msg.response_content || msg.response_content === '-'))
-                            ? '<span style="color: #9ca3af; font-style: italic;">(analytics event)</span>'
-                            : responsePreview}
+                                    ${responsePreview}
                                 </span>
                                 <span style="font-size: 8px; color: #9ca3af;">▼</span>
                             </div>
-                            <div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">
-                                ${(msg.source && msg.source.includes('mini_app') && (!msg.response_content || msg.response_content === '-'))
-                            ? '(analytics event - no response expected)'
-                            : (msg.response_content || '-')}
-                            </div>
+                            <div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.response_content || '-'}</div>
                         </td>
                         <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${responseTimeCell}</td>
                         <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
@@ -2878,9 +2872,96 @@
             loadTranslationsData(0, true);
         }
 
+        // Column Resizing Logic
+        function makeTableResizable(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const cols = table.querySelectorAll('th');
+            [].forEach.call(cols, function (col) {
+                // Determine if this is the last column (sticky actions) or has special styling
+                const isSticky = col.style.position === 'sticky';
+
+                // create handle
+                const resizer = document.createElement('div');
+                resizer.classList.add('resizer');
+                resizer.style.height = '100%';
+                resizer.style.width = '4px'; // Width of the touch area
+                resizer.style.position = 'absolute';
+                resizer.style.top = '0';
+                resizer.style.right = '0';
+                // Adjust cursor based on sticky
+                resizer.style.cursor = 'col-resize';
+                resizer.style.userSelect = 'none';
+                resizer.style.zIndex = '20'; // Above content
+
+                // Don't add to sticky column if it causes issues, or handle carefully
+                // Usually sticky right column shouldn't be resized from its right edge unless visual artifact
+
+                col.appendChild(resizer);
+                col.style.position = isSticky ? 'sticky' : 'relative';
+
+                let x = 0;
+                let w = 0;
+
+                const mouseDownHandler = function (e) {
+                    x = e.clientX;
+
+                    const styles = window.getComputedStyle(col);
+                    w = parseInt(styles.width, 10);
+
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+
+                    resizer.classList.add('resizing');
+                };
+
+                const mouseMoveHandler = function (e) {
+                    const dx = e.clientX - x;
+                    col.style.width = `${w + dx}px`;
+                };
+
+                const mouseUpHandler = function () {
+                    document.removeEventListener('mousemove', mouseMoveHandler);
+                    document.removeEventListener('mouseup', mouseUpHandler);
+                    resizer.classList.remove('resizing');
+                };
+
+                resizer.addEventListener('mousedown', mouseDownHandler);
+            });
+        }
+
+        // Add CSS for resizer
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .resizer {
+                background-color: transparent;
+                border-right: 1px solid transparent; 
+            }
+            .resizer:hover, .resizing {
+                border-right: 2px solid #2f80ed;
+                background-color: rgba(47, 128, 237, 0.1);
+            }
+        `;
+        document.head.appendChild(style);
+
         // Load on page load
         loadGlobalBotSelector();
         loadBots();
+
+        // Initialize resizable tables after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            makeTableResizable('database-messages-table'); // ID from your code (check if ID exists!)
+            // Currently the table doesn't have an ID in the provided snippet, let's assume or add it.
+            // Wait, looking at lines 760-770 in previous view, we need to verify table ID.
+
+            // Actually, we should add ID to the table first!
+            const msgTable = document.querySelector('#database-messages-view table');
+            if (msgTable) {
+                msgTable.id = 'database-messages-table';
+                makeTableResizable('database-messages-table');
+            }
+        }, 1000); // 1s delay to be safe
     </script>
 </body>
 
