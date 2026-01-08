@@ -719,34 +719,34 @@
                                         style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Device</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 30px;">
                                         Language</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; max-width: 80px;">
                                         Wallet</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 40px;">
                                         Invited</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 40px;">
                                         TOP</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 50px;">
                                         Balance</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 40px;">
                                         Active</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 50px;">
                                         Created</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 50px;">
                                         Last Activity</th>
                                     <th
                                         style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Command</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 80px;">
                                         Source</th>
                                     <th
                                         style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
@@ -2552,10 +2552,18 @@
                         </td>
                         <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 200px;">
                             <div onclick="toggleExpand('${responseExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                <span style="font-size: 9px; color: #6b7280;">${responsePreview}</span>
+                                <span style="font-size: 9px; color: #6b7280;">
+                                    ${(msg.source && msg.source.includes('mini_app') && (!msg.response_content || msg.response_content === '-'))
+                            ? '<span style="color: #9ca3af; font-style: italic;">(analytics event)</span>'
+                            : responsePreview}
+                                </span>
                                 <span style="font-size: 8px; color: #9ca3af;">▼</span>
                             </div>
-                            <div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.response_content || '-'}</div>
+                            <div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">
+                                ${(msg.source && msg.source.includes('mini_app') && (!msg.response_content || msg.response_content === '-'))
+                            ? '(analytics event - no response expected)'
+                            : (msg.response_content || '-')}
+                            </div>
                         </td>
                         <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${responseTimeCell}</td>
                         <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
