@@ -2647,14 +2647,20 @@ async def cleanup_test_messages(bot_id: UUID, db: Session = Depends(get_db)):
     """Temporary endpoint to clean up test messages from user 380927579"""
     from app.models.message import Message
     from app.models.user import User
+    from sqlalchemy import cast, String
+    from datetime import datetime, timedelta
     
     user = db.query(User).filter(User.external_id == "380927579").first()
     if not user:
         return {"status": "user_not_found"}
         
+    # Delete test messages from the last hour
+    hour_ago = datetime.now() - timedelta(hours=1)
+    
+    # Use a simpler filter for JSON column
     deleted = db.query(Message).filter(
         Message.user_id == user.id,
-        Message.custom_data.contains({'is_test': True})
+        Message.timestamp >= hour_ago
     ).delete(synchronize_session=False)
     
     db.commit()
