@@ -744,19 +744,19 @@
                                         Last Activity</th>
                                     <th
                                         style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                        Команда</th>
+                                        Command</th>
                                     <th
                                         style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                        Відповідь</th>
+                                        Source</th>
                                     <th
                                         style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                        Час відповіді</th>
+                                        Response</th>
                                     <th
                                         style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Response Time</th>
                                     <th
                                         style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; position: sticky; right: 0; background: #f9fafb; z-index: 10;">
-                                        Дії</th>
+                                        Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="database-messages-tbody">
@@ -2543,10 +2543,12 @@
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 150px;">
                             <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                 <span style="font-size: 9px; color: #6b7280;">${commandPreview}</span>
-                                ${msg.source ? `<span style="background: #8b5cf6; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px;">${msg.source}</span>` : ''}
                                 <span style="font-size: 8px; color: #9ca3af;">▼</span>
                             </div>
                             <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.command_content || '-'}</div>
+                        </td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
+                            ${msg.source ? `<span style="background: #8b5cf6; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px;">${msg.source}</span>` : '-'}
                         </td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 200px;">
                             <div onclick="toggleExpand('${responseExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
@@ -2555,7 +2557,6 @@
                             </div>
                             <div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.response_content || '-'}</div>
                         </td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${responseTimestamp}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${responseTimeCell}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
                             <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600; margin-right: 4px;">Edit</button>
