@@ -1152,6 +1152,18 @@ async def test_command(
     
     # Handle command
     try:
+        from app.models.message import Message
+        
+        # Save user message
+        user_message = Message(
+            user_id=user.id,
+            bot_id=bot_id,
+            role='user',
+            content=command,
+            custom_data={'is_test': True}
+        )
+        db.add(user_message)
+        
         logger.info(f"test_command: handling command {parsed_command} for user {user.id}")
         response = await command_service.handle_command(
             parsed_command,
@@ -1162,10 +1174,22 @@ async def test_command(
         logger.info(f"test_command: command {parsed_command} completed, has_message={bool(response.get('message'))}, has_error={bool(response.get('error'))}")
         
         # Format message: convert escaped newlines to actual newlines
-        # (same as in telegram.py for consistency in testing)
         message = response.get('message', '')
         if isinstance(message, str):
             message = message.replace('\\n', '\n')
+            
+        # Save bot response
+        if message:
+            bot_message = Message(
+                user_id=user.id,
+                bot_id=bot_id,
+                role='assistant',
+                content=message,
+                custom_data={'is_test': True}
+            )
+            db.add(bot_message)
+            
+        db.commit()
         
         return {
             "success": True,
