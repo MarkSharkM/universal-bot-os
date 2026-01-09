@@ -254,7 +254,7 @@ async function handleWalletConnected(address) {
         console.error('❌ Error saving connected wallet:', error);
         console.error('Error stack:', error.stack);
         if (typeof Toast !== 'undefined') {
-            const errorMsg = (AppState.getAppData()?.translations?.save_error || '❌ Помилка збереження: ') + (error.message || 'Невідома помилка');
+            const errorMsg = error.message || 'Невідома помилка при збереженні гаманця';
             Toast.error(errorMsg);
         }
     }

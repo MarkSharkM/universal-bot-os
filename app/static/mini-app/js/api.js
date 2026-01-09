@@ -124,9 +124,9 @@ async function saveWallet(botId, walletAddress, userId = null, initData = null) 
         console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-            console.error('❌ Error response:', error);
-            throw new Error(error.detail || `HTTP ${response.status}`);
+            const error = await response.json().catch(() => ({ detail: `HTTP ${response.status} ${response.statusText}` }));
+            console.error('❌ Error response from backend:', error);
+            throw new Error(error.detail || error.message || `Помилка сервера (HTTP ${response.status})`);
         }
 
         const data = await response.json();
