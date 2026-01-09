@@ -31,7 +31,7 @@ function initTonConnect() {
         });
 
         const tg = AppState.getTg();
-        const manifestUrl = window.location.origin + '/api/v1/mini-apps/tonconnect-manifest.json';
+        const manifestUrl = window.location.origin + '/api/v1/mini-apps/tonconnect-manifest.json?v=' + new Date().getTime();
         console.log('📋 TON Connect manifest URL:', manifestUrl);
 
         // Get return URL for Telegram Mini App (universal for any bot)
