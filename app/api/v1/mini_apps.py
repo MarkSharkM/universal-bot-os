@@ -93,31 +93,48 @@ async def mini_app_html_simple(
 
 
 @router.get("/tonconnect-manifest.json")
-async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
+@router.get("/{bot_id}/tonconnect-manifest.json")
+async def tonconnect_manifest(
+    request: Request,
+    bot_id: Optional[UUID] = None,
+    db: Session = Depends(get_db)
+):
     """
     Serve TON Connect manifest file.
-    Required for TON Connect SDK integration.
+    Supports optional bot_id to serve dynamic bot name/icon.
     """
     import pathlib
     import os
     from fastapi.responses import JSONResponse
     from app.models.bot import Bot
     
-    current_file = pathlib.Path(__file__)  # app/api/v1/mini_apps.py
-    app_dir = current_file.parent.parent.parent  # app/
+    current_file = pathlib.Path(__file__)
+    app_dir = current_file.parent.parent.parent
     manifest_path = app_dir / "static" / "tonconnect-manifest.json"
     
-    # Try to find the first active bot to get its name
+    # Defaults
     bot_name = os.getenv("PROJECT_NAME", "EarnHub")
-    try:
-        active_bot = db.query(Bot).filter(Bot.is_active == True).first()
-        if active_bot:
-            bot_config = active_bot.config or {}
-            # Use name from config or the bot name itself
-            bot_name = bot_config.get("name", active_bot.name or bot_name)
-            logger.info(f"Using dynamic name from bot '{bot_name}' for manifest")
-    except Exception as db_err:
-        logger.error(f"Error fetching bot for manifest: {db_err}")
+    
+    # If bot_id is provided, try to find that specific bot
+    if bot_id:
+        try:
+            target_bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if target_bot:
+                bot_config = target_bot.config or {}
+                bot_name = bot_config.get("name", target_bot.name or bot_name)
+                logger.info(f"Using manifest for specific bot: {bot_name} ({bot_id})")
+        except Exception as e:
+            logger.error(f"Error fetching bot {bot_id} for manifest: {e}")
+    else:
+        # Fallback: Try to find the first active bot
+        try:
+            active_bot = db.query(Bot).filter(Bot.is_active == True).first()
+            if active_bot:
+                bot_config = active_bot.config or {}
+                bot_name = bot_config.get("name", active_bot.name or bot_name)
+                logger.info(f"Using default dynamic name from active bot: {bot_name}")
+        except Exception as db_err:
+            logger.error(f"Error fetching default bot for manifest: {db_err}")
     
     icon_name = os.getenv("PROJECT_ICON", "icon.png")
     
@@ -126,18 +143,17 @@ async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
             import json
             manifest_content = json.loads(manifest_path.read_text(encoding='utf-8'))
             
-            # Always update name with our dynamic bot name
+            # Update name with dynamic bot name
             manifest_content['name'] = bot_name
             
-            # Update URL dynamically based on request
+            # Update URL dynamically
             base_url = str(request.base_url).rstrip('/')
-            # Ensure HTTPS in production
             if base_url.startswith('http://') and ('railway' in base_url or 'hubaggregator' in base_url):
                 base_url = base_url.replace('http://', 'https://')
             
             manifest_content['url'] = base_url
             
-            # If iconUrl is relative or placeholder, make it absolute
+            # Resolve relative iconUrl
             if manifest_content.get('iconUrl', '').startswith('/'):
                 manifest_content['iconUrl'] = base_url + manifest_content['iconUrl']
             elif 'your-domain.com' in manifest_content.get('iconUrl', ''):
@@ -147,7 +163,7 @@ async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
         except Exception as e:
             logger.error(f"Error reading TON Connect manifest: {e}", exc_info=True)
     
-    # Dynamic generation fallback
+    # Fallback response
     base_url = str(request.base_url).rstrip('/')
     if base_url.startswith('http://') and ('railway' in base_url or 'hubaggregator' in base_url):
         base_url = base_url.replace('http://', 'https://')

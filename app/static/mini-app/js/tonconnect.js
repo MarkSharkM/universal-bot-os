@@ -31,16 +31,33 @@ function initTonConnect() {
         });
 
         const tg = AppState.getTg();
-        const manifestUrl = window.location.origin + '/api/v1/mini-apps/tonconnect-manifest.json?v=' + new Date().getTime();
-        console.log('📋 TON Connect manifest URL:', manifestUrl);
 
-        // Get return URL for Telegram Mini App (universal for any bot)
+        // Dynamic Manifest URL construction
+        // Try to get bot_id from URL params (standard for our mini app routing)
+        const urlParams = new URLSearchParams(window.location.search);
+        // Sometimes bot_id is in the path, sometimes passed as query param. 
+        // For Mini Apps started via /mini-app/{bot_id}/index.html, we can try to extract it from location or initData
+
+        // Default base
+        let manifestBase = '/api/v1/mini-apps/tonconnect-manifest.json';
+
+        // Try to find bot_id in URL path (e.g., /api/v1/mini-apps/{bot_id}/index.html is not common, usually served via static)
+        // Better: Check if we have appData with bot_id
+        const appData = AppState.getAppData();
+        if (appData && appData.botId) {
+            console.log('✅ Found botId in AppState:', appData.botId);
+            manifestBase = `/api/v1/mini-apps/${appData.botId}/tonconnect-manifest.json`;
+        } else {
+            console.warn('⚠️ No botId found in AppState, using default manifest endpoint');
+        }
+
+        const manifestUrl = window.location.origin + manifestBase + '?v=' + new Date().getTime();
         // This is CRITICAL - wallet must return to this URL after connection
         // Format: https://t.me/{bot_username}/mini-app (REQUIRED for Mini Apps!)
         let twaReturnUrl = null;
 
         // DEBUG: Log AppState data to see what we have
-        const appData = AppState.getAppData();
+        // Reuse appData from above
         console.log('🔍 DEBUG AppState config:', {
             hasAppData: !!appData,
             hasConfig: !!(appData && appData.config),
