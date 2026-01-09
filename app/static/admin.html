@@ -699,63 +699,84 @@
                 </div>
                 <div
                     style="background: white; border-radius: 8px; overflow-x: auto; overflow-y: visible; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <div style="min-width: 2000px;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 10px; min-width: 2000px;">
+                    <div style="min-width: 900px;">
+                        <table
+                            style="width: 100%; border-collapse: collapse; font-size: 10px; min-width: 900px; table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 50px;"> <!-- DateTime -->
+                                <col style="width: 60px;"> <!-- UserID -->
+                                <col style="width: 60px;"> <!-- ExtID -->
+                                <col style="width: 80px;"> <!-- Username -->
+                                <col style="width: 40px;"> <!-- Device -->
+                                <col style="width: 25px;"> <!-- Lang -->
+                                <col style="width: 70px;"> <!-- Wallet -->
+                                <col style="width: 30px;"> <!-- Invited -->
+                                <col style="width: 40px;"> <!-- TOP -->
+                                <col style="width: 40px;"> <!-- Balance -->
+                                <col style="width: 30px;"> <!-- Active -->
+                                <col style="width: 45px;"> <!-- Created -->
+                                <col style="width: 45px;"> <!-- Last Activity -->
+                                <col style="width: 80px;"> <!-- Command -->
+                                <col style="width: 50px;"> <!-- Source -->
+                                <col style="width: 80px;"> <!-- Response -->
+                                <col style="width: 40px;"> <!-- Response Time -->
+                                <col style="width: 60px;"> <!-- Actions -->
+                            </colgroup>
                             <thead style="background: #f9fafb;">
                                 <tr>
                                     <th
-                                        style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                        Дата/Час</th>
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Date/Time</th>
                                     <th
-                                        style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         User ID</th>
                                     <th
-                                        style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                        External ID</th>
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Ext. ID</th>
                                     <th
-                                        style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Username</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Device</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 30px;">
-                                        Language</th>
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Lang</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 80px;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Wallet</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 40px;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Invited</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 40px;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         TOP</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 50px;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Balance</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 40px;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Active</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 50px;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Created</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 50px;">
-                                        Last Activity</th>
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Last Act.</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Command</th>
                                     <th
-                                        style="padding: 4px 6px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; width: 80px;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Source</th>
                                     <th
-                                        style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
                                         Response</th>
                                     <th
-                                        style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                        Response Time</th>
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Time</th>
                                     <th
-                                        style="padding: 6px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; position: sticky; right: 0; background: #f9fafb; z-index: 10;">
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; position: sticky; right: 0; background: #f9fafb; z-index: 10;">
                                         Actions</th>
                                 </tr>
                             </thead>
@@ -2523,34 +2544,34 @@
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${dateTimeStr}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.user_id.substring(0, 8)}...</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.external_id || '-'}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${username}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${dateTimeStr}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.user_id.substring(0, 8)}...</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.external_id || '-'}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${username}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
                             ${msg.device ? `<span style="background: #e5e7eb; color: #374151; padding: 1px 4px; border-radius: 3px; font-size: 9px;">${msg.device}</span>` : '-'}
                         </td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">
                             ${msg.language ? `<span style="background: #dbeafe; color: #1e40af; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 500;">${msg.language.toUpperCase()}</span>` : '-'}
                         </td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; word-break: break-all; max-width: 100px;">${wallet}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${totalInvited}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${topBadge}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.balance || 0}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${msg.is_active ? '✅' : '❌'}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${createdDate}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${lastActivityDate}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 150px;">
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; word-break: break-all; max-width: 100px;">${wallet}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${totalInvited}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${topBadge}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${msg.balance || 0}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${msg.is_active ? '✅' : '❌'}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${createdDate}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px;">${lastActivityDate}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 150px;">
                             <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                 <span style="font-size: 9px; color: #6b7280;">${commandPreview}</span>
                                 <span style="font-size: 8px; color: #9ca3af;">▼</span>
                             </div>
                             <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.command_content || '-'}</div>
                         </td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
                             ${msg.source ? `<span style="background: #8b5cf6; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px;">${msg.source}</span>` : '-'}
                         </td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 200px;">
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 200px;">
                             <div onclick="toggleExpand('${responseExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                 <span style="font-size: 9px; color: #6b7280;">
                                     ${responsePreview}
@@ -2559,10 +2580,10 @@
                             </div>
                             <div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.response_content || '-'}</div>
                         </td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${responseTimeCell}</td>
-                        <td style="padding: 4px 6px; border-bottom: 1px solid #e5e7eb; font-size: 9px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
-                            <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600; margin-right: 4px;">Edit</button>
-                            <button onclick="deleteUser('${msg.user_id}', '${msg.external_id || msg.user_id}')" style="background: #dc2626; color: white; padding: 4px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600;">Del</button>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">${responseTimeCell}</td>
+                        <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; position: sticky; right: 0; background: white; z-index: 5; white-space: nowrap;">
+                            <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600; margin-right: 4px;">Edit</button>
+                            <button onclick="deleteUser('${msg.user_id}', '${msg.external_id || msg.user_id}')" style="background: #dc2626; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 600;">Del</button>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -2872,96 +2893,9 @@
             loadTranslationsData(0, true);
         }
 
-        // Column Resizing Logic
-        function makeTableResizable(tableId) {
-            const table = document.getElementById(tableId);
-            if (!table) return;
-
-            const cols = table.querySelectorAll('th');
-            [].forEach.call(cols, function (col) {
-                // Determine if this is the last column (sticky actions) or has special styling
-                const isSticky = col.style.position === 'sticky';
-
-                // create handle
-                const resizer = document.createElement('div');
-                resizer.classList.add('resizer');
-                resizer.style.height = '100%';
-                resizer.style.width = '4px'; // Width of the touch area
-                resizer.style.position = 'absolute';
-                resizer.style.top = '0';
-                resizer.style.right = '0';
-                // Adjust cursor based on sticky
-                resizer.style.cursor = 'col-resize';
-                resizer.style.userSelect = 'none';
-                resizer.style.zIndex = '20'; // Above content
-
-                // Don't add to sticky column if it causes issues, or handle carefully
-                // Usually sticky right column shouldn't be resized from its right edge unless visual artifact
-
-                col.appendChild(resizer);
-                col.style.position = isSticky ? 'sticky' : 'relative';
-
-                let x = 0;
-                let w = 0;
-
-                const mouseDownHandler = function (e) {
-                    x = e.clientX;
-
-                    const styles = window.getComputedStyle(col);
-                    w = parseInt(styles.width, 10);
-
-                    document.addEventListener('mousemove', mouseMoveHandler);
-                    document.addEventListener('mouseup', mouseUpHandler);
-
-                    resizer.classList.add('resizing');
-                };
-
-                const mouseMoveHandler = function (e) {
-                    const dx = e.clientX - x;
-                    col.style.width = `${w + dx}px`;
-                };
-
-                const mouseUpHandler = function () {
-                    document.removeEventListener('mousemove', mouseMoveHandler);
-                    document.removeEventListener('mouseup', mouseUpHandler);
-                    resizer.classList.remove('resizing');
-                };
-
-                resizer.addEventListener('mousedown', mouseDownHandler);
-            });
-        }
-
-        // Add CSS for resizer
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .resizer {
-                background-color: transparent;
-                border-right: 1px solid transparent; 
-            }
-            .resizer:hover, .resizing {
-                border-right: 2px solid #2f80ed;
-                background-color: rgba(47, 128, 237, 0.1);
-            }
-        `;
-        document.head.appendChild(style);
-
         // Load on page load
         loadGlobalBotSelector();
         loadBots();
-
-        // Initialize resizable tables after a short delay to ensure DOM is ready
-        setTimeout(() => {
-            makeTableResizable('database-messages-table'); // ID from your code (check if ID exists!)
-            // Currently the table doesn't have an ID in the provided snippet, let's assume or add it.
-            // Wait, looking at lines 760-770 in previous view, we need to verify table ID.
-
-            // Actually, we should add ID to the table first!
-            const msgTable = document.querySelector('#database-messages-view table');
-            if (msgTable) {
-                msgTable.id = 'database-messages-table';
-                makeTableResizable('database-messages-table');
-            }
-        }, 1000); // 1s delay to be safe
     </script>
 </body>
 

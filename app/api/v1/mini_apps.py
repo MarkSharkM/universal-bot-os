@@ -767,3 +767,90 @@ async def get_mini_app_data(
         logger.error(f"Error getting Mini App data: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
 
+@router.post("/mini-app/{bot_id}/notify-return")
+async def notify_return(
+    bot_id: UUID,
+    init_data: Optional[str] = Query(None, description="Telegram WebApp initData (for validation)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Send a "Return to App" message to user via bot.
+    Used when user is redirected to bot profile to activate partner.
+    
+    Args:
+        bot_id: Bot UUID
+        init_data: Telegram WebApp initData
+        db: Database session
+    """
+    # Verify bot
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+    
+    # Validate initData
+    if not init_data:
+        raise HTTPException(status_code=400, detail="init_data required")
+    
+    if not validate_telegram_init_data(init_data, bot.token):
+        logger.warning(f"Invalid initData for bot_id={bot_id}")
+        raise HTTPException(status_code=401, detail="Invalid initData signature")
+    
+    user_external_id = str(get_user_id_from_init_data(init_data))
+    if not user_external_id:
+        raise HTTPException(status_code=400, detail="Could not extract user_id from initData")
+    
+    # Get user for language
+    user_service = UserService(db, bot_id)
+    user = user_service.get_user(user_external_id, platform="telegram")
+    if not user:
+         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get translations
+    translation_service = TranslationService(db, bot_id)
+    lang = translation_service.detect_language(user.language_code)
+    
+    message_text = translation_service.get_translation('notify_return_message', lang)
+    # Fallback if translation not in DB yet
+    if message_text == 'notify_return_message':
+        message_text = "⏳ <b>Очікуємо активації...</b>\n\nНатисніть кнопку нижче, щоб повернутися в Hub після активації."
+    
+    button_text = translation_service.get_translation('notify_return_button', lang)
+    if button_text == 'notify_return_button':
+        button_text = "🔙 Я все зробив! Відкрити Hub"
+    
+    # Get bot configuration for Mini App URL
+    bot_username = (bot.config or {}).get('username', '').replace('@', '').strip()
+    if not bot_username:
+        # Try to get from name as fallback
+        import re
+        bot_username = re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
+    
+    mini_app_url = f"https://t.me/{bot_username}/app"
+    
+    # Create keyboard with web_app button
+    reply_markup = {
+        "inline_keyboard": [[
+            {
+                "text": button_text,
+                "web_app": {"url": mini_app_url}
+            }
+        ]]
+    }
+    
+    # Send message via TelegramAdapter
+    try:
+        from app.adapters.telegram import TelegramAdapter
+        adapter = TelegramAdapter()
+        await adapter.send_message(
+            bot_id=bot_id,
+            user_external_id=user_external_id,
+            text=message_text,
+            reply_markup=reply_markup,
+            parse_mode="HTML"
+        )
+        
+        logger.info(f"Notify-return message sent: bot_id={bot_id}, user={user_external_id}")
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Error sending notify-return message: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error sending message: {str(e)}")

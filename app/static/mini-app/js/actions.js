@@ -427,7 +427,7 @@ function showActivate7Instructions() {
                     ${instructions.split('\n').map(line => `<p>${line}</p>`).join('')}
                 </div>
                 <div class="modal-actions">
-                    <button class="action-btn primary" onclick="openTelegramBot()">
+                    <button class="action-btn primary" onclick="if(window.Actions && Actions.activatePartnerAndReturn) Actions.activatePartnerAndReturn(); else openTelegramBot();">
                         Відкрити бота
                     </button>
                     <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
@@ -503,6 +503,59 @@ function showCopySuccess() {
 }
 
 
+
+async function activatePartnerAndReturn() {
+    const botId = AppState.getBotId();
+    const tg = AppState.getTg();
+    const initData = tg?.initData || null;
+
+    if (!botId) {
+        console.error('❌ Bot ID not found');
+        return;
+    }
+
+    try {
+        // 1. Notify backend to send return message
+        if (typeof Api !== 'undefined' && Api.notifyReturn) {
+            await Api.notifyReturn(botId, initData);
+        }
+
+        // 2. Track event
+        if (typeof trackEvent === 'function') {
+            trackEvent('activate_partner_return_start');
+        }
+
+        // 3. Get bot username for profile link
+        const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : null;
+
+        if (botUsername && tg?.openTelegramLink) {
+            // 4. Open bot profile
+            tg.openTelegramLink(`https://t.me/${botUsername}?profile`);
+
+            // 5. Close Mini App
+            if (tg.close) {
+                // Slight delay to ensure openTelegramLink starts
+                setTimeout(() => {
+                    tg.close();
+                }, 100);
+            }
+        } else {
+            // Fallback: just close or show bot
+            if (typeof openTelegramBot === 'function') {
+                openTelegramBot();
+            }
+            if (tg?.close) tg.close();
+        }
+    } catch (error) {
+        console.error('Error in activatePartnerAndReturn:', error);
+        // Even if API fails, try to open bot and close
+        if (typeof openTelegramBot === 'function') {
+            openTelegramBot();
+        }
+        if (tg?.close) tg.close();
+    }
+}
+
 window.Actions = {
     openPartner,
     handleWalletSubmit,
@@ -511,6 +564,7 @@ window.Actions = {
     handleBuyTop,
     openTelegramBot,
     showActivate7Instructions,
+    activatePartnerAndReturn,
     fallbackCopyText,
     showCopySuccess
 };

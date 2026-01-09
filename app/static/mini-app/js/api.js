@@ -227,12 +227,46 @@ async function sendCallback(botId, data, initData = null) {
     }
 }
 
+/**
+ * Notify backend to send "Return to App" message
+ * @param {string} botId - Bot UUID
+ * @param {string} initData - Telegram WebApp initData (optional, for validation)
+ * @returns {Promise<Object>} Response
+ */
+async function notifyReturn(botId, initData = null) {
+    try {
+        const params = new URLSearchParams();
+        if (initData) params.append('init_data', initData);
+
+        const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}/notify-return?${params.toString()}`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(error.detail || `HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error in notifyReturn:', error);
+        throw error;
+    }
+}
+
 // Export via namespace pattern (for compatibility with render.js)
 window.Api = {
     getMiniAppData,
     saveWallet,
     sendCallback,
-    createInvoiceLink
+    createInvoiceLink,
+    notifyReturn
 };
 
 // Also export for Node.js if needed

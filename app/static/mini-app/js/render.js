@@ -1623,26 +1623,17 @@ function show7FlowInstructionModal() {
     // Optional: Open bot button (user decides)
     if (openBotBtn) {
         openBotBtn.addEventListener('click', () => {
-            // Track event
-            trackEvent('open_bot_from_7flow_modal');
-
-            // Get bot URL (universal for any bot)
-            const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : null;
-
-            if (!botUrl) {
-                console.error('❌ Bot URL not found. Please sync username via API.');
-                return;
-            }
-
-            // Use openTelegramLink to open in Telegram (will close Mini App, but that's OK for this action)
-            // Or use openLink to open in browser (stays in Mini App context)
-            const tg = AppState.getTg();
-            if (tg?.openTelegramLink) {
-                // Open in Telegram app (closes Mini App, but user initiated this action)
-                tg.openTelegramLink(botUrl);
-            } else if (tg?.openLink) {
-                // Fallback: open in browser (stays in Mini App)
-                tg.openLink(botUrl);
+            // Use activatePartnerAndReturn to notify backend and close app
+            if (typeof Actions !== 'undefined' && Actions.activatePartnerAndReturn) {
+                Actions.activatePartnerAndReturn();
+            } else {
+                // Fallback if Actions not available
+                const botUrl = typeof getBotUrl === 'function' ? getBotUrl() : null;
+                const tg = AppState.getTg();
+                if (botUrl && tg?.openTelegramLink) {
+                    tg.openTelegramLink(botUrl);
+                    if (tg.close) tg.close();
+                }
             }
 
             // Close modal
