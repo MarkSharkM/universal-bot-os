@@ -136,6 +136,8 @@ function initTonConnect() {
                 console.log('✅ TON Wallet connected, extracted address:', address);
 
                 if (address) {
+                    console.log('✅ TON Wallet connected, extracted address:', address);
+                    console.log('🔗 Full Address Object:', JSON.stringify(walletInfo.account || walletInfo, null, 2));
                     handleWalletConnected(address);
                 } else {
                     console.warn('⚠️ Wallet connected but no address found:', walletInfo);
@@ -190,6 +192,8 @@ function initTonConnect() {
  */
 async function handleWalletConnected(address) {
     console.log('🎉 handleWalletConnected called with address:', address);
+    console.log('📏 Address length:', address.length);
+    console.log('🆔 Address start:', address.substring(0, 5));
     try {
         if (typeof Render !== 'undefined' && Render.trackEvent) {
             Render.trackEvent('wallet_connected_ton', { method: 'ton_connect' });

@@ -21,7 +21,7 @@ class WalletService:
     Supports custom validation pattern via bot.config.wallet.validation_pattern
     """
     
-    WALLET_PATTERN_DEFAULT = r'^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$'
+    WALLET_PATTERN_DEFAULT = r'^(?:(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{44,50}|-?\d:[a-fA-F0-9]{64})$'
     
     def __init__(
         self,
