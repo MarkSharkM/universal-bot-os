@@ -455,6 +455,25 @@ async def save_wallet_from_mini_app(
     
     # Validate wallet format
     if not wallet_service.validate_wallet_format(wallet_address):
+        # DEBUG: Log logic failure to DB to inspect EXACT received string
+        try:
+            from app.models.business_data import BusinessData
+            debug_log = BusinessData(
+                bot_id=bot_id,
+                data_type='log',  # Use 'log' so it shows in Admin Panel
+                data={
+                    'event': 'wallet_validation_failed_api',
+                    'user_id': str(final_user_id),
+                    'received_wallet_string': str(wallet_address),
+                    'received_type': str(type(wallet_address)),
+                    'length': len(wallet_address)
+                }
+            )
+            db.add(debug_log)
+            db.commit()
+        except Exception as e:
+            logger.error(f"Failed to log debug info in API: {e}")
+            
         raise HTTPException(status_code=400, detail="Invalid wallet format")
     
     # Save wallet using WalletService (same as bot, includes Telegram notification)
