@@ -3,6 +3,9 @@
  * Handles TON wallet connections using TON Connect SDK
  */
 
+const TON_CONNECT_VERSION = "1.0.2";
+console.log(`[TON Connect Extension] Loading Version: ${TON_CONNECT_VERSION}`);
+
 let tonConnectUI = null;
 
 /**
@@ -284,11 +287,17 @@ async function connectTelegramWallet() {
 
         // Get available wallets to find Telegram Wallet
         const wallets = await tonConnectUI.getWallets();
-        console.log('Available wallets:', wallets);
+        console.log('[TON Connect] All available wallets:', JSON.stringify(wallets, null, 2));
+
+        // Let's log specifically what we are looking for
+        wallets.forEach(w => {
+            console.log(`[Wallet Check] Name: "${w.name}", appName: "${w.appName}", jsBridgeKey: "${w.jsBridgeKey}"`);
+        });
 
         // Find Telegram Wallet (usually named "Wallet" or has "telegram-wallet" jsBridgeKey)
         const tgWallet = wallets.find(w =>
             w.appName === 'telegram-wallet' ||
+            w.appName === 'wallet' ||
             w.name.toLowerCase().includes('wallet') ||
             w.jsBridgeKey === 'telegram-wallet'
         );
