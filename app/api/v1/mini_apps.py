@@ -93,51 +93,61 @@ async def mini_app_html_simple(
 
 
 @router.get("/tonconnect-manifest.json")
-async def tonconnect_manifest(request: Request):
+async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
     """
     Serve TON Connect manifest file.
     Required for TON Connect SDK integration.
     """
     import pathlib
+    import os
     from fastapi.responses import JSONResponse
     
     current_file = pathlib.Path(__file__)  # app/api/v1/mini_apps.py
     app_dir = current_file.parent.parent.parent  # app/
     manifest_path = app_dir / "static" / "tonconnect-manifest.json"
     
+    # Default values
+    project_name = os.getenv("PROJECT_NAME", "EarnHub")
+    icon_name = os.getenv("PROJECT_ICON", "icon.png")
+    
     if manifest_path.exists():
         try:
             import json
             manifest_content = json.loads(manifest_path.read_text(encoding='utf-8'))
             
+            # Update name if it's default or placeholder
+            if manifest_content.get('name') in ['Bot', 'Your Bot']:
+                manifest_content['name'] = project_name
+            
             # Update URL dynamically based on request
             base_url = str(request.base_url).rstrip('/')
             # Ensure HTTPS in production
-            if base_url.startswith('http://') and 'railway' in base_url:
+            if base_url.startswith('http://') and ('railway' in base_url or 'hubaggregator' in base_url):
                 base_url = base_url.replace('http://', 'https://')
+            
             manifest_content['url'] = base_url
-            # If iconUrl is relative, make it absolute
+            
+            # If iconUrl is relative or placeholder, make it absolute
             if manifest_content.get('iconUrl', '').startswith('/'):
                 manifest_content['iconUrl'] = base_url + manifest_content['iconUrl']
-            elif manifest_content.get('iconUrl', '').startswith('https://your-domain.com'):
-                # Replace placeholder with actual URL
-                manifest_content['iconUrl'] = base_url + '/static/mini-app/icon.png'
+            elif 'your-domain.com' in manifest_content.get('iconUrl', ''):
+                manifest_content['iconUrl'] = f"{base_url}/static/mini-app/{icon_name}"
             
             return JSONResponse(content=manifest_content)
         except Exception as e:
             logger.error(f"Error reading TON Connect manifest: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Error loading manifest: {str(e)}")
-    else:
-        # Return default manifest (fallback - should not happen in production)
-        base_url = str(request.base_url).rstrip('/')
-        # Ensure HTTPS in production
-        if base_url.startswith('http://') and 'railway' in base_url:
-            base_url = base_url.replace('http://', 'https://')
-        return JSONResponse(content={
-            "url": base_url,
-            "name": "Bot",  # Generic fallback (real manifest should come from static file)
-            "iconUrl": f"{base_url}/static/mini-app/icon.png"
-        })
+            # Fallback to dynamic generation below
+    
+    # Dynamic generation fallback
+    base_url = str(request.base_url).rstrip('/')
+    if base_url.startswith('http://') and ('railway' in base_url or 'hubaggregator' in base_url):
+        base_url = base_url.replace('http://', 'https://')
+        
+    return JSONResponse(content={
+        "url": base_url,
+        "name": project_name,
+        "iconUrl": f"{base_url}/static/mini-app/{icon_name}"
+    })
 
 
 @router.get("/mini-app/{bot_id}/index.html", response_class=HTMLResponse)
