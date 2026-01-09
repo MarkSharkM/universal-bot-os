@@ -266,104 +266,44 @@ function handleWalletDisconnected() {
 /**
  * Connect Telegram Wallet using TON Connect
  */
-function connectTelegramWallet() {
+async function connectTelegramWallet() {
     console.log('connectTelegramWallet called');
-    console.log('tonConnectUI:', tonConnectUI);
-    console.log('TON_CONNECT_UI available:', typeof TON_CONNECT_UI !== 'undefined');
+    if (!tonConnectUI) {
+        console.error('TON Connect UI not initialized');
+        return;
+    }
 
-    if (tonConnectUI) {
-        try {
-            if (typeof Render !== 'undefined' && Render.trackEvent) {
-                Render.trackEvent('wallet_connect_telegram_clicked');
-            } else if (typeof trackEvent === 'function') {
-                trackEvent('wallet_connect_telegram_clicked');
-            }
-
-            console.log('Opening TON Connect modal...');
-            console.log('tonConnectUI.openModal type:', typeof tonConnectUI.openModal);
-
-            // Check if openModal exists
-            if (typeof tonConnectUI.openModal === 'function') {
-                console.log('Calling tonConnectUI.openModal()...');
-                tonConnectUI.openModal();
-                console.log('✅ TON Connect modal opened successfully');
-
-                // After opening modal, set up polling to check connection status
-                // This helps catch cases where onStatusChange doesn't fire immediately
-                let pollCount = 0;
-                const maxPolls = 30; // Check for 30 seconds
-                const pollInterval = setInterval(() => {
-                    pollCount++;
-                    console.log(`[Poll ${pollCount}/${maxPolls}] Checking wallet status...`);
-
-                    try {
-                        // Check both wallet and walletInfo properties
-                        const wallet = tonConnectUI.wallet || tonConnectUI.walletInfo;
-                        if (wallet) {
-                            console.log('✅ Wallet found via polling!', wallet);
-                            const address = wallet.account?.address || wallet.address;
-                            if (address) {
-                                clearInterval(pollInterval);
-                                handleWalletConnected(address);
-                            }
-                        } else {
-                            // Check if modal is still open (if we can detect it)
-                            if (pollCount >= maxPolls) {
-                                console.log('⚠️ Polling timeout - no wallet connection detected');
-                                clearInterval(pollInterval);
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('Error during wallet status poll:', err);
-                        if (pollCount >= maxPolls) {
-                            clearInterval(pollInterval);
-                        }
-                    }
-                }, 1000); // Check every second
-
-                // Clear polling if modal is closed (we'll detect this via onStatusChange or timeout)
-                setTimeout(() => {
-                    clearInterval(pollInterval);
-                    console.log('Stopped polling for wallet status');
-                }, maxPolls * 1000);
-
-            } else {
-                console.error('❌ tonConnectUI.openModal is not a function!');
-                console.error('tonConnectUI object:', Object.keys(tonConnectUI));
-                throw new Error('openModal is not a function');
-            }
-        } catch (error) {
-            console.error('❌ Error opening TON Connect modal:', error);
-            console.error('Error details:', error.message, error.stack);
-            console.error('tonConnectUI object:', tonConnectUI);
-
-            // Fallback to manual input
-            if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
-                Render.showManualWalletInput();
-            } else if (typeof showManualWalletInput === 'function') {
-                showManualWalletInput();
-            }
-        }
-    } else {
-        console.warn('⚠️ TON Connect UI not initialized');
-        console.warn('Attempting to re-initialize...');
-
-        // Try to re-initialize
-        if (typeof TonConnect !== 'undefined' && TonConnect.initTonConnect) {
-            const initialized = TonConnect.initTonConnect();
-            if (initialized && tonConnectUI) {
-                console.log('✅ Re-initialized TON Connect, retrying...');
-                connectTelegramWallet();
-                return;
-            }
+    try {
+        if (typeof Render !== 'undefined' && Render.trackEvent) {
+            Render.trackEvent('wallet_connect_telegram_clicked');
         }
 
-        console.warn('Using fallback to manual input');
-        // Fallback to manual input
-        if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
-            Render.showManualWalletInput();
-        } else if (typeof showManualWalletInput === 'function') {
-            showManualWalletInput();
+        // Hide our custom modal immediately to show wallet UI
+        const modal = document.getElementById('wallet-modal');
+        if (modal) modal.style.display = 'none';
+
+        // Get available wallets to find Telegram Wallet
+        const wallets = await tonConnectUI.getWallets();
+        console.log('Available wallets:', wallets);
+
+        // Find Telegram Wallet (usually named "Wallet" or has "telegram-wallet" jsBridgeKey)
+        const tgWallet = wallets.find(w =>
+            w.appName === 'telegram-wallet' ||
+            w.name.toLowerCase().includes('wallet') ||
+            w.jsBridgeKey === 'telegram-wallet'
+        );
+
+        if (tgWallet) {
+            console.log('🚀 Connecting to Telegram Wallet directly...', tgWallet);
+            await tonConnectUI.connectWallet(tgWallet);
+        } else {
+            console.warn('⚠️ Telegram Wallet not found in list, falling back to modal');
+            await tonConnectUI.openModal();
+        }
+    } catch (error) {
+        console.error('❌ Error connecting Telegram Wallet:', error);
+        if (typeof Toast !== 'undefined') {
+            Toast.error('Помилка підключення до Wallet');
         }
     }
 }
@@ -371,29 +311,40 @@ function connectTelegramWallet() {
 /**
  * Connect External Wallet using TON Connect
  */
-function connectExternalWallet(walletName) {
-    if (tonConnectUI) {
-        try {
-            if (typeof Render !== 'undefined' && Render.trackEvent) {
-                Render.trackEvent('wallet_connect_external', { wallet: walletName });
-            } else if (typeof trackEvent === 'function') {
-                trackEvent('wallet_connect_external', { wallet: walletName });
-            }
-            // TON Connect SDK handles external wallets automatically
-            tonConnectUI.openModal();
-        } catch (error) {
-            console.error('Error opening TON Connect modal:', error);
-            if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
-                Render.showManualWalletInput();
-            } else if (typeof showManualWalletInput === 'function') {
-                showManualWalletInput();
-            }
+async function connectExternalWallet(walletName) {
+    if (!tonConnectUI) return;
+
+    try {
+        if (typeof Render !== 'undefined' && Render.trackEvent) {
+            Render.trackEvent('wallet_connect_external', { wallet: walletName });
         }
-    } else {
-        if (typeof Render !== 'undefined' && Render.showManualWalletInput) {
-            Render.showManualWalletInput();
-        } else if (typeof showManualWalletInput === 'function') {
-            showManualWalletInput();
+
+        // Hide our custom modal
+        const modal = document.getElementById('wallet-modal');
+        if (modal) modal.style.display = 'none';
+
+        if (walletName === 'all') {
+            await tonConnectUI.openModal();
+            return;
+        }
+
+        const wallets = await tonConnectUI.getWallets();
+        const selectedWallet = wallets.find(w =>
+            w.appName === walletName ||
+            w.name.toLowerCase().includes(walletName.toLowerCase())
+        );
+
+        if (selectedWallet) {
+            console.log(`🚀 Connecting to ${walletName} directly...`, selectedWallet);
+            await tonConnectUI.connectWallet(selectedWallet);
+        } else {
+            console.warn(`⚠️ Wallet ${walletName} not found, opening modal`);
+            await tonConnectUI.openModal();
+        }
+    } catch (error) {
+        console.error(`❌ Error connecting to ${walletName}:`, error);
+        if (typeof Toast !== 'undefined') {
+            Toast.error(`Помилка підключення до ${walletName}`);
         }
     }
 }
