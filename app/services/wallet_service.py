@@ -105,6 +105,26 @@ class WalletService:
         # Validate format
         if not self.validate_wallet_format(wallet_address):
             logger.warning(f"save_wallet: Invalid wallet format for user_id={user_id}, wallet={wallet_address[:20]}...")
+            
+            # DEBUG: Log logic failure to DB to inspect EXACT received string
+            try:
+                from app.models.business_data import BusinessData
+                debug_log = BusinessData(
+                    bot_id=self.bot_id,
+                    data_type='log',  # Use 'log' so it shows in Admin Panel
+                    data={
+                        'event': 'wallet_validation_failed',
+                        'user_id': str(user_id),
+                        'received_wallet_string': str(wallet_address),
+                        'received_type': str(type(wallet_address)),
+                        'length': len(wallet_address)
+                    }
+                )
+                self.db.add(debug_log)
+                self.db.commit()
+            except Exception as e:
+                logger.error(f"Failed to log debug info: {e}")
+
             # Send error message
             user = self.user_service.get_user_by_id(user_id)
             if user:
