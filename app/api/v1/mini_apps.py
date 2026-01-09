@@ -101,13 +101,24 @@ async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
     import pathlib
     import os
     from fastapi.responses import JSONResponse
+    from app.models.bot import Bot
     
     current_file = pathlib.Path(__file__)  # app/api/v1/mini_apps.py
     app_dir = current_file.parent.parent.parent  # app/
     manifest_path = app_dir / "static" / "tonconnect-manifest.json"
     
-    # Default values
-    project_name = os.getenv("PROJECT_NAME", "EarnHub")
+    # Try to find the first active bot to get its name
+    bot_name = os.getenv("PROJECT_NAME", "EarnHub")
+    try:
+        active_bot = db.query(Bot).filter(Bot.is_active == True).first()
+        if active_bot:
+            bot_config = active_bot.config or {}
+            # Use name from config or the bot name itself
+            bot_name = bot_config.get("name", active_bot.name or bot_name)
+            logger.info(f"Using dynamic name from bot '{bot_name}' for manifest")
+    except Exception as db_err:
+        logger.error(f"Error fetching bot for manifest: {db_err}")
+    
     icon_name = os.getenv("PROJECT_ICON", "icon.png")
     
     if manifest_path.exists():
@@ -115,9 +126,8 @@ async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
             import json
             manifest_content = json.loads(manifest_path.read_text(encoding='utf-8'))
             
-            # Update name if it's default or placeholder
-            if manifest_content.get('name') in ['Bot', 'Your Bot']:
-                manifest_content['name'] = project_name
+            # Always update name with our dynamic bot name
+            manifest_content['name'] = bot_name
             
             # Update URL dynamically based on request
             base_url = str(request.base_url).rstrip('/')
@@ -136,7 +146,6 @@ async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
             return JSONResponse(content=manifest_content)
         except Exception as e:
             logger.error(f"Error reading TON Connect manifest: {e}", exc_info=True)
-            # Fallback to dynamic generation below
     
     # Dynamic generation fallback
     base_url = str(request.base_url).rstrip('/')
@@ -145,7 +154,7 @@ async def tonconnect_manifest(request: Request, db: Session = Depends(get_db)):
         
     return JSONResponse(content={
         "url": base_url,
-        "name": project_name,
+        "name": bot_name,
         "iconUrl": f"{base_url}/static/mini-app/{icon_name}"
     })
 
