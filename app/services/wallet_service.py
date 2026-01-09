@@ -59,11 +59,12 @@ class WalletService:
         Returns:
             Regex pattern for wallet validation
         """
-        config = self._get_bot_config()
-        wallet_config = config.get('wallet', {})
-        pattern = wallet_config.get('validation_pattern')
-        if pattern:
-            return pattern
+        # config = self._get_bot_config()
+        # wallet_config = config.get('wallet', {})
+        # pattern = wallet_config.get('validation_pattern')
+        # if pattern:
+        #     return pattern
+        # FORCE default pattern for now to ensuring fix works
         return self.WALLET_PATTERN_DEFAULT
     
     def validate_wallet_format(self, wallet_address: str) -> bool:
