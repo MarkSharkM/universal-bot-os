@@ -1310,6 +1310,10 @@ function renderHome() {
     // Track view_home event
     trackEvent('view_home');
 
+    // CLEANUP: Hide the secondary Share Strip (blue button)
+    const shareStrip = document.getElementById('share-strip');
+    if (shareStrip) shareStrip.style.display = 'none';
+
     // Determine State: Starter vs TOP
     const referralCount = AppState.getReferralCount();
     const isTop = (referralCount >= 5) || (!AppState.getTopLocked());
