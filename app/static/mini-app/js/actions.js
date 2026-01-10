@@ -138,7 +138,7 @@ function openBotForLink() {
     const botUsername = AppState.getAppData()?.config?.username;
     if (botUsername) {
         const tg = AppState.getTg();
-        const url = `https://t.me/${botUsername}?start=get_tgr_link`;
+        const url = `https://t.me/${botUsername}?start=earnings`;
         if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
         else window.open(url, '_blank');
     } else {
