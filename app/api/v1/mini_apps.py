@@ -942,6 +942,8 @@ async def notify_return(
         
         logger.info(f"Notify-return message sent: bot_id={bot_id}, user={user_external_id}")
         return {"ok": True}
+        return {"ok": True}
     except Exception as e:
-        logger.error(f"Error sending notify-return message: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error sending message: {str(e)}")
+        logger.error(f"Error sending notify-return message: {e}")
+        # Don't fail the request if message sending fails (e.g. user blocked bot)
+        return {"ok": False, "error": str(e)}
