@@ -16,17 +16,17 @@ window.Components.Hero = function (isTop, referralCount) {
 
         container.innerHTML = `
             <div class="hero-top-content">
-                <div class="top-status-badge">
-                    ${Icons.Robot} <span>TOP PROGRAM ACTIVE</span>
-                </div>
-                <div class="top-stats-grid">
-                    <div class="stat-item">
-                        <div class="val">${referralCount}</div>
-                        <div class="lbl">Friends</div>
+                <div class="hero-stats-row">
+                    <div class="hero-stat-box">
+                        <div class="icon-circle-lg">${Icons.Users}</div>
+                        <div class="stat-val">${referralCount}</div>
+                        <div class="stat-lbl">Friends</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="val text-green">Active</div>
-                        <div class="lbl">Status</div>
+                    <div class="hero-stat-box active-box">
+                        <div class="icon-circle-lg" style="color:#00E676;background:rgba(0,230,118,0.1);box-shadow:0 0 10px rgba(0,230,118,0.2)">
+                            ${Icons.Robot}
+                        </div>
+                        <div class="stat-lbl-active">TOP PROGRAM<br>ACTIVE</div>
                     </div>
                 </div>
                 
@@ -40,6 +40,8 @@ window.Components.Hero = function (isTop, referralCount) {
                    </div>`
             }
                 </div>
+
+                ${!savedLink ? `<div class="input-helper-text" onclick="Actions.openBotForLink()">Де взяти лінку?</div>` : ''}
 
                  <button class="cta-btn green-glow" onclick="Actions.shareReferralLink()">
                     ${Icons.RocketFilled}
