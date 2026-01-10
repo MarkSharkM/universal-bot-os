@@ -147,20 +147,37 @@
 
 /* --- TGR Link Section (Connect custom link) --- */
 .tgr-link-section {
-    margin-top: 16px;
-    margin-bottom: 20px;
+    margin-top: 20px;
+    margin-bottom: 24px;
     display: flex;
     justify-content: center;
+    padding: 0 10px;
 }
 
 .tgr-input-group {
     display: flex;
+    align-items: center;
     width: 100%;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 4px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--glass-border);
+    max-width: 320px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tgr-input-group:focus-within {
+    border-color: rgba(0, 230, 118, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.15);
+}
+
+.tgr-input-icon {
+    padding-left: 12px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
 }
 
 .tgr-input {
@@ -168,44 +185,50 @@
     background: transparent;
     border: none;
     color: #fff;
-    padding: 8px 12px;
-    font-size: 12px;
+    padding: 8px 10px;
+    font-size: 13px;
     outline: none;
     font-family: inherit;
+    font-weight: 500;
 }
 
 .tgr-input::placeholder {
-    color: var(--text-tertiary);
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .tgr-save-btn {
-    background: var(--bg-card);
-    border: 1px solid var(--glass-border);
-    color: var(--text-primary);
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, #333, #111);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 40px;
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .tgr-save-btn:active {
     background: var(--accent-green);
     color: #000;
+    transform: scale(0.95);
 }
 
 .link-active {
-    background: rgba(0, 230, 118, 0.1);
-    color: var(--accent-green);
-    padding: 8px 16px;
-    border-radius: var(--radius-pill);
-    font-size: 12px;
-    font-weight: 600;
+    background: rgba(0, 230, 118, 0.15);
+    color: #00E676;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    border: 1px solid rgba(0, 230, 118, 0.2);
+    gap: 8px;
+    border: 1px solid rgba(0, 230, 118, 0.3);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.1);
 }
 
 .cta-btn {
