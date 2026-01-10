@@ -274,12 +274,55 @@ async def mini_app_webhook(
     if validated_user_id:
         logger.info(f"Mini App callback: bot_id={bot_id}, user_id={validated_user_id}, action={action}")
     
-    # Handle different actions
+    # Handle partner click
     if action == "partner_click":
         # Log partner click
         partner_id = data.get("partner_id")
         logger.info(f"Partner click: bot_id={bot_id}, user_id={validated_user_id}, partner_id={partner_id}")
         return {"ok": True, "action": "partner_click", "logged": True}
+
+    # Handle save custom data (e.g. tgr_link)
+    if action == "save_custom_data":
+        custom_data_update = data.get("custom_data", {})
+        if not custom_data_update:
+            return {"ok": False, "error": "No custom_data provided"}
+            
+        logger.info(f"Saving custom data: bot_id={bot_id}, user_id={validated_user_id}, keys={list(custom_data_update.keys())}")
+        
+        try:
+            # Get user
+            user_service = UserService(db, bot_id)
+            user = user_service.get_user(validated_user_id, platform="telegram")
+            
+            if not user:
+                # Create user if doesn't exist (though likely exists if they are in mini app)
+                user = user_service.get_or_create_user(
+                    external_id=validated_user_id,
+                    platform="telegram"
+                )
+            
+            # Initialize or update custom_data
+            from sqlalchemy.orm.attributes import flag_modified
+            if not user.custom_data:
+                user.custom_data = {}
+                
+            # Merge new data
+            for key, value in custom_data_update.items():
+                # Simple validation/sanitization could go here
+                if key == "tgr_link" and value:
+                    # Specific validation for TGR link if needed
+                    pass
+                user.custom_data[key] = value
+                
+            flag_modified(user, 'custom_data')
+            db.commit()
+            
+            return {"ok": True, "action": "save_custom_data", "saved": True}
+        except Exception as e:
+            logger.error(f"Error saving custom data: {e}", exc_info=True)
+            db.rollback()
+            return {"ok": False, "error": str(e)}
+
     
     # Handle analytics events (Revenue Launcher)
     if data.get("type") == "analytics":

@@ -57,6 +57,79 @@ async function handleWalletSubmit(event) {
         return;
     }
 
+    async function saveTgrLink() {
+        const input = document.getElementById('tgr-link-input');
+        if (!input) return;
+
+        const link = input.value.trim();
+        if (!link) {
+            if (typeof Toast !== 'undefined') Toast.error('Введіть посилання');
+            return;
+        }
+
+        // Strict validation for _tgr_
+        if (!link.includes('_tgr_')) {
+            if (typeof Toast !== 'undefined') Toast.error('Це не схоже на партнерське посилання (шукаю код _tgr_)');
+            return;
+        }
+
+        const botId = AppState.getBotId();
+        if (!botId) return;
+
+        try {
+            if (typeof Toast !== 'undefined') Toast.info('Збереження...');
+
+            // Call backend
+            // We need to implement Api.saveCustomData or use generic fetch
+            // Assuming Api module exists or we add it to app.js/api.js, but let's use fetch directly here to be safe
+
+            const initData = AppState.getTg()?.initData || '';
+            const response = await fetch(`${API_BASE}/api/v1/mini-apps/mini-app/${botId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'save_custom_data',
+                    custom_data: { tgr_link: link }
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                if (typeof Toast !== 'undefined') Toast.success('✅ Лінку збережено!');
+                // Update local state
+                AppState.setTgrLink(link);
+
+                // Re-render home to show active status
+                if (typeof Render !== 'undefined' && Render.renderHome) {
+                    Render.renderHome();
+                }
+            } else {
+                throw new Error(data.error || 'Failed to save');
+            }
+
+        } catch (e) {
+            console.error(e);
+            if (typeof Toast !== 'undefined') Toast.error('Помилка збереження');
+        }
+    }
+
+    function openBotForLink() {
+        // Open bot with specific param to help user get link
+        const botUsername = AppState.getAppData()?.config?.username;
+        if (botUsername) {
+            const tg = AppState.getTg();
+            const url = `https://t.me/${botUsername}?start=get_tgr_link`;
+            if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+            else window.open(url, '_blank');
+        } else {
+            if (typeof Toast !== 'undefined') Toast.info('Відкрийте бота і натисніть /start');
+        }
+    }
+
+
     // Validate format
     const walletPattern = /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/;
     if (!walletPattern.test(walletAddress)) {
@@ -152,56 +225,42 @@ function copyReferralLink() {
     }
 }
 
-function shareReferralLink() {
-    if (!AppState.getAppData() || !AppState.getAppData().user || !AppState.getAppData().user.referral_link) {
-        const msg = AppState.getAppData()?.translations?.link_missing || 'Реферальна лінка відсутня';
-        if (typeof Toast !== 'undefined') {
-            Toast.error(msg);
-        } else if (AppState.getTg()?.showAlert) {
-            AppState.getTg().showAlert(msg);
-        }
-        return;
-    }
+async function shareReferralLink() {
+    // HYBRID LINK SYSTEM
+    // 1. Check if user is TOP and has saved TGR link
+    const tgrLink = AppState.getTgrLink() || AppState.getAppData()?.user?.custom_data?.tgr_link;
+    const isTop = AppState.getReferralCount() >= 5 || !AppState.getTopLocked();
 
-    const link = AppState.getAppData().user.referral_link;
-    // Updated share text (Revenue Launcher approach - NO numbers, NO TON)
-    const shareText = AppState.getAppData()?.translations?.share_referral || 'Я підʼєднався до партнерської програми Telegram. Це працює автоматично.';
+    let linkToShare;
 
-    // Track share event
-    if (AppState.getBotId()) {
-        const initData = AppState.getTg()?.initData || null;
-        if (typeof Api !== 'undefined' && Api.sendCallback) {
-            Api.sendCallback(AppState.getBotId(), {
-                type: 'analytics',
-                event: 'share_sent',
-                data: {}
-            }, initData).catch(err => console.error('Error tracking share:', err));
-        }
-    }
-
-    // Use Telegram share URL
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
-
-    // Share URL is t.me/share/url - use openTelegramLink for Telegram links
-    const tg = AppState.getTg();
-    const isTelegramLink = shareUrl && shareUrl.startsWith('https://t.me/');
-
-    if (isTelegramLink && tg?.openTelegramLink) {
-        // Open Telegram share dialog in Telegram app
-        tg.openTelegramLink(shareUrl);
-    } else if (tg?.openLink) {
-        // Fallback: open in browser
-        tg.openLink(shareUrl);
+    if (isTop && tgrLink) {
+        // Share TGR Link (Direct Revenue)
+        // Extract simple link if user pasted full text
+        const match = tgrLink.match(/(https:\/\/t\.me\/[a-zA-Z0-9_]+(?:\?start=|\?startapp=)[a-zA-Z0-9_]+)/);
+        linkToShare = match ? match[1] : tgrLink;
     } else {
-        // Fallback: open in same window
-        window.location.href = shareUrl;
+        // Share Internal Link (Quest Progress)
+        const botUsername = AppState.getAppData()?.config?.username;
+        const userId = AppState.getUserId();
+        if (!botUsername || !userId) {
+            const msg = 'Помилка: Не знайдено username бота або userID';
+            if (typeof Toast !== 'undefined') Toast.error(msg);
+            return;
+        }
+        linkToShare = `https://t.me/${botUsername}?start=${userId}`;
     }
 
-    // Haptic feedback
-    if (typeof Haptic !== 'undefined') {
-        Haptic.medium();
+    const text = isTop ? "🔥 Join me & Earn 7% RevShare!" : "Look! I'm earning on Telegram with this bot 🚀";
+    const url = `https://t.me/share/url?url=${encodeURIComponent(linkToShare)}&text=${encodeURIComponent(text)}`;
+
+    const tg = AppState.getTg();
+    if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(url);
+    } else {
+        window.open(url, '_blank');
     }
 }
+
 
 async function handleBuyTop(price) {
     if (!AppState.getAppData() || !AppState.getBotId()) return;
@@ -566,5 +625,23 @@ window.Actions = {
     showActivate7Instructions,
     activatePartnerAndReturn,
     fallbackCopyText,
-    showCopySuccess
+    showCopySuccess,
+    saveTgrLink,
+    openBotForLink
 };
+// Developer Tools
+window.toggleDevMode = function (mode) {
+    if (mode === 'top') {
+        console.log('⚡️ Switching to TOP Mode');
+        AppState.setReferralCount(10);
+        AppState.setTopLocked(false);
+    } else {
+        console.log('🌱 Switching to Starter Mode');
+        AppState.setReferralCount(2);
+        AppState.setTopLocked(true);
+        AppState.setTgrLink(null); // Clear link to test input
+    }
+    if (typeof Render !== 'undefined') Render.renderHome();
+    return "Done";
+};
+

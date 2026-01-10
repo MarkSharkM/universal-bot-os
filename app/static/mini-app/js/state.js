@@ -23,7 +23,8 @@ const AppStateInternal = {
     referralCount: 0, // Track referral count for TOP unlock
     hasSeenOnboarding: false, // Track onboarding completion
     partnersExpanded: false, // Track if partners list is expanded (default: show 5)
-    lastLoadTime: 0 // Track last data load time for debouncing
+    lastLoadTime: 0, // Track last data load time for debouncing
+    tgrLink: null // Track saved TGR link
 };
 
 // Getters
@@ -64,6 +65,8 @@ function setReferralCount(value) { AppStateInternal.referralCount = value; }
 function setHasSeenOnboarding(value) { AppStateInternal.hasSeenOnboarding = value; }
 function setPartnersExpanded(value) { AppStateInternal.partnersExpanded = value; }
 function setLastLoadTime(value) { AppStateInternal.lastLoadTime = value; }
+function setTgrLink(value) { AppStateInternal.tgrLink = value; }
+function getTgrLink() { return AppStateInternal.tgrLink; }
 
 // Navigation history helpers
 function pushNavigationHistory(page) {
@@ -124,6 +127,8 @@ function clearNavigationHistory() {
             setHasSeenOnboarding,
             setPartnersExpanded,
             setLastLoadTime,
+            setTgrLink,
+            getTgrLink,
 
             // Navigation helpers
             pushNavigationHistory,

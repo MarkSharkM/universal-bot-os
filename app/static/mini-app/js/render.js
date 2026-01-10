@@ -22,6 +22,38 @@ function renderApp() {
     const botNameEl = document.getElementById('bot-name');
     if (botNameEl) {
         botNameEl.textContent = appData.config?.name || 'Mini App';
+
+        // Developer Mode: Hard Reset (5 taps)
+        let tapCount = 0;
+        let lastTapTime = 0;
+
+        // Remove old listener to avoid duplicates if re-rendered (though usually renderApp called once)
+        const newEl = botNameEl.cloneNode(true);
+        botNameEl.parentNode.replaceChild(newEl, botNameEl);
+
+        newEl.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastTapTime > 1000) {
+                tapCount = 0; // Reset if too slow
+            }
+
+            tapCount++;
+            lastTapTime = now;
+
+            if (tapCount >= 5) {
+                // Trigger Hard Reset
+                tapCount = 0;
+                if (typeof handleHardReset === 'function') {
+                    handleHardReset();
+                } else {
+                    // Inline fallback if function not defined globaly
+                    const storage = typeof SafeStorage !== 'undefined' ? SafeStorage : localStorage;
+                    storage.clear();
+                    if (typeof Toast !== 'undefined') Toast.info('♻️ Factory Reset Initiated...');
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }
+        });
     }
 
     // Translate static elements in index.html
@@ -1278,91 +1310,345 @@ function renderHome() {
     // Track view_home event
     trackEvent('view_home');
 
-    // Render Trust Header (static)
-    renderTrustHeader();
+    // Determine State: Starter vs TOP
+    const referralCount = AppState.getReferralCount();
+    const isTop = (referralCount >= 5) || (!AppState.getTopLocked());
 
-    // Render Primary Action Card (with priority logic)
-    renderPrimaryActionCard();
+    // 1. Render Header Badges
+    renderHeaderBadges(isTop);
 
-    // Render Share Strip (always visible)
-    renderShareStrip();
+    // 2. Render Hero Section (Quest vs Dashboard)
+    // Replaces old 'trust-header' logic
+    renderHeroSection(isTop, referralCount);
 
-    // Render Wallet Banner (contextual, if not connected)
-    renderWalletBanner();
+    // 3. Render Primary Action Card
+    renderActionCard(isTop, referralCount);
 
-    // Render Social Proof (event-based)
-    renderSocialProof();
-
-    // Render Gamification (Status, Badges, Progress)
-    renderGamification();
-
-    // Render Info Section (Integrated /info)
+    // 4. Render Info Section
     renderInfoSection();
+
+    // 5. Render Wallet Banner (if needed for TOP)
+    if (isTop) renderWalletBanner();
+}
+
+/**
+ * Render Header Badges (Starter vs TOP)
+ */
+function renderHeaderBadges(isTop) {
+    // Logic to update a header element if exists
+    // For now we assume badges are part of Hero Section
+}
+
+/**
+ * Render Hero Section (Quest vs Dashboard)
+ */
+function renderHeroSection(isTop, referralCount) {
+    const container = document.getElementById('trust-header');
+    if (!container) return;
+
+    container.style.display = 'block';
+
+    // Add specific class for styling hook
+    container.className = isTop ? 'hero-section hero-top' : 'hero-section hero-starter';
+
+    if (isTop) {
+        // --- TOP STATE (Dashboard) ---
+        const savedLink = AppState.getTgrLink() || AppState.getAppData()?.user?.custom_data?.tgr_link;
+
+        container.innerHTML = `
+            <div class="dashboard-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <div class="dash-card" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 700; color: #fff;">👥 ${referralCount}</div>
+                    <div style="font-size: 12px; color: #aaa; margin-top: 4px;">Друзів</div>
+                </div>
+                <div class="dash-card active" style="background: rgba(0, 122, 255, 0.15); padding: 15px; border-radius: 16px; text-align: center; border: 1px solid rgba(0, 122, 255, 0.3);">
+                    <div style="font-size: 24px;">⭐️</div>
+                    <div style="font-size: 12px; color: #007aff; margin-top: 4px;">Program Active</div>
+                </div>
+            </div>
+            
+            ${renderTgrLinkInput(savedLink)}
+        `;
+    } else {
+        // --- STARTER STATE (Quest) ---
+        const needed = 5;
+        const current = Math.min(referralCount, 5);
+        const progressPercent = (current / needed) * 100;
+
+        container.innerHTML = `
+            <div class="quest-card" style="background: linear-gradient(145deg, #1a1a2e, #16213e); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 18px; font-weight: 700;">🔓 Unlock TOP</span>
+                    <span style="background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 12px;">🌱 Starter</span>
+                </div>
+                
+                <div class="progress-container" style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 15px;">
+                    <div style="width: ${progressPercent}%; height: 100%; background: #007aff; box-shadow: 0 0 10px #007aff; transition: width 0.5s ease;"></div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    ${Array.from({ length: 5 }).map((_, i) => `
+                        <div style="font-size: 16px; opacity: ${i < current ? '1' : '0.3'};">
+                            ${i < current ? '✅' : (i === current ? '🎁' : '🔒')}
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="text-align: center; color: #aaa; font-size: 14px;">
+                    Запроси ще <b style="color: #fff;">${needed - current} друзів</b>, щоб активувати 7%
+                </div>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Helper: Smart Input for TGR Link
+ */
+function renderTgrLinkInput(savedLink) {
+    if (savedLink) {
+        return `
+            <div class="tgr-status" style="background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 24px;">✅</div>
+                <div>
+                    <div style="font-weight: 600; color: #28a745;">Виплати активовано</div>
+                    <div style="font-size: 12px; color: #aaa; word-break: break-all;">${savedLink.slice(0, 25)}...</div>
+                </div>
+            </div>
+        `;
+    }
+    return `
+        <div class="smart-input" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); padding: 15px; border-radius: 12px;">
+            <div style="margin-bottom: 10px; font-weight: 600; color: #ffc107;">⚠️ Активуй свої 7% виплат!</div>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="tgr-link-input" placeholder="Встав лінку (t.me/...)" 
+                       style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 8px;" />
+                <button onclick="Actions.saveTgrLink()" style="background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 8px; font-weight: 600;">OK</button>
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; text-align: right;">
+                <a href="#" onclick="Actions.openBotForLink()" style="color: #aaa; text-decoration: underline;">👉 Де взяти лінку?</a>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render Action Card (Main Button)
+ */
+function renderActionCard(isTop, referralCount) {
+    const container = document.getElementById('primary-action-card');
+    if (!container) return;
+
+    const savedLink = AppState.getTgrLink() || AppState.getAppData()?.user?.custom_data?.tgr_link;
+
+    if (isTop) {
+        container.innerHTML = `
+            <div class="action-card-content" style="text-align: center; margin-top: 20px;">
+                <button class="primary-action-btn pulse" onclick="${savedLink ? 'Actions.shareReferralLink()' : 'document.getElementById(\'tgr-link-input\').focus()'}" 
+                        style="width: 100%; padding: 18px; border-radius: 16px; background: linear-gradient(90deg, #007aff, #00d4ff); font-size: 18px; font-weight: 700; border: none; color: #fff; box-shadow: 0 4px 20px rgba(0,122,255,0.4);">
+                    💸 ${savedLink ? 'Поширити і Заробити 7%' : 'Активувати Виплати'}
+                </button>
+                <div style="margin-top: 10px; color: #666; font-size: 13px;">Твоє посилання працює 24/7 автоматично</div>
+            </div>
+         `;
+    } else {
+        container.innerHTML = `
+            <div class="action-card-content" style="text-align: center; margin-top: 20px;">
+                <button class="primary-action-btn" onclick="Actions.shareReferralLink()"
+                        style="width: 100%; padding: 18px; border-radius: 16px; background: linear-gradient(90deg, #28a745, #34d058); font-size: 18px; font-weight: 700; border: none; color: #fff; box-shadow: 0 4px 20px rgba(40,167,69,0.4);">
+                    🚀 Запросити друзів (${Math.min(referralCount, 5)}/5)
+                </button>
+                <div style="margin-top: 10px; color: #666; font-size: 13px;">Лінку буде скопійовано</div>
+            </div>
+         `;
+    }
 }
 
 /**
  * Render Trust Header (static, only facts)
  */
-function renderTrustHeader() {
+/**
+ * Render Progress Roadmap (Steps to Success)
+ * Replaces static Trust Header
+ */
+function renderProgressRoadmap() {
     const container = document.getElementById('trust-header');
     if (!container) return;
 
-    // Trust Header is already in HTML, just ensure it's visible
+    // Ensure visible
     container.style.display = 'block';
 
-    // Update wallet status if available
+    // Add class for styling logic if needed (or reuse existing)
+    container.className = 'trust-header progress-roadmap-container';
+
+    // Get state
     const appData = AppState.getAppData();
+    const didStart7Flow = AppState.getDidStart7Flow();
     const wallet = appData?.user?.wallet || '';
-    const walletTrimmed = wallet ? wallet.trim() : '';
-    const isWalletConnected = walletTrimmed && walletTrimmed.length >= 20;
+    const isWalletConnected = wallet && wallet.trim().length >= 20;
+    const topStatus = appData?.user?.top_status || 'locked';
+    const isTopUnlocked = topStatus === 'open' || topStatus === 'unlocked';
 
-    // Debug logging
-    console.log('[Render] renderTrustHeader:', {
-        hasAppData: !!appData,
-        hasUser: !!appData?.user,
-        wallet: wallet ? `${wallet.substring(0, 10)}...` : 'empty',
-        walletLength: walletTrimmed.length,
-        isConnected: isWalletConnected
-    });
+    // Step 1: Start 7%
+    // Considered done if user has started the flow
+    const step1Done = didStart7Flow;
+    const step1Active = !step1Done;
 
-    // Get or create wallet button container
-    let walletContainer = container.querySelector('.trust-wallet-container');
-    if (!walletContainer) {
-        // Remove old trust-item if exists
-        const oldWalletItem = container.querySelector('.trust-item:last-child');
-        if (oldWalletItem && oldWalletItem.textContent.includes('Wallet')) {
-            oldWalletItem.remove();
-        }
-        // Create new container for wallet button
-        walletContainer = document.createElement('div');
-        walletContainer.className = 'trust-wallet-container';
-        container.appendChild(walletContainer);
-    }
+    // Step 2: Wallet
+    // Active if Step 1 done but Wallet not connected
+    const step2Done = isWalletConnected;
+    const step2Active = step1Done && !step2Done;
 
-    // Clear container
-    walletContainer.innerHTML = '';
+    // Step 3: TOP (Scale)
+    // Active if Step 2 done but TOP locked
+    const step3Done = isTopUnlocked;
+    const step3Active = step2Done && !step3Done;
 
-    if (isWalletConnected) {
-        // Show connected status
-        const statusItem = document.createElement('div');
-        statusItem.className = 'trust-item';
-        statusItem.textContent = '🟢 Wallet: connected';
-        walletContainer.appendChild(statusItem);
-    } else {
-        // Show connect button
-        const connectBtn = document.createElement('button');
-        connectBtn.className = 'trust-connect-btn';
-        connectBtn.textContent = '🔗 Підключити гаманець';
-        connectBtn.setAttribute('aria-label', 'Підключити TON гаманець');
-        connectBtn.onclick = () => {
-            trackEvent('wallet_trust_header_clicked');
-            if (typeof Render !== 'undefined' && Render.showWalletModal) {
-                Render.showWalletModal();
-            } else {
-                showWalletModal();
+    // Render HTML
+    container.innerHTML = `
+        <div class="roadmap-title">Твій шлях до прибутку</div>
+        <div class="roadmap-steps">
+            <!-- Step 1: Start -->
+            <div class="roadmap-step ${step1Done ? 'done' : (step1Active ? 'active' : '')}" onclick="if(${step1Active}) { document.getElementById('primary-action-card').scrollIntoView({behavior: 'smooth'}); }">
+                <div class="step-icon">${step1Done ? '✅' : '🚀'}</div>
+                <div class="step-label">Старт 7%</div>
+                ${step1Active ? '<div class="step-indicator">👈 Ти тут</div>' : ''}
+            </div>
+            
+            <!-- Connector 1-2 -->
+            <div class="step-connector ${step1Done ? 'done' : ''}"></div>
+
+            <!-- Step 2: Wallet -->
+            <div class="roadmap-step ${step2Done ? 'done' : (step2Active ? 'active' : '')}" onclick="if(${step2Active}) { showWalletModal(); }">
+                <div class="step-icon">${step2Done ? '✅' : '🏦'}</div>
+                <div class="step-label">Гаманець</div>
+                ${step2Active ? '<div class="step-indicator">👈 Ти тут</div>' : ''}
+            </div>
+
+            <!-- Connector 2-3 -->
+            <div class="step-connector ${step2Done ? 'done' : ''}"></div>
+
+            <!-- Step 3: Scale/TOP -->
+            <div class="roadmap-step ${step3Done ? 'done' : (step3Active ? 'active' : '')}" onclick="if(${step3Active}) { Navigation.switchTab('top'); }">
+                <div class="step-icon">${step3Done ? '✅' : '⭐'}</div>
+                <div class="step-label">Масштаб</div>
+                ${step3Active ? '<div class="step-indicator">👈 Ти тут</div>' : ''}
+            </div>
+        </div>
+        ${step2Active ? '<div class="roadmap-hint">Підключи гаманець для майбутніх виплат (Coming Soon)</div>' : ''}
+    `;
+
+    // Inject styles explicitly if not present (simple inline style for this component)
+    if (!document.getElementById('roadmap-styles')) {
+        const style = document.createElement('style');
+        style.id = 'roadmap-styles';
+        style.textContent = `
+            .progress-roadmap-container {
+                background: linear-gradient(135deg, rgba(36, 129, 204, 0.1) 0%, rgba(36, 129, 204, 0.05) 100%);
+                border-radius: 16px;
+                padding: 16px;
+                margin-bottom: 24px;
+                border: 1px solid rgba(36, 129, 204, 0.2);
             }
-        };
-        walletContainer.appendChild(connectBtn);
+            .roadmap-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--tg-theme-hint-color, #8a94a7);
+                margin-bottom: 12px;
+                text-align: center;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .roadmap-steps {
+                display: flex;
+                align-items: flex-start; /* Align top so labels don't jump */
+                justify-content: space-between;
+                position: relative;
+            }
+            .roadmap-step {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                position: relative;
+                z-index: 2;
+                width: 33%;
+                cursor: pointer;
+            }
+            .step-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: var(--tg-theme-bg-color, #fff);
+                border: 2px solid var(--tg-theme-hint-color, #ccc);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                margin-bottom: 8px;
+                transition: all 0.3s ease;
+            }
+            .roadmap-step.active .step-icon {
+                border-color: var(--primary-color, #2481cc);
+                box-shadow: 0 0 0 4px rgba(36, 129, 204, 0.2);
+                transform: scale(1.1);
+            }
+            .roadmap-step.done .step-icon {
+                background: rgba(46, 204, 113, 0.1);
+                border-color: #2ecc71;
+                color: #2ecc71;
+            }
+            .step-label {
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--tg-theme-hint-color, #8a94a7);
+                text-align: center;
+            }
+            .roadmap-step.active .step-label {
+                color: var(--tg-theme-text-color, #000);
+                font-weight: 700;
+            }
+            .step-indicator {
+                position: absolute;
+                top: 50px; /* Below label */
+                background: var(--primary-color, #2481cc);
+                color: #fff;
+                font-size: 10px;
+                padding: 2px 8px;
+                border-radius: 10px;
+                white-space: nowrap;
+                animation: bounce 1s infinite;
+            }
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-3px); }
+            }
+            .step-connector {
+                flex-grow: 1;
+                height: 2px;
+                background: var(--tg-theme-hint-color, #ccc);
+                margin-top: 20px; /* Half of icon height */
+                position: absolute;
+                top: 0;
+                z-index: 1;
+            }
+            /* Connector positioning */
+            .roadmap-steps > .step-connector:nth-child(2) { left: 16%; width: 34%; }
+            .roadmap-steps > .step-connector:nth-child(4) { left: 50%; width: 34%; }
+
+            .step-connector.done {
+                background: #2ecc71;
+            }
+            .roadmap-hint {
+                margin-top: 16px;
+                font-size: 12px;
+                color: var(--tg-theme-hint-color, #8a94a7);
+                text-align: center;
+                background: rgba(0,0,0,0.05);
+                padding: 8px;
+                border-radius: 8px;
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
 
