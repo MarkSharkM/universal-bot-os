@@ -145,6 +145,69 @@
     font-weight: 600;
 }
 
+/* --- TGR Link Section (Connect custom link) --- */
+.tgr-link-section {
+    margin-top: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.tgr-input-group {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--glass-border);
+}
+
+.tgr-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 12px;
+    outline: none;
+    font-family: inherit;
+}
+
+.tgr-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.tgr-save-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tgr-save-btn:active {
+    background: var(--accent-green);
+    color: #000;
+}
+
+.link-active {
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--accent-green);
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(0, 230, 118, 0.2);
+}
+
 .cta-btn {
     width: 100%;
     padding: 16px;

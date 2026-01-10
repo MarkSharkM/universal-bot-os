@@ -33,7 +33,10 @@ window.Components.Hero = function (isTop, referralCount) {
                 <div class="tgr-link-section">
                      ${savedLink
                 ? `<div class="link-active">✅ Link Connected</div>`
-                : `<button onclick="document.getElementById('tgr-link-input')?.focus()" class="connect-link-btn">Connect Link</button>`
+                : `<div class="tgr-input-group">
+                       <input type="text" id="tgr-link-input" class="tgr-input" placeholder="Paste your 7% link here...">
+                       <button class="tgr-save-btn" onclick="Actions.saveTgrLink()">Save</button>
+                   </div>`
             }
                 </div>
 
