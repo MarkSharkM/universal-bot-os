@@ -76,9 +76,11 @@
 }
 
 .wallet-btn.active {
-    border-color: rgba(0, 230, 118, 0.3);
-    background: rgba(0, 230, 118, 0.1);
-    color: var(--accent-green);
+    border-color: rgba(0, 152, 234, 0.5);
+    /* Telegram Blue */
+    background: rgba(0, 152, 234, 0.15);
+    color: #0098EA;
+    box-shadow: 0 0 15px rgba(0, 152, 234, 0.2);
 }
 
 /* --- Hero Card --- */

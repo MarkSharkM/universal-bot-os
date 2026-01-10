@@ -145,6 +145,19 @@ function setupEventHandlers() {
         }
     });
 
+    // Handle open-wallet-modal event (dispatched from Header / persistent UI)
+    document.addEventListener('open-wallet-modal', () => {
+        console.log('🔔 open-wallet-modal event received');
+        // Try to connect Telegram Wallet directly first (if using TON Connect)
+        if (typeof TonConnect !== 'undefined' && TonConnect.connectTelegramWallet) {
+            TonConnect.connectTelegramWallet();
+        } else {
+            // Fallback to showing modal
+            const modal = document.getElementById('wallet-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+    });
+
     // Wallet Connect Buttons (Telegram & External)
     const telegramWalletBtn = document.getElementById('wallet-connect-telegram');
     if (telegramWalletBtn) {

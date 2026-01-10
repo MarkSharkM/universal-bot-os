@@ -24,7 +24,12 @@ window.Render.renderHomeV5 = function () {
     const isTop = (referralCount >= 5);
 
     // 1. Header
-    const header = Components.Header(appData.user, isTop);
+    // Use initDataUnsafe user if available for immediate/correct display name
+    const tg = AppState.getTg();
+    const initUser = tg?.initDataUnsafe?.user;
+    const userToDisplay = initUser || appData.user;
+
+    const header = Components.Header(userToDisplay, isTop);
     container.appendChild(header);
 
     // 2. Hero (Quest / Dashboard)
