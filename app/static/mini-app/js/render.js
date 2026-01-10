@@ -1303,6 +1303,9 @@ function escapeHtml(text) {
 /**
  * Render HOME page (Action Engine)
  */
+/**
+ * Render HOME page (Action Engine)
+ */
 function renderHome() {
     const appData = AppState.getAppData();
     if (!appData) return;
@@ -1318,29 +1321,113 @@ function renderHome() {
     const referralCount = AppState.getReferralCount();
     const isTop = (referralCount >= 5) || (!AppState.getTopLocked());
 
-    // 1. Render Header Badges
-    renderHeaderBadges(isTop);
+    // 1. Render Persistent Header (Avatar + Wallet)
+    renderPersistentHeader(appData.user, isTop);
 
     // 2. Render Hero Section (Quest vs Dashboard)
-    // Replaces old 'trust-header' logic
     renderHeroSection(isTop, referralCount);
 
     // 3. Render Primary Action Card
     renderActionCard(isTop, referralCount);
 
-    // 4. Render Info Section
-    renderInfoSection();
+    // 4. Render Benefits Card (Filling the void)
+    renderBenefitsCard(isTop);
 
-    // 5. Render Wallet Banner (if needed for TOP)
-    if (isTop) renderWalletBanner();
+    // 5. Render Info Section (Footer)
+    renderInfoSection(true); // true = as footer link
+
+    // wallet banner moved to header pill logic mostly, but can keep as fallback if desired.
+    // User asked to "Remove Duplicate", so we rely on Header Wallet Pill.
 }
 
 /**
- * Render Header Badges (Starter vs TOP)
+ * Render Persistent Header (Avatar + Wallet)
  */
-function renderHeaderBadges(isTop) {
-    // Logic to update a header element if exists
-    // For now we assume badges are part of Hero Section
+function renderPersistentHeader(user, isTop) {
+    // We insert this BEFORE the trust-header (Hero)
+    const hero = document.getElementById('trust-header');
+    if (!hero) return;
+
+    // Check if header already exists, if not create logic
+    let header = document.getElementById('persistent-header-container');
+    if (!header) {
+        header = document.createElement('div');
+        header.id = 'persistent-header-container';
+        hero.parentNode.insertBefore(header, hero);
+    }
+
+    const userName = user?.first_name || 'User';
+    const userAvatarChar = userName.charAt(0).toUpperCase();
+
+    // Badge Logic
+    const badgeText = isTop ? '🏆 TOP Partner' : '🌱 Starter';
+    const badgeClass = isTop ? 'badge-top' : 'badge-starter';
+
+    // Wallet Logic
+    const walletAddress = user?.wallet || AppState.getAppData()?.user?.wallet;
+    const shortWallet = walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 'Wallet';
+    const walletClass = isTop ? '' : 'locked';
+
+    // Wallet Click Handler
+    window.handleHeaderWalletClick = () => {
+        if (!isTop) {
+            if (typeof Toast !== 'undefined') Toast.error('🔒 Спочатку розблокуй TOP статус!');
+            return;
+        }
+        // Open wallet modal (existing function)
+        const event = new CustomEvent('open-wallet-modal');
+        document.dispatchEvent(event);
+    };
+
+    header.innerHTML = `
+        <div class="persistent-header">
+            <div class="user-profile">
+                <div class="user-avatar">${userAvatarChar}</div>
+                <div class="user-info-text">
+                    <span class="user-name">${escapeHtml(userName)}</span>
+                    <span class="user-badge ${badgeClass}">${badgeText}</span>
+                </div>
+            </div>
+            <button class="wallet-pill-btn ${walletClass}" onclick="handleHeaderWalletClick()">
+                <span>💎</span>
+                <span>${shortWallet}</span>
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * Render Benefits Card (Glassmorphism)
+ */
+function renderBenefitsCard(isTop) {
+    // Insert AFTER action card
+    const actionCard = document.getElementById('primary-action-card');
+    if (!actionCard) return;
+
+    let benefits = document.getElementById('benefits-card-container');
+    if (!benefits) {
+        benefits = document.createElement('div');
+        benefits.id = 'benefits-card-container';
+        actionCard.parentNode.insertBefore(benefits, actionCard.nextSibling);
+    }
+
+    benefits.innerHTML = `
+        <div class="benefits-card">
+            <div class="benefits-title">⚡️ Що дає статус TOP?</div>
+            <div class="benefit-item">
+                <span style="color: #4cd964;">✅</span>
+                <span>Активація 7% доходу від Telegram</span>
+            </div>
+            <div class="benefit-item">
+                <span style="color: #4cd964;">✅</span>
+                <span>Доступ до Ексклюзивних ботів</span>
+            </div>
+            <div class="benefit-item">
+                <span style="color: #4cd964;">✅</span>
+                <span>Попадання в Лідерборд (TOP)</span>
+            </div>
+        </div>
+    `;
 }
 
 /**
@@ -1380,13 +1467,8 @@ function renderHeroSection(isTop, referralCount) {
         const progressPercent = (current / needed) * 100;
 
         container.innerHTML = `
-            <div class="quest-card" style="background: linear-gradient(145deg, #1a1a2e, #16213e); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <span style="font-size: 18px; font-weight: 700;">🔓 Unlock TOP</span>
-                    <span style="background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 12px;">🌱 Starter</span>
-                </div>
-                
-                <div class="progress-container" style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 15px;">
+            <div class="quest-card" style="background: linear-gradient(145deg, #1a1a2e, #16213e); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">           
+                <div class="progress-container" style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 15px; margin-top: 10px;">
                     <div style="width: ${progressPercent}%; height: 100%; background: #007aff; box-shadow: 0 0 10px #007aff; transition: width 0.5s ease;"></div>
                 </div>
                 
@@ -1448,7 +1530,7 @@ function renderActionCard(isTop, referralCount) {
     if (isTop) {
         container.innerHTML = `
             <div class="action-card-content" style="text-align: center; margin-top: 20px;">
-                <button class="primary-action-btn pulse" onclick="${savedLink ? 'Actions.shareReferralLink()' : 'document.getElementById(\'tgr-link-input\').focus()'}" 
+                <button class="primary-action-btn pulse glow-effect" onclick="${savedLink ? 'Actions.shareReferralLink()' : 'document.getElementById(\'tgr-link-input\').focus()'}" 
                         style="width: 100%; padding: 18px; border-radius: 16px; background: linear-gradient(90deg, #007aff, #00d4ff); font-size: 18px; font-weight: 700; border: none; color: #fff; box-shadow: 0 4px 20px rgba(0,122,255,0.4);">
                     💸 ${savedLink ? 'Поширити і Заробити 7%' : 'Активувати Виплати'}
                 </button>
@@ -1458,7 +1540,7 @@ function renderActionCard(isTop, referralCount) {
     } else {
         container.innerHTML = `
             <div class="action-card-content" style="text-align: center; margin-top: 20px;">
-                <button class="primary-action-btn" onclick="Actions.shareReferralLink()"
+                <button class="primary-action-btn glow-effect" onclick="Actions.shareReferralLink()"
                         style="width: 100%; padding: 18px; border-radius: 16px; background: linear-gradient(90deg, #28a745, #34d058); font-size: 18px; font-weight: 700; border: none; color: #fff; box-shadow: 0 4px 20px rgba(40,167,69,0.4);">
                     🚀 Запросити друзів (${Math.min(referralCount, 5)}/5)
                 </button>
@@ -2392,10 +2474,34 @@ function renderGamification() {
 /**
  * Render Info Section (Integrated /info command)
  */
-function renderInfoSection() {
+/**
+ * Render Info Section (Integrated /info command)
+ */
+function renderInfoSection(isFooter = false) {
     const container = document.getElementById('info-content');
+    const sectionContainer = document.getElementById('info-section');
     const btn = document.getElementById('info-collapse-btn');
+
     if (!container || !btn) return;
+
+    // Footer Mode Styling
+    if (isFooter && sectionContainer) {
+        sectionContainer.style.marginTop = '40px';
+        sectionContainer.style.marginBottom = '20px';
+        sectionContainer.style.textAlign = 'center';
+
+        // Change button to look like a discreet link
+        btn.style.background = 'transparent';
+        btn.style.border = 'none';
+        btn.style.color = 'var(--tg-theme-hint-color)';
+        btn.style.fontSize = '12px';
+        btn.style.width = 'auto';
+        btn.style.display = 'inline-flex';
+        btn.style.opacity = '0.7';
+
+        // Update button content for footer look
+        btn.innerHTML = '<span>ℹ️ Інформація про бот</span>';
+    }
 
     const appData = AppState.getAppData();
 
@@ -2417,7 +2523,17 @@ function renderInfoSection() {
     btn.onclick = () => {
         const isHidden = container.style.display === 'none';
         container.style.display = isHidden ? 'block' : 'none';
-        btn.classList.toggle('active', !isHidden);
+
+        // Update styling when opened
+        if (isFooter && isHidden) {
+            container.style.textAlign = 'left';
+            container.style.background = 'rgba(255,255,255,0.05)';
+            container.style.padding = '15px';
+            container.style.borderRadius = '12px';
+            container.style.marginTop = '10px';
+        }
+
+        if (!isFooter) btn.classList.toggle('active', !isHidden);
 
         // Haptic feedback
         if (window.Telegram?.WebApp?.HapticFeedback) {
