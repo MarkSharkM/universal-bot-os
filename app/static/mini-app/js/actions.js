@@ -147,71 +147,79 @@ function openBotForLink() {
 }
 
 
-// Validate format
-const walletPattern = /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/;
-if (!walletPattern.test(walletAddress)) {
-    showWalletMessage(AppState.getAppData()?.translations?.invalid_wallet || 'Невірний формат адреси гаманця', 'error');
-    return;
-}
+/**
+ * Save manual wallet input
+ */
+async function saveManualWallet() {
+    const input = document.getElementById('wallet-modal-input');
+    if (!input) return;
+    const walletAddress = input.value.trim();
 
-// Validate AppState.getBotId() before making request
-if (!AppState.getBotId()) {
-    showWalletMessage(AppState.getAppData()?.translations?.bot_id_missing || 'Помилка: Bot ID не знайдено', 'error');
-    return;
-}
+    // Validate format
+    const walletPattern = /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/;
+    if (!walletPattern.test(walletAddress)) {
+        showWalletMessage(AppState.getAppData()?.translations?.invalid_wallet || 'Невірний формат адреси гаманця', 'error');
+        return;
+    }
 
-try {
-    showWalletMessage(AppState.getAppData()?.translations?.saving || 'Збереження...', 'info');
+    // Validate AppState.getBotId() before making request
+    if (!AppState.getBotId()) {
+        showWalletMessage(AppState.getAppData()?.translations?.bot_id_missing || 'Помилка: Bot ID не знайдено', 'error');
+        return;
+    }
 
-    const initData = AppState.getTg()?.initData || null;
-    const result = await saveWallet(AppState.getBotId(), walletAddress, AppState.getUserId(), initData);
+    try {
+        showWalletMessage(AppState.getAppData()?.translations?.saving || 'Збереження...', 'info');
 
-    if (result && result.ok !== false) {
-        // Show toast notification
-        const successMsg = AppState.getAppData()?.translations?.wallet_saved || '✅ Гаманець збережено успішно!';
+        const initData = AppState.getTg()?.initData || null;
+        const result = await saveWallet(AppState.getBotId(), walletAddress, AppState.getUserId(), initData);
+
+        if (result && result.ok !== false) {
+            // Show toast notification
+            const successMsg = AppState.getAppData()?.translations?.wallet_saved || '✅ Гаманець збережено успішно!';
+            if (typeof Toast !== 'undefined') {
+                Toast.success(successMsg);
+            }
+            if (typeof Haptic !== 'undefined') {
+                Haptic.success();
+            }
+
+            showWalletMessage(successMsg, 'success');
+
+            // Update app data locally (no need to reload all data, just update wallet)
+            const appData = AppState.getAppData();
+            if (appData && appData.user) {
+                appData.user.wallet = walletAddress;
+                AppState.setAppData(appData);
+            }
+
+            // Update input after successful save
+            if (input) {
+                input.value = walletAddress;
+            }
+
+            // Re-render wallet section to show updated data
+            // Don't call loadAppData here to avoid tab switching issues
+            renderWallet();
+        } else {
+            throw new Error(result?.detail || 'Failed to save wallet');
+        }
+    } catch (error) {
+        console.error('Error saving wallet:', error);
+        const errorMsg = error.message || 'Невідома помилка';
+        const fullErrorMsg = (AppState.getAppData()?.translations?.save_error || '❌ Помилка збереження: ') + errorMsg;
         if (typeof Toast !== 'undefined') {
-            Toast.success(successMsg);
+            Toast.error(fullErrorMsg);
         }
         if (typeof Haptic !== 'undefined') {
-            Haptic.success();
+            Haptic.error();
         }
-
-        showWalletMessage(successMsg, 'success');
-
-        // Update app data locally (no need to reload all data, just update wallet)
-        const appData = AppState.getAppData();
-        if (appData && appData.user) {
-            appData.user.wallet = walletAddress;
-            AppState.setAppData(appData);
+        if (typeof Render !== 'undefined' && Render.showWalletMessage) {
+            Render.showWalletMessage(fullErrorMsg, 'error');
+        } else {
+            showWalletMessage(fullErrorMsg, 'error');
         }
-
-        // Update input after successful save
-        if (input) {
-            input.value = walletAddress;
-        }
-
-        // Re-render wallet section to show updated data
-        // Don't call loadAppData here to avoid tab switching issues
-        renderWallet();
-    } else {
-        throw new Error(result?.detail || 'Failed to save wallet');
     }
-} catch (error) {
-    console.error('Error saving wallet:', error);
-    const errorMsg = error.message || 'Невідома помилка';
-    const fullErrorMsg = (AppState.getAppData()?.translations?.save_error || '❌ Помилка збереження: ') + errorMsg;
-    if (typeof Toast !== 'undefined') {
-        Toast.error(fullErrorMsg);
-    }
-    if (typeof Haptic !== 'undefined') {
-        Haptic.error();
-    }
-    if (typeof Render !== 'undefined' && Render.showWalletMessage) {
-        Render.showWalletMessage(fullErrorMsg, 'error');
-    } else {
-        showWalletMessage(fullErrorMsg, 'error');
-    }
-}
 }
 
 function copyReferralLink() {
@@ -635,6 +643,7 @@ async function activatePartnerAndReturn() {
 window.Actions = {
     openPartner,
     handleWalletSubmit,
+    saveManualWallet,
     copyReferralLink,
     shareReferralLink,
     handleBuyTop,
