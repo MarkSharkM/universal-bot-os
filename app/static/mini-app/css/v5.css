@@ -1,0 +1,353 @@
+/* ==========================================================================
+   v5.0 COMPONENT STYLES (Deep Dark Premium)
+   ========================================================================== */
+/* --- Utils --- */
+.text-green { color: var(--accent-green) !important; }
+.text-purple { color: var(--accent-purple) !important; }
+.text-gold { color: var(--accent-gold) !important; }
+
+/* --- Header --- */
+.v5-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: rgba(15, 17, 21, 0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-circle {
+    width: 42px;
+    height: 42px;
+    background: radial-gradient(circle at 30% 30%, #FFD700, #F57F17);
+    color: #000;
+    font-weight: 800;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.user-text .name {
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.2;
+}
+
+.user-text .status {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.wallet-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.wallet-btn.active {
+    border-color: rgba(0, 230, 118, 0.3);
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--accent-green);
+}
+
+/* --- Hero Card --- */
+.v5-hero-card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 24px;
+    margin: 10px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+.v5-hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 100px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+    pointer-events: none;
+}
+
+.hero-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.hero-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.progress-segments {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.progress-segments .seg {
+    height: 8px;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.progress-segments .seg.filled {
+    background: var(--accent-green);
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+.cta-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius-pill);
+    background: var(--grad-green);
+    border: none;
+    color: #000;
+    font-weight: 800;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: var(--shadow-glow-green);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.cta-btn:active {
+    transform: scale(0.98);
+}
+
+/* --- Nav Grid --- */
+.v5-nav-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 20px;
+    margin-bottom: 20px;
+}
+
+.nav-card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-card::after {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(255,255,255,0.05), transparent 70%);
+    pointer-events: none;
+}
+
+.card-purple-glow:active { background: var(--accent-purple-glass); }
+.card-gold-glow:active { background: var(--accent-gold-glass); }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.icon-sq {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+.purple-bg { background: rgba(149, 117, 205, 0.2); color: var(--accent-purple); }
+.gold-bg { background: rgba(255, 213, 79, 0.2); color: var(--accent-gold); }
+
+.badge-pill {
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.purple-badge { background: #7c3aed; color: #fff; } /* Solid purple */
+.gold-badge { background: #fbbf24; color: #000; } /* Solid gold */
+
+.card-body .lbl { font-size: 11px; color: var(--text-secondary); }
+.card-body .tit { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.card-body .desc { font-size: 10px; color: var(--text-tertiary); line-height: 1.3; }
+
+.card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.arrow-btn {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+/* --- Money Math --- */
+.v5-money-math {
+    margin: 20px;
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid var(--glass-border);
+}
+
+.math-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+}
+.math-header svg { color: #3b82f6; } /* Blue wallet icon */
+
+.math-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.math-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.tier-lbl { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; }
+.tier-val { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.tier-bar { height: 4px; background: rgba(59, 130, 246, 0.3); border-radius: 2px; width: 30%; margin: 0 auto; }
+.tier-bar.active-20 { width: 20%; background: #3b82f6; }
+.tier-bar.active-50 { width: 50%; background: #3b82f6; }
+.tier-bar.active-100 { width: 80%; background: #3b82f6; box-shadow: 0 0 8px rgba(59, 130, 246, 0.5); }
+
+.math-footer {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 16px;
+}
+
+/* --- Footer --- */
+.v5-footer {
+    padding: 20px;
+    background: var(--bg-card);
+    border-radius: 24px;
+    margin: 20px;
+    border: 1px solid var(--glass-border);
+}
+
+.footer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.footer-header .tit { font-size: 16px; font-weight: 700; }
+.footer-header .ver { font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
+
+.footer-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.footer-disclaimer {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-style: italic;
+    margin-bottom: 24px;
+}
+
+.footer-links-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.link-card {
+    background: rgba(255,255,255,0.03);
+    border: none;
+    border-radius: 16px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.link-card .icon-circle {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.link-card span { font-size: 10px; color: var(--text-secondary); }
+

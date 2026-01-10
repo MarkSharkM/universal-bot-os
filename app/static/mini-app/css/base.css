@@ -1,0 +1,149 @@
+/**
+ * Mini App Styles
+ * Design System with Telegram theme integration
+ */
+
+:root {
+    /* v5.0 "Deep Dark" Theme Variables */
+
+    /* Core Colors */
+    --bg-color: #0F1115;
+    /* Deepest dark */
+    --bg-card: #16181D;
+    /* Slightly lighter for cards */
+    --bg-overlay: rgba(22, 24, 29, 0.8);
+
+    /* Typography */
+    --text-primary: #FFFFFF;
+    --text-secondary: #8a94a7;
+    /* Muted aesthetic grey */
+    --text-tertiary: #4b5563;
+
+    /* Accents */
+    --accent-green: #00E676;
+    --accent-green-glass: rgba(0, 230, 118, 0.15);
+    --accent-purple: #9575CD;
+    --accent-purple-glass: rgba(149, 117, 205, 0.15);
+    --accent-gold: #FFD54F;
+    --accent-gold-glass: rgba(255, 213, 79, 0.15);
+
+    /* Functional */
+    --success-color: #00E676;
+    --error-color: #ef4444;
+
+    /* Gradients */
+    --grad-green: linear-gradient(90deg, #00E676 0%, #00C853 100%);
+    --grad-purple: linear-gradient(135deg, rgba(88, 28, 135, 0.4), rgba(30, 58, 138, 0.4));
+
+    /* Glass & Borders */
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --radius-card: 20px;
+    --radius-pill: 50px;
+
+    /* Effects */
+    --shadow-glow-green: 0 0 20px rgba(0, 230, 118, 0.3);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+    /* Layout */
+    --header-height: 60px;
+    --nav-height: 70px;
+    --safe-area-top: env(safe-area-inset-top, 20px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+
+    /* Fonts */
+    --font-main: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', sans-serif;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --tg-theme-bg-color: #212121;
+    --tg-theme-text-color: #ffffff;
+    --tg-theme-hint-color: #707579;
+    --secondary-color: #6c757d;
+    --surface-1: rgba(255, 255, 255, 0.06);
+    --surface-2: rgba(255, 255, 255, 0.10);
+    --border-color: rgba(255, 255, 255, 0.10);
+    --shadow-elev-1: 0 10px 24px rgba(0, 0, 0, 0.35);
+    --shadow-elev-2: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] body {
+    background: var(--bg-gradient-dark);
+}
+
+[data-theme="light"] body.hub-dark,
+body.hub-dark {
+    background: var(--bg-gradient-dark);
+}
+
+/* HubAggregator-like palette overrides (used when hub-dark class is present) */
+body.hub-dark {
+    --tg-theme-bg-color: #0b1220;
+    --tg-theme-text-color: #eaf1ff;
+    --tg-theme-hint-color: #8a94a7;
+    --primary-color: #2f80ed;
+    --primary-hover: #1f6fd6;
+    --secondary-color: #6c5ce7;
+    --gradient-primary: linear-gradient(90deg, #2f80ed 0%, #6c5ce7 100%);
+    --surface-1: rgba(255, 255, 255, 0.06);
+    --surface-2: rgba(255, 255, 255, 0.10);
+    --border-color: rgba(255, 255, 255, 0.10);
+}
+
+[data-theme="dark"] body::after {
+    display: none;
+}
+
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Prevent Mini App from closing on scroll (sticky app) */
+html {
+    overflow: hidden;
+    height: 100vh;
+}
+
+body {
+    font-family: var(--font-main);
+    font-size: 16px;
+    color: var(--text-primary);
+    background: var(--bg-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+    height: 100vh;
+    width: 100%;
+    margin: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overscroll-behavior: none;
+}
+
+/* Avoid background "banding" in some Telegram WebViews */
+body.hub-dark {
+    background-attachment: scroll;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-gradient-overlay);
+    pointer-events: none;
+    z-index: 0;
+}
+
+body::after {
+    display: none;
+}
+
