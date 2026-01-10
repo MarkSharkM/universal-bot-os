@@ -3905,3 +3905,70 @@ details.accordion[open]>.accordion-body {
 .primary-action-btn.glow-effect:active {
     transform: scale(0.97);
 }
+/* =========================================
+   FINAL POLISH STYLES (v4.0)
+   ========================================= */
+
+/* Wallet Cleanup */
+.wallet-pill-btn {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Partners Teaser (New Component) */
+.partners-teaser {
+    background: linear-gradient(90deg, rgba(88, 28, 135, 0.4) 0%, rgba(30, 58, 138, 0.4) 100%); /* Purple/Blue gradient */
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 16px;
+    padding: 14px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.partners-teaser:active {
+    transform: scale(0.98);
+}
+
+.teaser-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.teaser-icon {
+    font-size: 24px;
+}
+
+.teaser-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.teaser-text h4 {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.teaser-text p {
+    color: #a78bfa; /* Light purple */
+    font-size: 11px;
+    margin: 2px 0 0 0;
+}
+
+.teaser-action {
+    background: #7c3aed; /* Violet */
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}

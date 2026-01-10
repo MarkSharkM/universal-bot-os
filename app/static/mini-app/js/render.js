@@ -1325,7 +1325,7 @@ function renderHome() {
     const isTop = (referralCount >= 5) || (!AppState.getTopLocked());
 
     // 1. Render Persistent Header (Avatar + Wallet)
-    renderPersistentHeader(appData.user, isTop);
+    renderPersistentHeaderV2(appData.user, isTop);
 
     // 2. Render Hero Section (Quest vs Dashboard)
     renderHeroSection(isTop, referralCount);
@@ -1333,8 +1333,11 @@ function renderHome() {
     // 3. Render Primary Action Card
     renderActionCard(isTop, referralCount);
 
+    // 3.5 Render Partners Teaser (Boost)
+    renderPartnersTeaser();
+
     // 4. Render Money Math Card (Benefits)
-    renderMoneyMathCard(isTop);
+    renderMoneyMathCardV2(isTop);
 
     // 5. Render Info Section (Footer)
     renderInfoSection(true); // true = as footer link
@@ -2792,3 +2795,138 @@ window.Render = {
     calculateUserStatus,
     getUserBadges
 };
+
+/** 
+ * V2 FUNCTIONS FOR HOME REBUILD (FINAL POLISH)
+ */
+
+function renderPersistentHeaderV2(user, isTop) {
+    const hero = document.getElementById('trust-header');
+    if (!hero) return;
+
+    let header = document.getElementById('persistent-header-container');
+    if (!header) {
+        header = document.createElement('div');
+        header.id = 'persistent-header-container';
+        hero.parentNode.insertBefore(header, hero);
+    }
+
+    // REAL DATA FETCH
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const realName = tgUser?.first_name || user?.first_name || 'Partner';
+    const userAvatarChar = realName.charAt(0).toUpperCase();
+
+    // Badge Logic
+    const badgeText = isTop ? '🏆 TOP Partner' : '🌱 Starter';
+    const badgeClass = isTop ? 'badge-top' : 'badge-starter';
+
+    // Wallet Logic
+    const walletText = '👛 Wallet';
+    const walletClass = '';
+
+    // Wallet Click Handler
+    window.handleHeaderWalletClick = () => {
+        if (isTop) {
+            const event = new CustomEvent('open-wallet-modal');
+            document.dispatchEvent(event);
+        } else {
+            if (typeof Toast !== 'undefined') {
+                Toast.info('Connect TON Wallet to withdraw rewards (Available for Active Partners)');
+            } else {
+                alert('Connect TON Wallet to withdraw rewards (Available for Active Partners)');
+            }
+        }
+    };
+
+    header.innerHTML = `
+        <div class="persistent-header">
+            <div class="user-profile">
+                <div class="user-avatar">${userAvatarChar}</div>
+                <div class="user-info-text">
+                    <span class="user-name">${escapeHtml(realName)}</span>
+                    <span class="user-badge ${badgeClass}">${badgeText}</span>
+                </div>
+            </div>
+            <button class="wallet-pill-btn ${walletClass}" onclick="handleHeaderWalletClick()">
+                ${walletText}
+            </button>
+        </div>
+    `;
+}
+
+function renderMoneyMathCardV2(isTop) {
+    const teaser = document.getElementById('partners-teaser-container');
+    const actionCard = document.getElementById('primary-action-card');
+    const refNode = teaser || actionCard;
+
+    if (!refNode) return;
+
+    let benefits = document.getElementById('benefits-card-container');
+    if (!benefits) {
+        benefits = document.createElement('div');
+        benefits.id = 'benefits-card-container';
+        if (refNode.nextSibling) {
+            refNode.parentNode.insertBefore(benefits, refNode.nextSibling);
+        } else {
+            refNode.parentNode.appendChild(benefits);
+        }
+    } else {
+        // Re-insert to ensure correct order if it moved
+        if (refNode.nextSibling) {
+            refNode.parentNode.insertBefore(benefits, refNode.nextSibling);
+        } else {
+            refNode.parentNode.appendChild(benefits);
+        }
+    }
+
+    benefits.innerHTML = `
+        <div class="benefits-card">
+            <div class="benefits-title">💰 Money Math (Твій потенціал)</div>
+            <div class="benefit-item">
+                <span>👤</span>
+                <span>1 user → ~0.35–0.70€</span>
+            </div>
+            <div class="benefit-item">
+                <span>👥</span>
+                <span>10 users → ~3.5–7.0€</span>
+            </div>
+            <div class="benefit-item">
+                <span>🚀</span>
+                <span>100 users → ~35–70€</span>
+            </div>
+            <div style="margin-top: 12px; font-size: 11px; color: #8a94a7; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                Заробляй ці суми, запрошуючи друзів та клікаючи партнерів.
+                <br>Telegram платить 7% від кожної покупки зірок.
+            </div>
+        </div>
+    `;
+}
+
+function renderPartnersTeaser() {
+    const actionCard = document.getElementById('primary-action-card');
+    if (!actionCard) return;
+
+    let teaser = document.getElementById('partners-teaser-container');
+    if (!teaser) {
+        teaser = document.createElement('div');
+        teaser.id = 'partners-teaser-container';
+        if (actionCard.nextSibling) {
+            actionCard.parentNode.insertBefore(teaser, actionCard.nextSibling);
+        } else {
+            actionCard.parentNode.appendChild(teaser);
+        }
+    }
+
+    teaser.innerHTML = `
+        <div class="partners-teaser" onclick="if(typeof Navigation !== 'undefined') { Navigation.switchTab('partners'); } else { console.log('Nav missing'); }">
+            <div class="teaser-content">
+                <div class="teaser-icon">⚡️</div>
+                <div class="teaser-text">
+                    <h4>Збільшити дохід</h4>
+                    <p>Запускай перевірених партнерів</p>
+                </div>
+            </div>
+            <div class="teaser-action">Go 👉</div>
+        </div>
+    `;
+}
