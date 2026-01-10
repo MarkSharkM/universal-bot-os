@@ -14,16 +14,16 @@ window.Components.NavCards = function () {
     partnersCard.className = 'nav-card card-purple-glow';
     partnersCard.onclick = () => window.Navigation?.switchTab('partners');
     partnersCard.innerHTML = `
-        <div class="card-header">
+        <div class="v5-card-header">
             <div class="icon-sq purple-bg">${Icons.Users}</div>
             <div class="badge-pill purple-badge">+ STARS</div>
         </div>
-        <div class="card-body">
+        <div class="v5-card-body">
             <div class="lbl">Browse</div>
             <div class="tit text-purple">Partners</div>
             <div class="desc">Verified Bots & Earn Stars for Actions</div>
         </div>
-        <div class="card-footer">
+        <div class="v5-card-footer">
             <div class="arrow-btn">${Icons.ChevronRight}</div>
         </div>
     `;
@@ -33,16 +33,16 @@ window.Components.NavCards = function () {
     topCard.className = 'nav-card card-gold-glow';
     topCard.onclick = () => window.Navigation?.switchTab('top'); // Maps to 'leaders' usually
     topCard.innerHTML = `
-        <div class="card-header">
+        <div class="v5-card-header">
             <div class="icon-sq gold-bg">${Icons.Robot}</div>
             <div class="badge-pill gold-badge">⚡ x7</div>
         </div>
-        <div class="card-body">
+        <div class="v5-card-body">
             <div class="lbl">Browse</div>
             <div class="tit text-gold">TOP Bots</div>
             <div class="desc">Get x3-x7 More Stars</div>
         </div>
-        <div class="card-footer">
+        <div class="v5-card-footer">
             <div class="arrow-btn">${Icons.ChevronRight}</div>
         </div>
     `;
