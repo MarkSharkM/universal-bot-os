@@ -2821,21 +2821,21 @@ function renderPersistentHeaderV2(user, isTop) {
     const badgeClass = isTop ? 'badge-top' : 'badge-starter';
 
     // Wallet Logic
-    const walletText = '👛 Wallet';
-    const walletClass = '';
+    const walletAddress = user?.wallet || AppState.getAppData()?.user?.wallet;
+    // Check if wallet connects
+    const isWalletConnected = walletAddress && walletAddress.length > 5;
 
-    // Wallet Click Handler
+    const walletText = isWalletConnected
+        ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
+        : '👛 Wallet';
+
+    // active class will color it
+    const walletClass = isWalletConnected ? 'wallet-active' : '';
+
+    // Wallet Click Handler - OPEN FOR ALL
     window.handleHeaderWalletClick = () => {
-        if (isTop) {
-            const event = new CustomEvent('open-wallet-modal');
-            document.dispatchEvent(event);
-        } else {
-            if (typeof Toast !== 'undefined') {
-                Toast.info('Connect TON Wallet to withdraw rewards (Available for Active Partners)');
-            } else {
-                alert('Connect TON Wallet to withdraw rewards (Available for Active Partners)');
-            }
-        }
+        const event = new CustomEvent('open-wallet-modal');
+        document.dispatchEvent(event);
     };
 
     header.innerHTML = `

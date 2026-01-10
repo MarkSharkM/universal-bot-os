@@ -3972,3 +3972,11 @@ details.accordion[open]>.accordion-body {
     font-size: 12px;
     font-weight: 700;
 }
+
+/* Wallet Active State */
+.wallet-pill-btn.wallet-active {
+    background: rgba(40, 167, 69, 0.2) !important;
+    border: 1px solid rgba(40, 167, 69, 0.4) !important;
+    color: #28a745 !important;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.2);
+}
