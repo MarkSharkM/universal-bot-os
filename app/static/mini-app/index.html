@@ -350,6 +350,9 @@
     <script src="/static/mini-app/js/state.js?v=3.1"></script>
     <script src="/static/mini-app/js/tonconnect.js?v=3.1"></script>
 
+    <!-- Core Render Logic (Must load before extending modules) -->
+    <script src="/static/mini-app/js/render.js?v=5.0"></script>
+
     <!-- v5.0 Modules -->
     <script src="/static/mini-app/js/utils/Icons.js?v=5.0"></script>
     <script src="/static/mini-app/js/components/SharePopup.js?v=5.0"></script>
@@ -363,10 +366,12 @@
     <script src="/static/mini-app/js/components/NavCards.js?v=5.0"></script>
     <script src="/static/mini-app/js/components/MoneyMath.js?v=5.0"></script>
     <script src="/static/mini-app/js/components/Footer.js?v=5.0"></script>
+
+    <!-- Legal extends Render, must load after render.js -->
     <script src="/static/mini-app/js/pages/Legal.js?v=5.0"></script>
     <script src="/static/mini-app/js/pages/Home.js?v=5.0"></script>
 
-    <script src="/static/mini-app/js/render.js?v=3.1"></script>
+    <!-- Core App Logic -->
     <script src="/static/mini-app/js/navigation.js?v=3.1"></script>
     <script src="/static/mini-app/js/actions.js?v=3.1"></script>
     <script src="/static/mini-app/js/events.js?v=3.1"></script>

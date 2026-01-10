@@ -4,7 +4,7 @@
  * Style: Duotone/Filled, Soft corners, Stroke 1.5-2px.
  */
 
-const Icons = {
+window.Icons = {
     // Header
     Wallet: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="5" width="20" height="14" rx="3" stroke="currentColor" stroke-width="2"/><path d="M18 12L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`, // Simple wallet outline/pill style
 
