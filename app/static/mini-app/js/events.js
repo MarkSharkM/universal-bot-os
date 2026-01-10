@@ -30,7 +30,7 @@ function setupEventHandlers() {
                 }
             });
 
-            tg.onEvent('activated', () => {
+            tgApp.onEvent('activated', () => {
                 // Explicit app activation event on some platforms
                 if (typeof loadAppData === 'function') {
                     console.log('App activated, reloading data...'); // Debug
