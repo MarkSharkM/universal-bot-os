@@ -96,12 +96,33 @@ def parse_init_data(init_data: str) -> Dict[str, Any]:
         
         if 'query_id' in parsed:
             result['query_id'] = parsed['query_id'][0]
+            
+        if 'start_param' in parsed:
+            result['start_param'] = parsed['start_param'][0]
         
         return result
         
     except Exception as e:
         logger.error(f"Error parsing initData: {e}", exc_info=True)
         return {}
+
+
+def get_start_param_from_init_data(init_data: str) -> Optional[str]:
+    """
+    Extract start_param from Telegram WebApp initData.
+    
+    Args:
+        init_data: Raw initData string from Telegram (URL-encoded)
+    
+    Returns:
+        start_param string, or None if not found
+    """
+    try:
+        parsed = parse_init_data(init_data)
+        return parsed.get('start_param')
+    except Exception as e:
+        logger.error(f"Error extracting start_param from initData: {e}", exc_info=True)
+        return None
 
 
 def get_user_id_from_init_data(init_data: str) -> Optional[str]:

@@ -21,7 +21,8 @@ from app.services import (
 )
 from app.utils.telegram_webapp import (
     validate_telegram_init_data,
-    get_user_id_from_init_data
+    get_user_id_from_init_data,
+    get_start_param_from_init_data
 )
 
 logger = logging.getLogger(__name__)
@@ -691,6 +692,23 @@ async def get_mini_app_data(
     
     # Get all data
     try:
+        # Check for referral (start_param) in init_data
+        if init_data:
+            start_param = get_start_param_from_init_data(init_data)
+            if start_param:
+                # Log referral event (ReferralService handles duplicates and validation)
+                try:
+                    referral_service.log_referral_event(
+                        user_id=user.id,
+                        ref_param=start_param,
+                        event_type="mini_app_start",
+                        click_type="Referral"
+                    )
+                    # Update total invited immediately so user sees correct stats if they are the referrer
+                    # (Though usually ref_param is the INVITER's ID, so this logs that 'user' was invited)
+                except Exception as ref_err:
+                    logger.error(f"Error logging Mini App referral: {ref_err}")
+
         # Get user language for localization
         user_lang = user.language_code or 'en'
         user_lang = translation_service.detect_language(user_lang)
