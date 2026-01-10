@@ -236,4 +236,10 @@ window.Render = {
 window.renderApp = () => window.Render.renderApp();
 window.trackEvent = (e, d) => window.Render.trackEvent(e, d);
 window.escapeHtml = (s) => window.Render.escapeHtml(s);
-// Other aliases provided by Components themselves
+
+// UI Helper Aliases (Restore missing globals)
+window.showLoading = (s) => window.Render.showLoading(s);
+window.showError = (m, t) => window.Render.showError(m, t);
+window.showSkeleton = (t) => window.Render.showSkeleton(t);
+window.hideSkeleton = (t) => window.Render.hideSkeleton(t);
+
