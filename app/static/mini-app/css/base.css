@@ -53,6 +53,11 @@
 
     /* Fonts */
     --font-main: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', sans-serif;
+
+    /* Legacy Compat (Mapped to v5) */
+    --bg-gradient-dark: var(--bg-color);
+    --bg-gradient-light: #ffffff;
+    --bg-gradient-overlay: none;
 }
 
 /* Dark Theme */
@@ -146,4 +151,3 @@ body::before {
 body::after {
     display: none;
 }
-
