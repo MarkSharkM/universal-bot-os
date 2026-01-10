@@ -11,7 +11,7 @@ window.Components.Header = function (user, isTop) {
     header.className = 'v5-header';
 
     // User Info
-    const userName = user?.first_name || 'User';
+    const userName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'User';
     const userAvatarChar = userName.charAt(0).toUpperCase(); // Yellow/M style
 
     // Status Logic
