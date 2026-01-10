@@ -67,17 +67,17 @@ self.addEventListener('fetch', (event) => {
 // Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
     console.log('[Service Worker] Push event received:', event);
-    
+
     let notificationData = {
         title: 'Mini App',
         body: 'У вас нове повідомлення',
-        icon: '/static/mini-app/images/icon.png',
-        badge: '/static/mini-app/images/badge.png',
+        icon: '/static/mini-app/icon.png',
+        badge: '/static/mini-app/icon.png',
         tag: 'mini-app-notification',
         requireInteraction: false,
         data: {}
     };
-    
+
     // Parse push data if available
     if (event.data) {
         try {
@@ -94,7 +94,7 @@ self.addEventListener('push', (event) => {
             }
         }
     }
-    
+
     // Show notification
     event.waitUntil(
         self.registration.showNotification(notificationData.title, {
@@ -121,16 +121,16 @@ self.addEventListener('push', (event) => {
 // Notification click event - handle user clicking on notification
 self.addEventListener('notificationclick', (event) => {
     console.log('[Service Worker] Notification clicked:', event);
-    
+
     event.notification.close();
-    
+
     const action = event.action;
     const notificationData = event.notification.data || {};
-    
+
     if (action === 'close') {
         return;
     }
-    
+
     // Default action: open Mini App
     event.waitUntil(
         clients.matchAll({
@@ -144,7 +144,7 @@ self.addEventListener('notificationclick', (event) => {
                     return client.focus();
                 }
             }
-            
+
             // Otherwise, open new window
             if (clients.openWindow) {
                 const url = notificationData.url || '/';
@@ -157,7 +157,7 @@ self.addEventListener('notificationclick', (event) => {
 // Background sync event (optional - for offline actions)
 self.addEventListener('sync', (event) => {
     console.log('[Service Worker] Background sync:', event.tag);
-    
+
     if (event.tag === 'sync-analytics') {
         event.waitUntil(
             // Sync analytics events when online

@@ -154,12 +154,12 @@ window.Pages.Partners = {
             });
 
             const partnerName = partner.name || 'Partner';
-            const partnerImage = partner.image_url || 'static/mini-app/icon.png';
+            const partnerImage = partner.image_url || '/static/mini-app/icon.png';
             const commission = partner.commission || 0;
 
             card.innerHTML = `
                 <div class="partner-header">
-                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-icon" onerror="this.src='static/mini-app/icon.png'">
+                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-icon" onerror="this.src='/static/mini-app/icon.png'">
                     <div class="partner-info">
                         <div class="partner-name-row">
                             <h3 class="partner-name">${escapeHtml(partnerName)}</h3>

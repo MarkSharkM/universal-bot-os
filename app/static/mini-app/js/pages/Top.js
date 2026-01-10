@@ -89,12 +89,12 @@ window.Pages.Top = {
             if (index === 2) rankBadge = `<span class="rank-icon">🥉</span>`;
 
             const partnerName = partner.name || 'Bot';
-            const partnerImage = partner.image_url || 'static/mini-app/icon.png';
+            const partnerImage = partner.image_url || '/static/mini-app/icon.png';
             const users = partner.users_count || '10K+';
 
             item.innerHTML = `
                 <div class="top-rank">${rankBadge}</div>
-                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon" onerror="this.src='static/mini-app/icon.png'">
+                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon" onerror="this.src='/static/mini-app/icon.png'">
                 <div class="top-info">
                     <div class="top-name">${escapeHtml(partnerName)}</div>
                     <div class="top-meta">
