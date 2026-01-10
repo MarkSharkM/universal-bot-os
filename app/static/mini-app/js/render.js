@@ -1310,38 +1310,14 @@ function escapeHtml(text) {
  * Render HOME page (Action Engine)
  */
 function renderHome() {
-    const appData = AppState.getAppData();
-    if (!appData) return;
-
-    // Track view_home event
-    trackEvent('view_home');
-
-    // CLEANUP: Hide the secondary Share Strip (blue button)
-    const shareStrip = document.getElementById('share-strip');
-    if (shareStrip) shareStrip.style.display = 'none';
-
-    // Determine State: Starter vs TOP
-    const referralCount = AppState.getReferralCount();
-    const isTop = (referralCount >= 5) || (!AppState.getTopLocked());
-
-    // 1. Render Persistent Header (Avatar + Wallet)
-    renderPersistentHeaderV2(appData.user, isTop);
-
-    // 2. Render Hero Section (Quest vs Dashboard)
-    renderHeroSection(isTop, referralCount);
-
-    // 3. Render Primary Action Card
-    renderActionCard(isTop, referralCount);
-
-    // 3.5 Render Partners Teaser (Boost)
-    renderPartnersTeaser();
-
-    // 4. Render Money Math Card (Benefits)
-    renderMoneyMathCardV2(isTop);
-
-    // 5. Render Info Section (Footer)
-    renderInfoSection(true); // true = as footer link
+    // v5.0 UI Overhaul - Delegate to Home.js
+    if (window.Render && window.Render.renderHomeV5) {
+        window.Render.renderHomeV5();
+        return;
+    }
+    console.error("v5.0 Render Module (Home.js) not found!");
 }
+
 
 /**
  * Render Persistent Header (Avatar + Wallet)
