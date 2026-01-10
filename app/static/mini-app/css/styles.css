@@ -3520,6 +3520,7 @@ details.accordion[open]>.accordion-body {
     background: var(--surface-1);
     border-color: rgba(255, 255, 255, 0.1);
 }
+
 /* --- UI Polish Updates (v3.0) --- */
 
 /* 1. Header (Restored) */
@@ -3569,8 +3570,16 @@ details.accordion[open]>.accordion-body {
     border-radius: 4px;
     font-weight: 600;
 }
-.badge-starter { background: rgba(255, 255, 255, 0.1); color: #aaa; }
-.badge-top { background: rgba(0, 122, 255, 0.2); color: #007aff; }
+
+.badge-starter {
+    background: rgba(255, 255, 255, 0.1);
+    color: #aaa;
+}
+
+.badge-top {
+    background: rgba(0, 122, 255, 0.2);
+    color: #007aff;
+}
 
 .wallet-pill-btn {
     display: flex;
@@ -3586,8 +3595,15 @@ details.accordion[open]>.accordion-body {
     cursor: pointer;
     transition: all 0.2s;
 }
-.wallet-pill-btn.locked { opacity: 0.6; }
-.wallet-pill-btn:not(.locked):hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
+
+.wallet-pill-btn.locked {
+    opacity: 0.6;
+}
+
+.wallet-pill-btn:not(.locked):hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
 
 /* 2. Benefits Card */
 .benefits-card {
@@ -3622,21 +3638,38 @@ details.accordion[open]>.accordion-body {
     box-shadow: 0 0 20px rgba(0, 255, 127, 0.4);
     animation: pulse-green 2s infinite;
 }
+
 .hero-top .glow-effect {
     box-shadow: 0 0 20px rgba(0, 122, 255, 0.4);
     animation: pulse-blue 2s infinite;
 }
 
 @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(0, 255, 127, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 255, 127, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 255, 127, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 127, 0);
+    }
 }
 
 @keyframes pulse-blue {
-    0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 122, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 122, 255, 0);
+    }
 }
 
 /* Footer Info Link */
@@ -3651,7 +3684,7 @@ details.accordion[open]>.accordion-body {
 }
 
 /* =========================================
-   HOME TAB REBUILD STYLES (v3.0)
+   HOME TAB REBUILD STYLES (v3.1 - Polished)
    ========================================= */
 
 /* A. Sticky Header (Glassmorphism) */
@@ -3659,7 +3692,8 @@ details.accordion[open]>.accordion-body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    margin: 0 -16px; /* Negate parent padding if needed */
+    margin: 0 -16px;
+    /* Negate parent padding */
 }
 
 .persistent-header {
@@ -3667,134 +3701,207 @@ details.accordion[open]>.accordion-body {
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    background: rgba(11, 18, 32, 0.85); /* Dark semi-transparent */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(11, 18, 32, 0.95);
+    /* More opaque */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .user-profile {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .user-avatar {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     background: linear-gradient(135deg, #FFD700, #FDB931);
     color: #000;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    font-size: 16px;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .user-info-text {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
 }
 
 .user-name {
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 700;
+    font-size: 15px;
     color: #fff;
+    margin-bottom: 2px;
 }
 
 .user-badge {
     font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
     display: inline-block;
     width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .badge-starter {
-    background: rgba(255, 255, 255, 0.1);
-    color: #aaa;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ccc;
+    font-weight: 600;
 }
 
 .badge-top {
     background: linear-gradient(90deg, #FFD700, #FDB931);
     color: #000;
-    font-weight: bold;
+    font-weight: 800;
+    box-shadow: 0 0 10px rgba(253, 185, 49, 0.4);
 }
 
 .wallet-pill-btn {
     background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
-    padding: 6px 12px;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
     gap: 6px;
     color: #fff;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+.wallet-pill-btn:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .wallet-pill-btn.locked {
-    opacity: 0.7;
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.05);
+    /* Lighter bg */
+    border-color: rgba(255, 255, 255, 0.05);
 }
 
 /* B. Quest Hero (Progress Bar) */
 .hero-section {
-    margin-top: 10px;
-    margin-bottom: 20px;
+    margin-top: 16px;
+    margin-bottom: 24px;
 }
 
 .quest-card {
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 100%);
+    padding: 24px 20px;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle glow background for quest card */
+.quest-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0, 122, 255, 0.1) 0%, transparent 60%);
+    pointer-events: none;
 }
 
 .progress-container {
-    background: rgba(255,255,255,0.1);
-    height: 8px;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    height: 10px;
+    border-radius: 6px;
     overflow: hidden;
-    margin-bottom: 15px;
-    margin-top: 10px;
+    margin-bottom: 20px;
+    margin-top: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* C. Money Math Card (Benefits) */
 .benefits-card {
-    background: rgba(11, 18, 32, 0.6); /* Slightly darker than bg */
-    border: 1px solid rgba(47, 128, 237, 0.2);
-    border-radius: 16px;
-    padding: 16px;
-    margin-top: 20px;
+    background: linear-gradient(180deg, rgba(11, 18, 32, 0.8) 0%, rgba(11, 18, 32, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .benefits-title {
-    color: #4cd964; /* Greenish/Blue */
-    font-weight: bold;
-    margin-bottom: 12px;
-    font-size: 15px;
+    color: #4cd964;
+    /* Greenish/Blue */
+    font-weight: 800;
+    margin-bottom: 16px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
 }
 
 .benefit-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    color: #ccc;
-    font-size: 13px;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: #e0e0e0;
+    /* Brighter text */
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.benefit-item:last-child {
+    margin-bottom: 0;
 }
 
 /* D. Main Action Button */
-.primary-action-btn.glow-effect {
+.primary-action-btn {
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
     position: relative;
     overflow: hidden;
-    transition: transform 0.2s;
+}
+
+.primary-action-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 100%;
+    }
+
+    100% {
+        left: 100%;
+    }
 }
 
 .primary-action-btn.glow-effect:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
