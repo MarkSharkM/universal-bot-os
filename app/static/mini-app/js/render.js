@@ -1306,6 +1306,9 @@ function escapeHtml(text) {
 /**
  * Render HOME page (Action Engine)
  */
+/**
+ * Render HOME page (Action Engine)
+ */
 function renderHome() {
     const appData = AppState.getAppData();
     if (!appData) return;
@@ -1330,14 +1333,11 @@ function renderHome() {
     // 3. Render Primary Action Card
     renderActionCard(isTop, referralCount);
 
-    // 4. Render Benefits Card (Filling the void)
-    renderBenefitsCard(isTop);
+    // 4. Render Money Math Card (Benefits)
+    renderMoneyMathCard(isTop);
 
     // 5. Render Info Section (Footer)
     renderInfoSection(true); // true = as footer link
-
-    // wallet banner moved to header pill logic mostly, but can keep as fallback if desired.
-    // User asked to "Remove Duplicate", so we rely on Header Wallet Pill.
 }
 
 /**
@@ -1365,8 +1365,9 @@ function renderPersistentHeader(user, isTop) {
 
     // Wallet Logic
     const walletAddress = user?.wallet || AppState.getAppData()?.user?.wallet;
-    const shortWallet = walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 'Wallet';
+    const shortWallet = walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 'Connect Wallet (Soon)';
     const walletClass = isTop ? '' : 'locked';
+    // If wallet is connected, show address. If not, and isTop, show "Connect Wallet". If STARTER, show "Connect Wallet (Soon)" (locked) or just "Wallet"
 
     // Wallet Click Handler
     window.handleHeaderWalletClick = () => {
@@ -1397,9 +1398,9 @@ function renderPersistentHeader(user, isTop) {
 }
 
 /**
- * Render Benefits Card (Glassmorphism)
+ * Render Money Math Card (Benefits)
  */
-function renderBenefitsCard(isTop) {
+function renderMoneyMathCard(isTop) {
     // Insert AFTER action card
     const actionCard = document.getElementById('primary-action-card');
     if (!actionCard) return;
@@ -1413,18 +1414,22 @@ function renderBenefitsCard(isTop) {
 
     benefits.innerHTML = `
         <div class="benefits-card">
-            <div class="benefits-title">⚡️ Що дає статус TOP?</div>
+            <!-- Replacing weak list with Money Math -->
+            <div class="benefits-title">💰 Money Math (Твій потенціал)</div>
             <div class="benefit-item">
-                <span style="color: #4cd964;">✅</span>
-                <span>Активація 7% доходу від Telegram</span>
+                <span>👤</span>
+                <span>1 user → ~0.35–0.70€</span>
             </div>
             <div class="benefit-item">
-                <span style="color: #4cd964;">✅</span>
-                <span>Доступ до Ексклюзивних ботів</span>
+                <span>👥</span>
+                <span>10 users → ~3.5–7.0€</span>
             </div>
             <div class="benefit-item">
-                <span style="color: #4cd964;">✅</span>
-                <span>Попадання в Лідерборд (TOP)</span>
+                <span>🚀</span>
+                <span>100 users → ~35–70€</span>
+            </div>
+            <div style="margin-top: 12px; font-size: 11px; color: #666; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                Telegram платить 7% від кожної покупки зірок.
             </div>
         </div>
     `;
@@ -1467,8 +1472,12 @@ function renderHeroSection(isTop, referralCount) {
         const progressPercent = (current / needed) * 100;
 
         container.innerHTML = `
-            <div class="quest-card" style="background: linear-gradient(145deg, #1a1a2e, #16213e); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);">           
-                <div class="progress-container" style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 15px; margin-top: 10px;">
+            <div class="quest-card">           
+                <div style="font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 5px; text-align: center;">
+                    Відкрий TOP — x3–x7 більше зірок
+                </div>
+                
+                <div class="progress-container">
                     <div style="width: ${progressPercent}%; height: 100%; background: #007aff; box-shadow: 0 0 10px #007aff; transition: width 0.5s ease;"></div>
                 </div>
                 
@@ -1480,8 +1489,10 @@ function renderHeroSection(isTop, referralCount) {
                     `).join('')}
                 </div>
                 
-                <div style="text-align: center; color: #aaa; font-size: 14px;">
-                    Запроси ще <b style="color: #fff;">${needed - current} друзів</b>, щоб активувати 7%
+                <div style="text-align: center;">
+                    <button class="text-link-btn" onclick="Actions.handleBuyTop(1)" style="background: none; border: none; color: #007aff; font-size: 13px; text-decoration: underline; cursor: pointer;">
+                        Відкрити TOP за 1⭐
+                    </button>
                 </div>
             </div>
         `;
@@ -1532,9 +1543,8 @@ function renderActionCard(isTop, referralCount) {
             <div class="action-card-content" style="text-align: center; margin-top: 20px;">
                 <button class="primary-action-btn pulse glow-effect" onclick="${savedLink ? 'Actions.shareReferralLink()' : 'document.getElementById(\'tgr-link-input\').focus()'}" 
                         style="width: 100%; padding: 18px; border-radius: 16px; background: linear-gradient(90deg, #007aff, #00d4ff); font-size: 18px; font-weight: 700; border: none; color: #fff; box-shadow: 0 4px 20px rgba(0,122,255,0.4);">
-                    💸 ${savedLink ? 'Поширити і Заробити 7%' : 'Активувати Виплати'}
+                    💸 ${savedLink ? 'Активувати 7% та Заробити' : 'Активувати Виплати'}
                 </button>
-                <div style="margin-top: 10px; color: #666; font-size: 13px;">Твоє посилання працює 24/7 автоматично</div>
             </div>
          `;
     } else {
@@ -1542,9 +1552,8 @@ function renderActionCard(isTop, referralCount) {
             <div class="action-card-content" style="text-align: center; margin-top: 20px;">
                 <button class="primary-action-btn glow-effect" onclick="Actions.shareReferralLink()"
                         style="width: 100%; padding: 18px; border-radius: 16px; background: linear-gradient(90deg, #28a745, #34d058); font-size: 18px; font-weight: 700; border: none; color: #fff; box-shadow: 0 4px 20px rgba(40,167,69,0.4);">
-                    🚀 Запросити друзів (${Math.min(referralCount, 5)}/5)
+                    🚀 Запросити (Відкрити TOP)
                 </button>
-                <div style="margin-top: 10px; color: #666; font-size: 13px;">Лінку буде скопійовано</div>
             </div>
          `;
     }
