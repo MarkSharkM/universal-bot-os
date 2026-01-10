@@ -11,6 +11,10 @@ window.Render = {
         const appData = AppState.getAppData();
         if (!appData) return;
 
+        // Ensure App Container is visible
+        const appContainer = document.getElementById('app');
+        if (appContainer) appContainer.style.display = 'block';
+
         // Apply global config customization
         if (appData.config && typeof applyBotConfig === 'function') {
             applyBotConfig(appData.config);
