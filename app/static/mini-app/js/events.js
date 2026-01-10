@@ -14,7 +14,45 @@ function setupEventHandlers() {
             }
         });
     }
-    
+
+    // Auto-refresh data when app becomes visible (e.g. after payment)
+    const tgApp = AppState.getTg();
+    if (tgApp) {
+        // Handle Telegram viewport/focus events
+        if (tgApp.onEvent) {
+            tgApp.onEvent('viewportChanged', ({ isStateStable }) => {
+                if (isStateStable) {
+                    // App might have been brought to foreground
+                    if (typeof loadAppData === 'function') {
+                        console.log('Viewport stable, reloading data...'); // Debug
+                        loadAppData(false).catch(console.error);
+                    }
+                }
+            });
+
+            tg.onEvent('activated', () => {
+                // Explicit app activation event on some platforms
+                if (typeof loadAppData === 'function') {
+                    console.log('App activated, reloading data...'); // Debug
+                    loadAppData(false).catch(console.error);
+                }
+            });
+        }
+    }
+
+    // Standard DOM focus events (fallback)
+    window.addEventListener('focus', () => {
+        if (typeof loadAppData === 'function') {
+            const now = Date.now();
+            const lastLoad = AppState.getLastLoadTime ? AppState.getLastLoadTime() : 0;
+            // Debounce: verify at most once every 2 seconds
+            if (now - lastLoad > 2000) {
+                console.log('Window focus, reloading data...');
+                loadAppData(false).catch(console.error);
+            }
+        }
+    });
+
     // Tab navigation
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {
@@ -27,7 +65,7 @@ function setupEventHandlers() {
             }
         });
     });
-    
+
     // Back button (if needed)
     const tg = AppState.getTg();
     if (tg?.BackButton) {
@@ -44,23 +82,23 @@ function setupEventHandlers() {
             }
         });
     }
-    
+
     // Swipe gestures for mobile navigation
     setupSwipeGestures();
-    
+
     // Pull-to-refresh
     setupPullToRefresh();
-    
+
     // Ripple effects for buttons
     setupRippleEffects();
-    
+
     // Event delegation for dynamic buttons with data-action
     document.addEventListener('click', (e) => {
         const action = e.target.getAttribute('data-action');
         if (!action) return;
-        
+
         if (typeof Haptic !== 'undefined') Haptic.light();
-        
+
         if (action === 'switch-top') {
             if (typeof Navigation !== 'undefined' && Navigation.switchTab) {
                 Navigation.switchTab('top');
@@ -94,7 +132,7 @@ function setupEventHandlers() {
             }
         }
     });
-    
+
     // Wallet form submit handler
     document.addEventListener('submit', (e) => {
         if (e.target.id === 'wallet-form') {
@@ -140,8 +178,8 @@ function setupEventHandlers() {
     const walletModalClose = document.getElementById('wallet-modal-close');
     if (walletModalClose) {
         walletModalClose.addEventListener('click', () => {
-             const modal = document.getElementById('wallet-modal');
-             if (modal) modal.style.display = 'none';
+            const modal = document.getElementById('wallet-modal');
+            if (modal) modal.style.display = 'none';
         });
     }
 
@@ -149,8 +187,8 @@ function setupEventHandlers() {
     const walletBannerBtn = document.getElementById('wallet-banner-btn');
     if (walletBannerBtn) {
         walletBannerBtn.addEventListener('click', () => {
-             const modal = document.getElementById('wallet-modal');
-             if (modal) modal.style.display = 'flex';
+            const modal = document.getElementById('wallet-modal');
+            if (modal) modal.style.display = 'flex';
         });
     }
 }
@@ -159,28 +197,28 @@ function setupSwipeGestures() {
     let touchStartX = 0;
     let touchEndX = 0;
     const content = document.querySelector('.content');
-    
+
     if (!content) return;
-    
+
     content.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
     }, { passive: true });
-    
+
     content.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     }, { passive: true });
-    
+
     function handleSwipe() {
         const swipeThreshold = 50;
         const diff = touchStartX - touchEndX;
-        
+
         if (Math.abs(diff) < swipeThreshold) return;
-        
+
         const tabs = ['home', 'partners', 'top'];
         const currentTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
         const currentIndex = tabs.indexOf(currentTab);
-        
+
         if (diff > 0 && currentIndex < tabs.length - 1) {
             // Swipe left - next tab
             if (typeof Navigation !== 'undefined' && Navigation.switchTab) {
@@ -202,11 +240,11 @@ function setupSwipeGestures() {
 function setupPullToRefresh() {
     const content = document.querySelector('.content');
     if (!content) return;
-    
+
     // Disable pull-to-refresh - it's too sensitive and causes accidental reloads
     // Users can refresh by closing and reopening Mini App if needed
     return;
-    
+
     // Old code below (disabled)
     /*
     let touchStartY = 0;
@@ -291,26 +329,26 @@ function setupRippleEffects() {
     document.addEventListener('click', (e) => {
         const button = e.target.closest('button, .partner-btn, .partner-card, .tab');
         if (!button) return;
-        
+
         // Skip if already has ripple
         if (button.querySelector('.ripple')) return;
-        
+
         const ripple = document.createElement('span');
         ripple.classList.add('ripple');
-        
+
         const rect = button.getBoundingClientRect();
         const size = Math.max(rect.width, rect.height);
         const x = e.clientX - rect.left - size / 2;
         const y = e.clientY - rect.top - size / 2;
-        
+
         ripple.style.width = ripple.style.height = size + 'px';
         ripple.style.left = x + 'px';
         ripple.style.top = y + 'px';
-        
+
         button.style.position = 'relative';
         button.style.overflow = 'hidden';
         button.appendChild(ripple);
-        
+
         // Remove ripple after animation
         setTimeout(() => {
             ripple.remove();
@@ -321,13 +359,13 @@ function setupRippleEffects() {
 function updatePullToRefresh(distance) {
     const indicator = document.getElementById('pull-to-refresh');
     if (!indicator) return;
-    
+
     const threshold = 120; // Match pullThreshold
     const progress = Math.min(distance / threshold, 1);
-    
+
     indicator.style.opacity = progress;
     indicator.style.transform = `translateX(-50%) translateY(${Math.min(distance, threshold) - 100}px)`;
-    
+
     if (distance >= threshold) {
         indicator.classList.add('ready');
     } else {
@@ -370,7 +408,7 @@ function hidePullToRefresh() {
 function setupOfflineDetection() {
     const indicator = document.getElementById('offline-indicator');
     if (!indicator) return;
-    
+
     function updateOfflineStatus() {
         if (!navigator.onLine) {
             indicator.style.display = 'flex';
@@ -384,10 +422,10 @@ function setupOfflineDetection() {
             indicator.style.display = 'none';
         }
     }
-    
+
     // Initial check
     updateOfflineStatus();
-    
+
     // Listen for online/offline events
     window.addEventListener('online', () => {
         updateOfflineStatus();
@@ -399,7 +437,7 @@ function setupOfflineDetection() {
             loadAppData(false).catch(err => console.error('Error reloading after online:', err));
         }
     });
-    
+
     window.addEventListener('offline', () => {
         updateOfflineStatus();
         if (typeof Toast !== 'undefined') {

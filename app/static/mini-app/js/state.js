@@ -22,7 +22,8 @@ const AppStateInternal = {
     topLocked: true, // Track TOP lock status (default: locked)
     referralCount: 0, // Track referral count for TOP unlock
     hasSeenOnboarding: false, // Track onboarding completion
-    partnersExpanded: false // Track if partners list is expanded (default: show 5)
+    partnersExpanded: false, // Track if partners list is expanded (default: show 5)
+    lastLoadTime: 0 // Track last data load time for debouncing
 };
 
 // Getters
@@ -43,6 +44,7 @@ function getTopLocked() { return AppStateInternal.topLocked; }
 function getReferralCount() { return AppStateInternal.referralCount; }
 function getHasSeenOnboarding() { return AppStateInternal.hasSeenOnboarding; }
 function getPartnersExpanded() { return AppStateInternal.partnersExpanded; }
+function getLastLoadTime() { return AppStateInternal.lastLoadTime; }
 
 // Setters
 function setTg(value) { AppStateInternal.tg = value; }
@@ -61,6 +63,7 @@ function setTopLocked(value) { AppStateInternal.topLocked = value; }
 function setReferralCount(value) { AppStateInternal.referralCount = value; }
 function setHasSeenOnboarding(value) { AppStateInternal.hasSeenOnboarding = value; }
 function setPartnersExpanded(value) { AppStateInternal.partnersExpanded = value; }
+function setLastLoadTime(value) { AppStateInternal.lastLoadTime = value; }
 
 // Navigation history helpers
 function pushNavigationHistory(page) {
@@ -77,12 +80,12 @@ function clearNavigationHistory() {
 
 // Export (namespace pattern for compatibility)
 // Immediately export to ensure it's available as soon as script loads
-(function() {
+(function () {
     try {
         window.AppState = {
             // State object (for direct access if needed)
             state: AppStateInternal,
-            
+
             // Getters
             getTg,
             getBotId,
@@ -101,7 +104,8 @@ function clearNavigationHistory() {
             getReferralCount,
             getHasSeenOnboarding,
             getPartnersExpanded,
-            
+            getLastLoadTime,
+
             // Setters
             setTg,
             setBotId,
@@ -119,13 +123,14 @@ function clearNavigationHistory() {
             setReferralCount,
             setHasSeenOnboarding,
             setPartnersExpanded,
-            
+            setLastLoadTime,
+
             // Navigation helpers
             pushNavigationHistory,
             popNavigationHistory,
             clearNavigationHistory
         };
-        
+
         // Log success (only in development)
         if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
             console.log('✅ AppState module loaded successfully');
@@ -135,41 +140,41 @@ function clearNavigationHistory() {
         // Still try to export something to prevent complete failure
         window.AppState = {
             getTg: () => null,
-            setTg: () => {},
+            setTg: () => { },
             getBotId: () => null,
-            setBotId: () => {},
+            setBotId: () => { },
             getUserId: () => null,
-            setUserId: () => {},
+            setUserId: () => { },
             getAppData: () => null,
-            setAppData: () => {},
+            setAppData: () => { },
             getCurrentPage: () => 'home',
-            setCurrentPage: () => {},
+            setCurrentPage: () => { },
             getNavigationHistory: () => [],
-            pushNavigationHistory: () => {},
+            pushNavigationHistory: () => { },
             popNavigationHistory: () => null,
-            clearNavigationHistory: () => {},
+            clearNavigationHistory: () => { },
             getIsInitialLoad: () => true,
-            setIsInitialLoad: () => {},
+            setIsInitialLoad: () => { },
             getIsLoadingData: () => false,
-            setIsLoadingData: () => {},
+            setIsLoadingData: () => { },
             getLoadDataTimeout: () => null,
-            setLoadDataTimeout: () => {},
+            setLoadDataTimeout: () => { },
             getFilteredPartners: () => [],
-            setFilteredPartners: () => {},
+            setFilteredPartners: () => { },
             getCurrentSort: () => 'name',
-            setCurrentSort: () => {},
+            setCurrentSort: () => { },
             getCurrentFilter: () => 'all',
-            setCurrentFilter: () => {},
+            setCurrentFilter: () => { },
             getDidStart7Flow: () => false,
-            setDidStart7Flow: () => {},
+            setDidStart7Flow: () => { },
             getTopLocked: () => true,
-            setTopLocked: () => {},
+            setTopLocked: () => { },
             getReferralCount: () => 0,
-            setReferralCount: () => {},
+            setReferralCount: () => { },
             getHasSeenOnboarding: () => false,
-            setHasSeenOnboarding: () => {},
+            setHasSeenOnboarding: () => { },
             getPartnersExpanded: () => false,
-            setPartnersExpanded: () => {}
+            setPartnersExpanded: () => { }
         };
     }
 })();

@@ -121,15 +121,37 @@ async function getBotIdFromUrl() {
     let botId = params.get('bot_id');
 
     const tg = AppState.getTg();
+
+    // Check start_param from initDataUnsafe (standard Telegram deep linking)
+    if (!botId && tg?.initDataUnsafe?.start_param) {
+        // If start_param is a UUID, assume it's the bot_id (direct launch)
+        // Or if it's a referral code, we might need to resolve it via API.
+        // For now, let's assume if it looks like a UUID, it might be relevant, 
+        // BUT most likely start_param is a referral code (integer).
+        // So we should rely on the API to resolve the bot_id from context if missing.
+        console.log('Found start_param:', tg.initDataUnsafe.start_param);
+        // Note: start_param is usually referer ID, not bot ID. 
+        // Bot ID usually comes from the bot instance itself.
+    }
+
+    // IMPORTANT: If we are in a bot, the server knows which bot it is by the TOKEN used to validate initData.
+    // So the API call below is the most reliable way.
+
     // If not in URL, try to get from initData via API
     if (!botId && tg?.initData) {
         try {
             const initData = tg.initData;
-            const response = await fetch(`${API_BASE}/api/v1/mini-apps/mini-app/bot-id?init_data=${encodeURIComponent(initData)}`);
+            // Add start_param to request if available
+            let url = `${API_BASE}/api/v1/mini-apps/mini-app/bot-id?init_data=${encodeURIComponent(initData)}`;
+            if (tg.initDataUnsafe?.start_param) {
+                url += `&ref=${encodeURIComponent(tg.initDataUnsafe.start_param)}`;
+            }
+
+            const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
                 botId = data.bot_id;
-                console.log('Got bot_id from initData:', botId);
+                console.log('Got bot_id from initData API:', botId);
             }
         } catch (error) {
             console.error('Error getting bot_id from initData:', error);
@@ -379,6 +401,9 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         if (data.ok === true || data.ok === undefined) {
             // If ok is undefined, assume success (backward compatibility)
             AppState.setAppData(data);
+            if (AppState.setLastLoadTime) {
+                AppState.setLastLoadTime(Date.now());
+            }
 
             // Initialize TON Connect after app data is loaded
             // Check if TON Connect SDK is loaded from CDN first

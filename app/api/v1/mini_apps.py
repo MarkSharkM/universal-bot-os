@@ -121,7 +121,14 @@ async def tonconnect_manifest(
             target_bot = db.query(Bot).filter(Bot.id == bot_id).first()
             if target_bot:
                 bot_config = target_bot.config or {}
-                bot_name = bot_config.get("name", target_bot.name or bot_name)
+                # PRIORITIZE: Manual Name -> First Name (TG) -> Username (TG) -> Internal Name -> Fallback
+                bot_name = (
+                    bot_config.get("name") or 
+                    bot_config.get("first_name") or 
+                    bot_config.get("username") or 
+                    target_bot.name or 
+                    bot_name
+                )
                 logger.info(f"Using manifest for specific bot: {bot_name} ({bot_id})")
         except Exception as e:
             logger.error(f"Error fetching bot {bot_id} for manifest: {e}")
@@ -131,7 +138,13 @@ async def tonconnect_manifest(
             active_bot = db.query(Bot).filter(Bot.is_active == True).first()
             if active_bot:
                 bot_config = active_bot.config or {}
-                bot_name = bot_config.get("name", active_bot.name or bot_name)
+                bot_name = (
+                    bot_config.get("name") or 
+                    bot_config.get("first_name") or 
+                    bot_config.get("username") or 
+                    active_bot.name or 
+                    bot_name
+                )
                 logger.info(f"Using default dynamic name from active bot: {bot_name}")
         except Exception as db_err:
             logger.error(f"Error fetching default bot for manifest: {db_err}")
@@ -804,7 +817,13 @@ async def get_mini_app_data(
                 # - `config.ui.*` is the canonical shape expected by Mini App frontend
                 # Username is already synced above if missing (critical for TON Connect twaReturnUrl)
                 "username": bot_config.get("username", ""),  # Bot username for TON Connect (required!)
-                "name": bot_config.get("name", bot.name or "Mini App"),  # Bot name
+                "name": (
+                    bot_config.get("name") or 
+                    bot_config.get("first_name") or 
+                    bot_config.get("username") or 
+                    bot.name or 
+                    "Mini App"
+                ),  # Bot name with dynamic fallback
                 # - `theme/colors/features` are kept for backward compatibility with older frontends
                 "ui": {
                     "theme": bot_config.get("ui", {}).get("theme", "dark"),

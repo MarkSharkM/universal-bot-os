@@ -1688,9 +1688,10 @@ function renderWalletBanner() {
     console.log('[Render] renderWalletBanner:', {
         hasAppData: !!appData,
         hasUser: !!appData?.user,
-        wallet: wallet ? `${wallet.substring(0, 10)}...` : 'empty',
+        walletRaw: wallet,
+        walletTrimmed: walletTrimmed,
         walletLength: walletTrimmed.length,
-        willShow: !walletTrimmed || walletTrimmed.length < 20
+        decisionSafe: (!walletTrimmed || walletTrimmed.length < 20) ? 'SHOW_BANNER' : 'HIDE_BANNER'
     });
 
     // Show banner only if wallet is not connected
