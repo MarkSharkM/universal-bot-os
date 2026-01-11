@@ -105,12 +105,13 @@ window.Pages.Top = {
                 if (window.Haptic) Haptic.light();
                 if (window.trackEvent) trackEvent('top_partner_click_direct', { partner_id: partnerIdStr, rank: index + 1 });
 
+                const link = partner.referral_link || partner.link; // Fallback
+
                 // Direct open logic (Skip Detail View)
                 if (window.Actions && window.Actions.openPartner) {
-                    Actions.openPartner(partner.link, partnerIdStr);
+                    Actions.openPartner(link, partnerIdStr);
                 } else {
                     // Fallback
-                    const link = partner.link;
                     if (link) window.open(link, '_blank');
                 }
             });
@@ -124,12 +125,13 @@ window.Pages.Top = {
 
             const partnerName = partner.name || 'Bot';
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
-            // Users count removed to match bot logic
+            const commission = partner.commission || 0;
 
             // Extract username from link for fallback
             let tgFallbackUrl = null;
-            if (partner.link && partner.link.includes('t.me/')) {
-                const parts = partner.link.split('t.me/');
+            const linkForFallback = partner.referral_link || partner.link;
+            if (linkForFallback && linkForFallback.includes('t.me/')) {
+                const parts = linkForFallback.split('t.me/');
                 if (parts[1]) {
                     const username = parts[1].split(/[/?#]/)[0];
                     if (username) {
@@ -145,6 +147,7 @@ window.Pages.Top = {
                     <div class="top-name">${escapeHtml(partnerName)}</div>
                     <div class="top-meta">
                         <span class="top-category">${partner.category || 'App'}</span>
+                        ${commission > 0 ? `<span class="top-commission">🔥 ${commission}% share</span>` : ''}
                     </div>
                 </div>
                 <div class="top-action">

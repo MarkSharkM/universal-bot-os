@@ -137,12 +137,13 @@ window.Pages.Partners = {
                 if (window.Haptic) Haptic.light();
                 if (window.trackEvent) trackEvent('partner_click_direct', { partner_id: partnerIdStr });
 
+                const link = partner.referral_link || partner.link; // Fallback to link if it exists
+
                 // Direct open logic (Skip Detail View)
                 if (window.Actions && window.Actions.openPartner) {
-                    Actions.openPartner(partner.link, partnerIdStr);
+                    Actions.openPartner(link, partnerIdStr);
                 } else {
                     // Fallback
-                    const link = partner.link;
                     if (link) window.open(link, '_blank');
                 }
             });
@@ -150,12 +151,13 @@ window.Pages.Partners = {
 
             const partnerName = partner.name || 'Partner';
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
-            const commission = partner.commission || 0;
+            // Commission removed from here as per request (only in Top)
 
             // Extract username from link for fallback
             let tgFallbackUrl = null;
-            if (partner.link && partner.link.includes('t.me/')) {
-                const parts = partner.link.split('t.me/');
+            const linkForFallback = partner.referral_link || partner.link;
+            if (linkForFallback && linkForFallback.includes('t.me/')) {
+                const parts = linkForFallback.split('t.me/');
                 if (parts[1]) {
                     const username = parts[1].split(/[/?#]/)[0]; // Remove ?start=... or /
                     if (username) {
@@ -172,9 +174,8 @@ window.Pages.Partners = {
                             <h3 class="partner-name">${escapeHtml(partnerName)}</h3>
                             ${isTop ? '<span class="verified-badge">✓</span>' : ''}
                         </div>
-                        <div class="commission-badge">
-                            <span class="commission-value">${commission}%</span>
-                            <span class="commission-label">share</span>
+                        <div class="partner-category">
+                            ${partner.category || 'App'}
                         </div>
                     </div>
                 </div>

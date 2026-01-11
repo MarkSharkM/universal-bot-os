@@ -729,6 +729,16 @@
     gap: 12px;
 }
 
+.top-commission {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    color: #ff9500;
+    /* Orange/Gold */
+    font-weight: 600;
+    margin-left: 6px;
+}
+
 .top-item {
     display: flex;
     align-items: center;
