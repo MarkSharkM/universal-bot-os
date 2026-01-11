@@ -157,9 +157,21 @@ window.Pages.Partners = {
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
             const commission = partner.commission || 0;
 
+            // Extract username from link for fallback
+            let tgFallbackUrl = null;
+            if (partner.link && partner.link.includes('t.me/')) {
+                const parts = partner.link.split('t.me/');
+                if (parts[1]) {
+                    const username = parts[1].split(/[/?#]/)[0]; // Remove ?start=... or /
+                    if (username) {
+                        tgFallbackUrl = `https://t.me/i/userpic/320/${username}.jpg`;
+                    }
+                }
+            }
+
             card.innerHTML = `
                 <div class="partner-header">
-                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-icon" onerror="handleImageError(this, this.alt)">
+                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-icon" onerror="handleImageError(this, '${escapeHtml(partnerName)}', '${tgFallbackUrl || ''}')">
                     <div class="partner-info">
                         <div class="partner-name-row">
                             <h3 class="partner-name">${escapeHtml(partnerName)}</h3>
@@ -194,9 +206,70 @@ window.Pages.Partners = {
 
             gridContainer.appendChild(card);
         });
+    },
+
+    renderPartnerDetail(partnerId) {
+        console.log('[Pages.Partners] renderDetail:', partnerId);
+        const appData = AppState.getAppData();
+        if (!appData) return;
+
+        const partners = [...(appData.partners || []), ...(appData.top_partners || [])];
+        const partner = partners.find(p => String(p.id) === String(partnerId));
+
+        if (!partner) {
+            console.error('Partner not found:', partnerId);
+            return;
+        }
+
+        const container = document.getElementById('partner-detail-content');
+        const nameEl = document.getElementById('partner-detail-name');
+
+        if (nameEl) nameEl.textContent = partner.name || 'Partner Detail';
+        if (!container) return;
+
+        const partnerImage = partner.image_url || '/static/mini-app/icon.png';
+        const commission = partner.commission || 0;
+
+        // Extract username for fallback (same logic)
+        let tgFallbackUrl = null;
+        if (partner.link && partner.link.includes('t.me/')) {
+            const parts = partner.link.split('t.me/');
+            if (parts[1]) {
+                const username = parts[1].split(/[/?#]/)[0];
+                if (username) tgFallbackUrl = `https://t.me/i/userpic/320/${username}.jpg`;
+            }
+        }
+
+        container.innerHTML = `
+            <div class="detail-hero">
+                <img src="${partnerImage}" class="detail-icon" alt="${escapeHtml(partner.name)}" onerror="handleImageError(this, '${escapeHtml(partner.name)}', '${tgFallbackUrl || ''}')">
+                <div class="detail-badges">
+                    <span class="detail-badge success">${commission}% Share</span>
+                    <span class="detail-badge info">${partner.category || 'App'}</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>📜 Description</h3>
+                <p>${escapeHtml(partner.description || partner.short_description || 'No description available.')}</p>
+            </div>
+
+            <div class="detail-section">
+                 <h3>🔗 Link</h3>
+                 <div class="detail-link-box">
+                    <span>${partner.link || 'No link'}</span>
+                    <button class="copy-btn" onclick="Utils.copyToClipboard('${partner.link}')">Copy</button>
+                 </div>
+            </div>
+
+            <button class="cta-btn main-action-btn" onclick="window.Telegram.WebApp.openTelegramLink('${partner.link}')">
+                🚀 Launch ${escapeHtml(partner.name)}
+            </button>
+        `;
     }
 };
 
 // Export to global scope
 window.renderPartners = () => window.Pages.Partners.render();
 window.renderPartnersList = (p, e) => window.Pages.Partners.renderList(p, e);
+window.renderPartnerDetail = (id) => window.Pages.Partners.renderPartnerDetail(id);

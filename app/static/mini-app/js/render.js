@@ -177,8 +177,15 @@ window.Render = {
             .replace(/'/g, "&#039;");
     },
 
-    handleImageError(img, name) {
+    handleImageError(img, name, secondaryUrl) {
         if (!img || !img.parentNode) return;
+
+        // Try secondary URL (e.g. Telegram CDN) if not already tried
+        if (secondaryUrl && !img.dataset.triedSecondary) {
+            img.dataset.triedSecondary = 'true';
+            img.src = secondaryUrl;
+            return;
+        }
 
         // Generate nice color from name
         const colors = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#009688', '#4CAF50', '#FFC107', '#FF5722'];
@@ -272,6 +279,6 @@ window.showLoading = (s) => window.Render.showLoading(s);
 window.showError = (m, t) => window.Render.showError(m, t);
 window.showSkeleton = (t) => window.Render.showSkeleton(t);
 window.hideSkeleton = (t) => window.Render.hideSkeleton(t);
-window.handleImageError = (i, n) => window.Render.handleImageError(i, n);
+window.handleImageError = (i, n, s) => window.Render.handleImageError(i, n, s);
 
 

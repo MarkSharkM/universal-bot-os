@@ -92,9 +92,21 @@ window.Pages.Top = {
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
             const users = partner.users_count || '10K+';
 
+            // Extract username from link for fallback
+            let tgFallbackUrl = null;
+            if (partner.link && partner.link.includes('t.me/')) {
+                const parts = partner.link.split('t.me/');
+                if (parts[1]) {
+                    const username = parts[1].split(/[/?#]/)[0];
+                    if (username) {
+                        tgFallbackUrl = `https://t.me/i/userpic/320/${username}.jpg`;
+                    }
+                }
+            }
+
             item.innerHTML = `
                 <div class="top-rank">${rankBadge}</div>
-                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon" onerror="handleImageError(this, this.alt)">
+                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon" onerror="handleImageError(this, '${escapeHtml(partnerName)}', '${tgFallbackUrl || ''}')">
                 <div class="top-info">
                     <div class="top-name">${escapeHtml(partnerName)}</div>
                     <div class="top-meta">
