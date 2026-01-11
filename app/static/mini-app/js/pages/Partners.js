@@ -148,16 +148,7 @@ window.Pages.Partners = {
                 }
             });
 
-            const partnerName = partner.name || 'Partner';
-            const partnerImage = partner.image_url || '/static/mini-app/icon.png';
-
-            // Defines the "Profit Badge" text
-            // Use localized description from backend (handles 5 languages)
-            // Allow up to 60 chars (approx 2 lines)
-            const description = partner.description || partner.short_description || 'Telegram App';
-            const badgeText = description.length > 60 ? description.substring(0, 60) + '...' : description;
-
-            // Extract username from link for fallback
+            // Extract username from link for fallback URL generation
             let tgFallbackUrl = null;
             const linkForFallback = partner.referral_link || partner.link;
             if (linkForFallback && linkForFallback.includes('t.me/')) {
@@ -169,6 +160,15 @@ window.Pages.Partners = {
                     }
                 }
             }
+
+            const partnerName = partner.name || 'Partner';
+
+            // PRIORITIZE: backend icon/image -> telegram userpic -> default
+            const partnerImage = partner.icon || partner.image || partner.image_url || tgFallbackUrl || '/static/mini-app/icon.png';
+
+            // Localized Description Badge
+            const description = partner.description || partner.short_description || 'Telegram App';
+            const badgeText = description.length > 60 ? description.substring(0, 60) + '...' : description;
 
             // Compact Row Layout: Logo | Info | Button
             // Using inline onclick for button to handle the specific action and stop propagation if needed

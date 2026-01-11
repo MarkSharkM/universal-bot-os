@@ -130,14 +130,26 @@ window.Pages.Top = {
             if (index === 1) rankBadge = `<span class="rank-icon">🥈</span>`;
             if (index === 2) rankBadge = `<span class="rank-icon">🥉</span>`;
 
+            // Extract username from link for fallback
+            let tgFallbackUrl = null;
+            const linkForFallback = partner.referral_link || partner.link;
+            if (linkForFallback && linkForFallback.includes('t.me/')) {
+                const parts = linkForFallback.split('t.me/');
+                if (parts[1]) {
+                    const username = parts[1].split(/[/?#]/)[0];
+                    if (username) {
+                        tgFallbackUrl = `https://t.me/i/userpic/320/${username}.jpg`;
+                    }
+                }
+            }
+
             const partnerName = partner.name || 'Bot';
-            const partnerImage = partner.image_url || '/static/mini-app/icon.png';
+            // Fix: Check partner.icon / partner.image specifically as backend provides those keys
+            const partnerImage = partner.icon || partner.image || partner.image_url || tgFallbackUrl || '/static/mini-app/icon.png';
+
             const commission = partner.commission || 0;
             const score = partner.roi_score || 0;
             const scoreDisplay = score > 0 ? `🔥 ${score}/10` : `🔥 High`;
-
-            // Extract username from link for fallback
-            let tgFallbackUrl = null;
             const linkForFallback = partner.referral_link || partner.link;
             if (linkForFallback && linkForFallback.includes('t.me/')) {
                 const parts = linkForFallback.split('t.me/');
