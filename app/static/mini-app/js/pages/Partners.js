@@ -124,11 +124,8 @@ window.Pages.Partners = {
             const partnerIdStr = typeof partnerId === 'string' ? partnerId : String(partnerId);
             const isTop = (appData.top_partners || []).some(p => String(p.id) === String(partner.id));
 
+            // Labels removed to match bot logic
             const labels = [];
-            if (isTop) labels.push(`⭐ ${AppState.getAppData()?.translations?.label_top || 'TOP'}`);
-            if ((partner.commission || 0) >= 5) labels.push(`🔥 ${AppState.getAppData()?.translations?.label_hot || 'часто купують'}`);
-            if ((partner.commission || 0) < 3) labels.push(`🛡 ${AppState.getAppData()?.translations?.label_safe || 'для новачків'}`);
-            if (index < 2) labels.push(`⚡ ${AppState.getAppData()?.translations?.label_fast || 'швидкий старт'}`);
 
             // Create card element
             const card = document.createElement('div');
@@ -181,20 +178,9 @@ window.Pages.Partners = {
                         </div>
                     </div>
                 </div>
-                
-                ${labels.length > 0 ? `
-                <div class="partner-labels">
-                    ${labels.slice(0, 3).map(label => `<span class="partner-label">${label}</span>`).join('')}
-                </div>
-                ` : ''}
 
                 <div class="partner-description">
                     ${escapeHtml(partner.short_description || partner.description || 'Офіційний партнер Telegram')}
-                </div>
-
-                <div class="partner-rating">
-                    ${'★'.repeat(Math.min(5, Math.ceil(commission / 2)))}${'☆'.repeat(5 - Math.min(5, Math.ceil(commission / 2)))}
-                    <span class="rating-value">(${commission}/10)</span>
                 </div>
 
                 <button class="partner-btn">

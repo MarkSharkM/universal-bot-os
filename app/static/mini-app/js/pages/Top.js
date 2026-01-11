@@ -94,7 +94,7 @@ window.Pages.Top = {
 
             const partnerName = partner.name || 'Bot';
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
-            const users = partner.users_count || '10K+';
+            // Users count removed to match bot logic
 
             // Extract username from link for fallback
             let tgFallbackUrl = null;
@@ -114,7 +114,6 @@ window.Pages.Top = {
                 <div class="top-info">
                     <div class="top-name">${escapeHtml(partnerName)}</div>
                     <div class="top-meta">
-                        <span class="top-users">👥 ${users}</span>
                         <span class="top-category">${partner.category || 'App'}</span>
                     </div>
                 </div>
