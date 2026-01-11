@@ -152,7 +152,10 @@ window.Pages.Partners = {
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
 
             // Defines the "Profit Badge" text
-            const badgeText = '⭐️ Stars Reward';
+            // Use localized description from backend (handles 5 languages)
+            // Allow up to 60 chars (approx 2 lines)
+            const description = partner.description || partner.short_description || 'Telegram App';
+            const badgeText = description.length > 60 ? description.substring(0, 60) + '...' : description;
 
             // Extract username from link for fallback
             let tgFallbackUrl = null;
