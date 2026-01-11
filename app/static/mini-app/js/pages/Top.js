@@ -150,16 +150,6 @@ window.Pages.Top = {
             const commission = partner.commission || 0;
             const score = partner.roi_score || 0;
             const scoreDisplay = score > 0 ? `🔥 ${score}/10` : `🔥 High`;
-            const linkForFallback = partner.referral_link || partner.link;
-            if (linkForFallback && linkForFallback.includes('t.me/')) {
-                const parts = linkForFallback.split('t.me/');
-                if (parts[1]) {
-                    const username = parts[1].split(/[/?#]/)[0];
-                    if (username) {
-                        tgFallbackUrl = `https://t.me/i/userpic/320/${username}.jpg`;
-                    }
-                }
-            }
 
             const link = partner.referral_link || partner.link;
 
