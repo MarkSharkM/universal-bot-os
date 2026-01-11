@@ -15,13 +15,19 @@ function openPartner(referralLink, partnerId) {
         return;
     }
 
-    // Log partner click
+    // Log partner click (Analytics for Charts)
     if (AppState.getBotId()) {
         const initData = AppState.getTg()?.initData || null;
-        sendCallback(AppState.getBotId(), {
-            action: 'partner_click',
-            partner_id: partnerId || null
-        }, initData).catch(err => console.error('Error logging partner click:', err));
+        // Use global sendCallback or Api.sendCallback
+        const sender = (typeof Api !== 'undefined' && Api.sendCallback) ? Api.sendCallback : (typeof sendCallback !== 'undefined' ? sendCallback : null);
+
+        if (sender) {
+            sender(AppState.getBotId(), {
+                type: 'analytics',
+                event: 'partner_click_direct',
+                data: { partner_id: partnerId || null }
+            }, initData).catch(err => console.error('Error logging partner click:', err));
+        }
     }
 
     // Use correct Telegram WebApp API method based on link type
