@@ -131,9 +131,8 @@ function onGlobalBotChange() {
     });
 
     // Clear messages when bot changes
-    const messagesList = document.getElementById('database-messages-msgs'); // corrected ID assumption, check HTML later
-    const messagesContainer = document.getElementById('database-messages-list');
-    if (messagesContainer) messagesContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</div>';
+    const messagesTbody = document.getElementById('database-messages-tbody');
+    if (messagesTbody) messagesTbody.innerHTML = '<tr><td colspan="17" style="padding: 20px; text-align: center; color: #6b7280;">Select a bot to view messages</td></tr>';
 
     // Reload current tab if it needs bot data
     const activeTab = document.querySelector('.tab-content.active');

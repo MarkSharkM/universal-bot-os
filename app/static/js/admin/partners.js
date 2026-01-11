@@ -55,7 +55,8 @@ async function loadPartners() {
                 <td>${p.roi_score || 0}</td>
                 <td>
                     <button onclick="showEditPartnerForm('${p.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
-                    <button class="btn-danger" onclick="deletePartner('${botId}', '${p.id}')" style="font-size: 12px; padding: 6px 10px;">Delete</button>
+                    <button onclick="deletePartner('${botId}', '${p.id}')" style="background: #f97316; font-size: 12px; padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">Delete</button>
+                    <button class="btn-danger" onclick="deletePartner('${botId}', '${p.id}', true)" style="font-size: 12px; padding: 6px 10px; margin-left: 2px;">Hard Delete</button>
                 </td>
             </tr>
             `;
@@ -307,7 +308,8 @@ async function updatePartnerRowInTable(partnerId, updatedPartner) {
                 <td>${updatedPartner.roi_score || 0}</td>
                 <td>
                     <button onclick="showEditPartnerForm('${updatedPartner.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
-                    <button class="btn-danger" onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${updatedPartner.id}')" style="font-size: 12px; padding: 6px 10px;">Delete</button>
+                    <button onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${updatedPartner.id}')" style="background: #f97316; font-size: 12px; padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">Delete</button>
+                    <button class="btn-danger" onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${updatedPartner.id}', true)" style="font-size: 12px; padding: 6px 10px; margin-left: 2px;">Hard Delete</button>
                 </td>
             `;
         }
@@ -344,7 +346,8 @@ async function addPartnerRowToTable(partner) {
         <td>${partner.roi_score || 0}</td>
         <td>
             <button onclick="showEditPartnerForm('${partner.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
-            <button class="btn-danger" onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${partner.id}')" style="font-size: 12px; padding: 6px 10px;">Delete</button>
+            <button onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${partner.id}')" style="background: #f97316; font-size: 12px; padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer;">Delete</button>
+            <button class="btn-danger" onclick="deletePartner('${document.getElementById('partners-bot-select').value}', '${partner.id}', true)" style="font-size: 12px; padding: 6px 10px; margin-left: 2px;">Hard Delete</button>
         </td>
     `;
 
@@ -353,12 +356,18 @@ async function addPartnerRowToTable(partner) {
     else window.partnersData = [partner];
 }
 
-async function deletePartner(botId, partnerId) {
-    if (!confirm('Are you sure?')) return;
+async function deletePartner(botId, partnerId, hardDelete = false) {
+    const confirmMsg = hardDelete
+        ? '⚠️ PERMANENT DELETE! This will remove the partner from history too. Are you sure?'
+        : 'Soft delete this partner? It will be moved to history.';
+
+    if (!confirm(confirmMsg)) return;
+
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}`, { method: 'DELETE' });
+        const url = `${API_BASE}/bots/${botId}/partners/${partnerId}?hard_delete=${hardDelete}`;
+        const res = await fetch(url, { method: 'DELETE' });
         if (res.ok) {
-            showMessage('partners-message', 'Deleted!', 'success');
+            showMessage('partners-message', hardDelete ? 'Permanently deleted!' : 'Deleted!', 'success');
             removePartnerRowFromTable(partnerId);
         }
     } catch (e) {
@@ -376,5 +385,59 @@ function removePartnerRowFromTable(partnerId) {
     });
     if (window.partnersData) {
         window.partnersData = window.partnersData.filter(p => p.id !== partnerId);
+    }
+}
+
+async function showDeletedPartners() {
+    const botId = document.getElementById('partners-bot-select').value;
+    if (!botId) {
+        alert('Please select a bot first');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/bots/${botId}/partners/deleted`);
+        const deleted = await res.json();
+
+        const tbody = document.getElementById('deleted-partners-tbody');
+        if (deleted.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No deleted partners found</td></tr>';
+        } else {
+            tbody.innerHTML = deleted.map(p => `
+                <tr id="deleted-row-${p.id}">
+                    <td>${p.bot_name}</td>
+                    <td>${p.category}</td>
+                    <td>${p.deleted_at ? new Date(p.deleted_at).toLocaleString('uk-UA') : '-'}</td>
+                    <td>
+                        <button onclick="restorePartner('${botId}', '${p.id}')" style="background: #10b981; font-size: 11px; padding: 4px 8px;">Restore</button>
+                        <button onclick="deletePartner('${botId}', '${p.id}', true)" style="background: #dc2626; color: white; font-size: 11px; padding: 4px 8px; border: none; border-radius: 4px; margin-left: 4px; cursor: pointer;">Hard Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('deleted-partners-modal').style.display = 'block';
+    } catch (e) {
+        alert('Error loading deleted partners: ' + e.message);
+    }
+}
+
+function hideDeletedPartners() {
+    document.getElementById('deleted-partners-modal').style.display = 'none';
+}
+
+async function restorePartner(botId, partnerId) {
+    try {
+        const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}/restore`, { method: 'POST' });
+        if (res.ok) {
+            alert('Partner restored!');
+            const row = document.getElementById(`deleted-row-${partnerId}`);
+            if (row) row.remove();
+            loadPartners(); // Reload active list
+        } else {
+            alert('Failed to restore partner');
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
     }
 }

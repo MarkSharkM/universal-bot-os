@@ -26,7 +26,8 @@ async function loadMessages(offset = 0, reset = false) {
         if (reset) {
             tbody.innerHTML = '';
             messagesOffset = 0;
-            window.usersData = [];
+            // Use a Map for usersData to avoid duplicates
+            window.usersDataMap = new Map();
         }
 
         if (messages.length === 0 && reset) {
@@ -36,10 +37,9 @@ async function loadMessages(offset = 0, reset = false) {
         }
 
         // Cache users from messages
-        const userMap = new Map();
         messages.forEach(msg => {
-            if (!userMap.has(msg.user_id)) {
-                userMap.set(msg.user_id, {
+            if (!window.usersDataMap.has(msg.user_id)) {
+                window.usersDataMap.set(msg.user_id, {
                     id: msg.user_id,
                     external_id: msg.external_id,
                     username: msg.username,
@@ -53,10 +53,14 @@ async function loadMessages(offset = 0, reset = false) {
                 });
             }
         });
-        window.usersData.push(...Array.from(userMap.values()));
+        // Maintain window.usersData for backward compatibility if needed, but derived from Map
+        window.usersData = Array.from(window.usersDataMap.values());
 
         messages.forEach(msg => {
             const row = document.createElement('tr');
+            row.id = `msg-row-${msg.id}`;
+            row.setAttribute('data-user-id', msg.user_id);
+
             const commandPreview = msg.command_content ? (msg.command_content.length > 20 ? msg.command_content.substring(0, 20) + '...' : msg.command_content) : '-';
             const commandExpandId = `cmd-${msg.id}`;
 
@@ -67,14 +71,14 @@ async function loadMessages(offset = 0, reset = false) {
                 <td style="font-size: 9px;">${msg.username || '-'}</td>
                 <td style="font-size: 9px;">${msg.device || '-'}</td>
                 <td style="font-size: 9px;">${msg.language || '-'}</td>
-                <td style="font-size: 9px;">${msg.wallet_address || '-'}</td>
-                <td style="font-size: 9px; text-align: center;">${msg.total_invited || 0}</td>
-                <td style="font-size: 9px; text-align: center;">
+                <td class="cell-wallet" style="font-size: 9px;">${msg.wallet_address || '-'}</td>
+                <td class="cell-invited" style="font-size: 9px; text-align: center;">${msg.total_invited || 0}</td>
+                <td class="cell-top" style="font-size: 9px; text-align: center;">
                     ${msg.top_status === 'open'
                     ? '<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px;">OPEN</span>'
                     : '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px;">LOCKED</span>'}
                 </td>
-                <td style="font-size: 9px;">${msg.balance || 0}</td>
+                <td class="cell-balance" style="font-size: 9px;">${msg.balance || 0}</td>
                 <td style="font-size: 9px;">${msg.is_active ? '✅' : '❌'}</td>
                 <td style="font-size: 9px;">${new Date(msg.created_at).toLocaleDateString()}</td>
                 <td style="font-size: 9px;">${msg.last_activity ? new Date(msg.last_activity).toLocaleDateString() : '-'}</td>
@@ -95,7 +99,7 @@ async function loadMessages(offset = 0, reset = false) {
                 <td style="font-size: 9px;">${msg.response_time_seconds || '-'}s</td>
                 <td style="font-size: 9px;">
                     <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Edit</button>
-                    <button onclick="deleteUser('${msg.user_id}', '${msg.external_id}')" style="background: #dc2626; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Del</button>
+                    <button onclick="deleteUser('${msg.user_id}', '${msg.external_id}')" style="background: #dc2626; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Hard Del</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -142,6 +146,7 @@ function showEditUserForm(userId) {
     document.getElementById('edit-user-id').value = user.id;
     document.getElementById('edit-user-total-invited').value = user.total_invited || 0;
     document.getElementById('edit-user-top-status').value = user.top_status || 'locked';
+    document.getElementById('edit-user-top-unlock-method').value = user.top_unlock_method || '';
     document.getElementById('edit-user-wallet-address').value = user.wallet_address || '';
     document.getElementById('edit-user-balance').value = user.balance || 0;
 
@@ -155,29 +160,79 @@ function hideEditUserForm() {
 
 async function updateUser() {
     const userId = document.getElementById('edit-user-id').value;
+    const topStatus = document.getElementById('edit-user-top-status').value;
+    const topUnlockMethod = document.getElementById('edit-user-top-unlock-method').value;
+    const totalInvited = document.getElementById('edit-user-total-invited').value;
+    const walletAddress = document.getElementById('edit-user-wallet-address').value;
+    const balance = document.getElementById('edit-user-balance').value;
+
     const params = new URLSearchParams({
-        top_status: document.getElementById('edit-user-top-status').value,
-        total_invited: document.getElementById('edit-user-total-invited').value,
-        wallet_address: document.getElementById('edit-user-wallet-address').value,
-        balance: document.getElementById('edit-user-balance').value
+        top_status: topStatus,
+        top_unlock_method: topUnlockMethod,
+        total_invited: totalInvited,
+        wallet_address: walletAddress,
+        balance: balance
     });
 
     try {
         const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}?${params}`, { method: 'PATCH' });
         if (res.ok) {
-            alert('Updated!');
+            showMessage('database-message', 'User updated successfully!');
             hideEditUserForm();
-            loadMessages(0, true);
+
+            // OPTIMIZED: Update only the rows for this user instead of full reload
+            updateUserRowsInTable(userId, {
+                top_status: topStatus,
+                total_invited: totalInvited,
+                wallet_address: walletAddress,
+                balance: balance
+            });
         } else {
-            alert('Failed');
+            alert('Failed to update user');
         }
     } catch (e) {
         alert('Error: ' + e.message);
     }
 }
 
+function updateUserRowsInTable(userId, newData) {
+    // 1. Update the cache
+    if (window.usersDataMap && window.usersDataMap.has(userId)) {
+        const user = window.usersDataMap.get(userId);
+        Object.assign(user, newData);
+        window.usersData = Array.from(window.usersDataMap.values());
+    }
+
+    // 2. Update the DOM rows
+    const rows = document.querySelectorAll(`tr[data-user-id="${userId}"]`);
+    rows.forEach(row => {
+        if (newData.top_status !== undefined) {
+            const topCell = row.querySelector('.cell-top');
+            if (topCell) {
+                topCell.innerHTML = newData.top_status === 'open'
+                    ? '<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px;">OPEN</span>'
+                    : '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px;">LOCKED</span>';
+            }
+        }
+        if (newData.total_invited !== undefined) {
+            const invitedCell = row.querySelector('.cell-invited');
+            if (invitedCell) invitedCell.textContent = newData.total_invited;
+        }
+        if (newData.wallet_address !== undefined) {
+            const walletCell = row.querySelector('.cell-wallet');
+            if (walletCell) walletCell.textContent = newData.wallet_address || '-';
+        }
+        if (newData.balance !== undefined) {
+            const balanceCell = row.querySelector('.cell-balance');
+            if (balanceCell) balanceCell.textContent = newData.balance || 0;
+        }
+    });
+
+    console.log(`Updated ${rows.length} rows for user ${userId}`);
+}
+
 async function deleteUser(userId, externalId) {
-    if (!confirm(`Delete user ${externalId}?`)) return;
+    if (!confirm(`⚠️ PERMANENTLY DELETE user ${externalId} and ALL related messages/analytics? This cannot be undone!`)) return;
     try {
         const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}`, { method: 'DELETE' });
         if (res.ok) {
@@ -196,8 +251,14 @@ async function resetInvites() {
     try {
         const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/reset-invites`, { method: 'POST' });
         if (res.ok) {
-            alert('Reset done!');
-            loadMessages(0, true);
+            showMessage('database-message', 'Invites reset successfully!');
+            hideEditUserForm();
+
+            // OPTIMIZED: Update only rows for this user
+            updateUserRowsInTable(userId, {
+                total_invited: 0,
+                top_status: 'locked'
+            });
         }
     } catch (e) {
         alert('Error');
@@ -211,8 +272,19 @@ async function test5Invites() {
     try {
         const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/test-5-invites`, { method: 'POST' });
         const result = await res.json();
-        alert(JSON.stringify(result, null, 2));
-        loadMessages(0, true);
+
+        if (result.success) {
+            showMessage('database-message', 'Test 5 Invites: SUCCESS! TOP unlocked.');
+            hideEditUserForm();
+
+            // OPTIMIZED: Update rows with fresh data
+            updateUserRowsInTable(userId, {
+                total_invited: result.final_state.total_invited,
+                top_status: result.final_state.top_status
+            });
+        } else {
+            alert('Simulation failed: ' + result.message);
+        }
     } catch (e) {
         alert('Error');
     }
