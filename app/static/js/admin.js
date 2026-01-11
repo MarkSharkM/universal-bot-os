@@ -1267,9 +1267,14 @@ async function loadMessages(offset = 0, reset = false) {
                 <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; max-width: 150px;">
                     <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
                         <span style="font-size: 9px; color: #6b7280;">${commandPreview}</span>
+                        ${msg.custom_data?.partner_id ? `<span style="background: #e0f2fe; color: #0284c7; padding: 1px 3px; border-radius: 3px; font-size: 8px;">P: ${msg.custom_data.partner_id.substring(0, 5)}...</span>` : ''}
                         <span style="font-size: 8px; color: #9ca3af;">▼</span>
                     </div>
-                    <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">${msg.command_content || '-'}</div>
+                    <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">
+                        <div>${msg.command_content || '-'}</div>
+                        ${msg.custom_data?.partner_id ? `<div style="margin-top: 4px; color: #0284c7;"><strong>Partner ID:</strong> ${msg.custom_data.partner_id}</div>` : ''}
+                        ${msg.custom_data ? `<div style="margin-top: 4px; border-top: 1px solid #eee; padding-top: 2px; color: #9ca3af;">${JSON.stringify(msg.custom_data, null, 2)}</div>` : ''}
+                    </div>
                 </td>
                 <td style="padding: 2px 4px; border-bottom: 1px solid #e5e7eb; font-size: 9px; text-align: center;">
                     ${msg.source ? `<span style="background: #8b5cf6; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px;">${msg.source}</span>` : '-'}
