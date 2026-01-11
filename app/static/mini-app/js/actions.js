@@ -78,73 +78,8 @@ async function handleWalletSubmit(event) {
     }
 }
 
-async function saveTgrLink() {
-    const input = document.getElementById('tgr-link-input');
-    if (!input) return;
+// Functions saveTgrLink and openBotForLink removed as per request (Admin earns, no user input)
 
-    const link = input.value.trim();
-    if (!link) {
-        if (typeof Toast !== 'undefined') Toast.error('Введіть посилання');
-        return;
-    }
-
-    // Strict validation for _tgr_
-    if (!link.includes('_tgr_')) {
-        if (typeof Toast !== 'undefined') Toast.error('Це не схоже на партнерське посилання (шукаю код _tgr_)');
-        return;
-    }
-
-    const botId = AppState.getBotId();
-    if (!botId) return;
-
-    try {
-        if (typeof Toast !== 'undefined') Toast.info('Збереження...');
-
-        const initData = AppState.getTg()?.initData || '';
-        const response = await fetch(`${API_BASE}/api/v1/mini-apps/mini-app/${botId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'save_custom_data',
-                custom_data: { tgr_link: link }
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.ok) {
-            if (typeof Toast !== 'undefined') Toast.success('✅ Лінку оновлено! Тепер кнопки поширюють твою 7% лінку.');
-            // Update local state
-            AppState.setTgrLink(link);
-
-            // Re-render home to show active status
-            if (typeof Render !== 'undefined' && Render.renderHome) {
-                Render.renderHome();
-            }
-        } else {
-            throw new Error(data.error || 'Failed to save');
-        }
-
-    } catch (e) {
-        console.error(e);
-        if (typeof Toast !== 'undefined') Toast.error('Помилка збереження');
-    }
-}
-
-function openBotForLink() {
-    // Open bot with specific param to help user get link
-    const botUsername = AppState.getAppData()?.config?.username;
-    if (botUsername) {
-        const tg = AppState.getTg();
-        const url = `https://t.me/${botUsername}?start=earnings`;
-        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-        else window.open(url, '_blank');
-    } else {
-        if (typeof Toast !== 'undefined') Toast.info('Відкрийте бота і натисніть /start');
-    }
-}
 
 
 /**
@@ -652,8 +587,8 @@ window.Actions = {
     activatePartnerAndReturn,
     fallbackCopyText,
     showCopySuccess,
-    saveTgrLink,
-    openBotForLink
+    showCopySuccess
+
 };
 // Developer Tools
 window.toggleDevMode = function (mode) {
