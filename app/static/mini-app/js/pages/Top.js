@@ -73,14 +73,18 @@ window.Pages.Top = {
             // Add click handler
             item.addEventListener('click', () => {
                 if (window.Haptic) Haptic.light();
-                if (window.trackEvent) trackEvent('top_partner_open', { partner_id: partnerIdStr, rank: index + 1 });
+                if (window.trackEvent) trackEvent('top_partner_click_direct', { partner_id: partnerIdStr, rank: index + 1 });
 
-                if (typeof Navigation !== 'undefined' && Navigation.showPartnerDetail) {
-                    Navigation.showPartnerDetail(partnerIdStr);
-                } else if (typeof showPartnerDetail === 'function') {
-                    showPartnerDetail(partnerIdStr);
+                // Direct open logic (Skip Detail View)
+                if (window.Actions && window.Actions.openPartner) {
+                    Actions.openPartner(partner.link, partnerIdStr);
+                } else {
+                    // Fallback
+                    const link = partner.link;
+                    if (link) window.open(link, '_blank');
                 }
             });
+
 
             // Rank badge style
             let rankBadge = `<span class="rank-number">#${index + 1}</span>`;

@@ -138,20 +138,18 @@ window.Pages.Partners = {
             // Add click handler for card
             card.addEventListener('click', () => {
                 if (window.Haptic) Haptic.light();
-                if (window.trackEvent) trackEvent('partner_open', { partner_id: partnerIdStr });
+                if (window.trackEvent) trackEvent('partner_click_direct', { partner_id: partnerIdStr });
 
-                if (typeof Navigation !== 'undefined' && Navigation.showPartnerDetail) {
-                    Navigation.showPartnerDetail(partnerIdStr);
-                } else if (typeof showPartnerDetail === 'function') {
-                    showPartnerDetail(partnerIdStr);
+                // Direct open logic (Skip Detail View)
+                if (window.Actions && window.Actions.openPartner) {
+                    Actions.openPartner(partner.link, partnerIdStr);
                 } else {
-                    // Inside Pages.Partners, we might need a reference or global
-                    if (window.Render && window.Render.renderPartnerDetail) {
-                        // Navigation usually handles showPartnerDetail which calls renderPartnerDetail
-                        // but for now let's assume global or Navigation is present
-                    }
+                    // Fallback
+                    const link = partner.link;
+                    if (link) window.open(link, '_blank');
                 }
             });
+
 
             const partnerName = partner.name || 'Partner';
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
