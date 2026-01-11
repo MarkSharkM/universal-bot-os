@@ -129,29 +129,30 @@ window.Pages.Partners = {
 
             // Create card element
             const card = document.createElement('div');
-            card.className = `partner-card ${isTop ? 'top-partner' : ''}`;
+            card.className = `partner-compact-row ${isTop ? 'top-partner-highlight' : ''}`;
             card.setAttribute('data-partner-id', partnerIdStr);
 
             // Add click handler for card
-            card.addEventListener('click', () => {
+            card.addEventListener('click', (e) => {
+                // Prevent trigger if clicking button directly (handled by button's own listener if needed, but here simple click is fine)
+                if (e.target.tagName === 'BUTTON') return;
+
                 if (window.Haptic) Haptic.light();
                 if (window.trackEvent) trackEvent('partner_click_direct', { partner_id: partnerIdStr });
 
-                const link = partner.referral_link || partner.link; // Fallback to link if it exists
-
-                // Direct open logic (Skip Detail View)
+                const link = partner.referral_link || partner.link;
                 if (window.Actions && window.Actions.openPartner) {
                     Actions.openPartner(link, partnerIdStr);
                 } else {
-                    // Fallback
                     if (link) window.open(link, '_blank');
                 }
             });
 
-
             const partnerName = partner.name || 'Partner';
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
-            // Commission removed from here as per request (only in Top)
+
+            // Defines the "Profit Badge" text
+            const badgeText = '⭐️ Stars Reward';
 
             // Extract username from link for fallback
             let tgFallbackUrl = null;
@@ -159,34 +160,30 @@ window.Pages.Partners = {
             if (linkForFallback && linkForFallback.includes('t.me/')) {
                 const parts = linkForFallback.split('t.me/');
                 if (parts[1]) {
-                    const username = parts[1].split(/[/?#]/)[0]; // Remove ?start=... or /
+                    const username = parts[1].split(/[/?#]/)[0];
                     if (username) {
                         tgFallbackUrl = `https://t.me/i/userpic/320/${username}.jpg`;
                     }
                 }
             }
 
+            // Compact Row Layout: Logo | Info | Button
+            // Using inline onclick for button to handle the specific action and stop propagation if needed
+            const link = partner.referral_link || partner.link;
+
             card.innerHTML = `
-                <div class="partner-header">
-                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-icon" onerror="handleImageError(this, '${escapeHtml(partnerName)}', '${tgFallbackUrl || ''}')">
-                    <div class="partner-info">
-                        <div class="partner-name-row">
-                            <h3 class="partner-name">${escapeHtml(partnerName)}</h3>
-                            ${isTop ? '<span class="verified-badge">✓</span>' : ''}
-                        </div>
-                        <div class="partner-category">
-                            ${partner.category || 'App'}
-                        </div>
-                    </div>
+                <div class="partner-row-left">
+                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-logo-compact" onerror="handleImageError(this, '${escapeHtml(partnerName)}', '${tgFallbackUrl || ''}')">
                 </div>
-
-                <div class="partner-description">
-                    ${escapeHtml(partner.short_description || partner.description || 'Офіційний партнер Telegram')}
+                <div class="partner-row-middle">
+                    <h3 class="partner-title-compact">${escapeHtml(partnerName)}</h3>
+                    <div class="partner-badge-compact">💰 ${badgeText}</div>
                 </div>
-
-                <button class="partner-btn">
-                    ${AppState.getAppData()?.translations?.open || 'Відкрити'}
-                </button>
+                <div class="partner-row-right">
+                    <button class="partner-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
+                        OPEN
+                    </button>
+                </div>
             `;
 
             gridContainer.appendChild(card);

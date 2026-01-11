@@ -75,8 +75,8 @@ window.Pages.Top = {
             const header = document.createElement('div');
             header.className = 'top-header';
             header.innerHTML = `
-                <h2>🏆 ${AppState.getAppData()?.translations?.top_bots_title || 'TOP Telegram Bots'}</h2>
-                <p class="top-subtitle">${AppState.getAppData()?.translations?.top_bots_subtitle || 'Найпопулярніші боти цього тижня'}</p>
+                <h2>🏆 ${AppState.getAppData()?.translations?.top_profits_title || 'Most Profitable'}</h2>
+                <p class="top-subtitle">${AppState.getAppData()?.translations?.top_profits_subtitle || 'Найвигідніші пропозиції тижня'}</p>
             `;
             container.appendChild(header);
 
@@ -97,21 +97,28 @@ window.Pages.Top = {
             const partnerIdStr = typeof partnerId === 'string' ? partnerId : String(partnerId);
 
             const item = document.createElement('div');
-            item.className = 'top-item';
+            // Add top-podium classes for 1st, 2nd, 3rd
+            let podiumClass = '';
+            if (index === 0) podiumClass = 'podium-gold';
+            else if (index === 1) podiumClass = 'podium-silver';
+            else if (index === 2) podiumClass = 'podium-bronze';
+
+            item.className = `top-item-card ${podiumClass}`;
             item.setAttribute('data-rank', index + 1);
 
             // Add click handler
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+
                 if (window.Haptic) Haptic.light();
                 if (window.trackEvent) trackEvent('top_partner_click_direct', { partner_id: partnerIdStr, rank: index + 1 });
 
                 const link = partner.referral_link || partner.link; // Fallback
 
-                // Direct open logic (Skip Detail View)
+                // Direct open logic
                 if (window.Actions && window.Actions.openPartner) {
                     Actions.openPartner(link, partnerIdStr);
                 } else {
-                    // Fallback
                     if (link) window.open(link, '_blank');
                 }
             });
@@ -126,6 +133,8 @@ window.Pages.Top = {
             const partnerName = partner.name || 'Bot';
             const partnerImage = partner.image_url || '/static/mini-app/icon.png';
             const commission = partner.commission || 0;
+            const score = partner.roi_score || 0;
+            const scoreDisplay = score > 0 ? `🔥 ${score}/10` : `🔥 High`;
 
             // Extract username from link for fallback
             let tgFallbackUrl = null;
@@ -140,18 +149,25 @@ window.Pages.Top = {
                 }
             }
 
+            const link = partner.referral_link || partner.link;
+
+            // Updated Layout: Grid for Podium/Card
             item.innerHTML = `
-                <div class="top-rank">${rankBadge}</div>
-                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon" onerror="handleImageError(this, '${escapeHtml(partnerName)}', '${tgFallbackUrl || ''}')">
-                <div class="top-info">
-                    <div class="top-name">${escapeHtml(partnerName)}</div>
-                    <div class="top-meta">
-                        <span class="top-category">${partner.category || 'App'}</span>
-                        ${commission > 0 ? `<span class="top-commission">🔥 ${commission}% share</span>` : ''}
+                <div class="top-row-left">
+                    <div class="top-rank-wrapper">${rankBadge}</div>
+                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon-new" onerror="handleImageError(this, '${escapeHtml(partnerName)}', '${tgFallbackUrl || ''}')">
+                </div>
+                <div class="top-row-middle">
+                    <div class="top-name-new">${escapeHtml(partnerName)}</div>
+                    <div class="top-metrics">
+                        <span class="metric-score">${scoreDisplay}</span>
+                        ${commission > 0 ? `<span class="metric-separator">•</span><span class="metric-commission">${commission}% share</span>` : ''}
                     </div>
                 </div>
-                <div class="top-action">
-                    <button class="top-btn">Open</button>
+                <div class="top-row-right">
+                    <button class="top-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
+                        OPEN
+                    </button>
                 </div>
             `;
 

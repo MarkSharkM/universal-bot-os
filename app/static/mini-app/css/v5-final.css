@@ -923,3 +923,246 @@
 .main-action-btn {
     margin-top: 10px;
 }
+
+/* ==========================================================================
+   PARTNERS TAB REDESIGN (JUICY ROW)
+   ========================================================================== */
+
+/* Grid Layout for Partners List */
+.partners-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Compact gap */
+    padding-bottom: 20px;
+}
+
+/* The Compact Card */
+.partner-compact-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    /* Fallback */
+    background: var(--card-bg, #1c1c1e);
+    border-radius: 16px;
+    padding: 10px 12px;
+    margin: 0;
+    /* Margin controlled by parent flex gap */
+}
+
+/* Top Partner Highlight in List */
+.top-partner-highlight {
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    /* Gold tint */
+    background: linear-gradient(90deg, rgba(28, 28, 30, 1) 0%, rgba(44, 44, 46, 1) 100%);
+}
+
+/* Left: Logo */
+.partner-row-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.partner-logo-compact {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    /* Squircle */
+    object-fit: cover;
+    display: block;
+}
+
+/* Middle: Title & Badge */
+.partner-row-middle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    /* For truncation */
+}
+
+.partner-title-compact {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.partner-badge-compact {
+    font-size: 12px;
+    font-weight: 500;
+    color: #34C759;
+    /* Green for profit */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Right: Pill Button */
+.partner-row-right {
+    display: flex;
+    align-items: center;
+}
+
+.partner-open-btn-pill {
+    background: var(--primary-color, #007aff);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 20px;
+    /* Pill shape */
+    border: none;
+    cursor: pointer;
+    min-width: 70px;
+    text-align: center;
+    transition: opacity 0.2s;
+}
+
+.partner-open-btn-pill:active {
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   TOP TAB REDESIGN (THE PODIUM)
+   ========================================================================== */
+
+/* Top Item Card */
+.top-item-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    background: var(--card-bg, #1c1c1e);
+    border-radius: 16px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    /* Prepare for borders */
+}
+
+/* Podium Borders */
+.podium-gold {
+    border: 1px solid #FFD700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+}
+
+.podium-silver {
+    border: 1px solid #C0C0C0;
+    box-shadow: 0 0 8px rgba(192, 192, 192, 0.1);
+}
+
+.podium-bronze {
+    border: 1px solid #CD7F32;
+    box-shadow: 0 0 8px rgba(205, 127, 50, 0.1);
+}
+
+/* Left: Rank & Logo */
+.top-row-left {
+    display: grid;
+    grid-template-columns: 24px 48px;
+    /* Rank fixed width, Logo fixed width */
+    align-items: center;
+    gap: 8px;
+}
+
+.top-rank-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+.top-icon-new {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+/* Middle: Name & Metrics */
+.top-row-middle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.top-name-new {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top-metrics {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    gap: 4px;
+}
+
+.metric-score {
+    color: #FF9500;
+    /* Orange */
+    font-weight: 600;
+}
+
+.metric-separator {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.metric-commission {
+    color: var(--text-primary);
+}
+
+/* Right: Pill Button */
+.top-row-right {
+    display: flex;
+    align-items: center;
+}
+
+.top-open-btn-pill {
+    background: rgba(255, 255, 255, 0.1);
+    /* Subtle for Top list to let borders shine */
+    color: var(--primary-color, #007aff);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    min-width: 70px;
+}
+
+/* Adjustments for podium buttons */
+.podium-gold .top-open-btn-pill {
+    background: rgba(255, 215, 0, 0.15);
+    color: #FFD700;
+}
+
+.podium-silver .top-open-btn-pill {
+    background: rgba(192, 192, 192, 0.15);
+    color: #E0E0E0;
+}
+
+.podium-bronze .top-open-btn-pill {
+    background: rgba(205, 127, 50, 0.15);
+    color: #CD7F32;
+}
