@@ -10,6 +10,7 @@ const CACHE_NAME = 'mini-app-v5.3-final';
 const urlsToCache = [
     '/',
     '/static/mini-app/css/styles.css',
+    '/static/mini-app/css/v5-final.css',
     '/static/mini-app/js/app.js'
 ];
 
