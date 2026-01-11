@@ -6,7 +6,7 @@
  * Can be enabled in the future for web push notifications.
  */
 
-const CACHE_NAME = 'mini-app-v1';
+const CACHE_NAME = 'mini-app-v2-fixed';
 const urlsToCache = [
     '/',
     '/static/mini-app/css/styles.css',
