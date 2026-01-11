@@ -177,7 +177,7 @@ window.Pages.Partners = {
                 </div>
                 <div class="partner-row-middle">
                     <h3 class="partner-title-compact">${escapeHtml(partnerName)}</h3>
-                    <div class="partner-badge-compact">💰 ${badgeText}</div>
+                    <div class="partner-badge-compact">${escapeHtml(badgeText)}</div>
                 </div>
                 <div class="partner-row-right">
                     <button class="partner-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
