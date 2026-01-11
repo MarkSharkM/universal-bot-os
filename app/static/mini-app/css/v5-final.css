@@ -1114,9 +1114,15 @@
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 4px;
-    white-space: nowrap;
+    white-space: normal;
+    /* Allow wrapping */
     overflow: hidden;
     text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* Limit to 2 lines */
+    -webkit-box-orient: vertical;
+    line-height: 1.2;
 }
 
 .top-metrics {
