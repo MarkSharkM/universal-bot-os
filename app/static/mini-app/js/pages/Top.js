@@ -75,7 +75,7 @@ window.Pages.Top = {
             const header = document.createElement('div');
             header.className = 'top-header';
             header.innerHTML = `
-                <h2>🏆 ${AppState.getAppData()?.translations?.top_profits_title || 'Most Profitable'}</h2>
+                <h2>🏆 ${AppState.getAppData()?.translations?.top_profits_title || 'ТОП партнери'}</h2>
                 <p class="top-subtitle">${AppState.getAppData()?.translations?.top_profits_subtitle || 'Найвигідніші пропозиції тижня'}</p>
             `;
             container.appendChild(header);
@@ -168,7 +168,7 @@ window.Pages.Top = {
                 </div>
                 <div class="top-row-right">
                     <button class="top-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
-                        OPEN
+                        Відкрити ↗
                     </button>
                 </div>
             `;
