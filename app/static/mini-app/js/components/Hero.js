@@ -30,7 +30,18 @@ window.Components.Hero = function (isTop, referralCount) {
                     </div>
                 </div>
                 
-                <!-- Link section removed by request: Admin earns, user does not input link -->
+                <div class="tgr-link-section">
+                     ${savedLink
+                ? `<div class="link-active">✅ Link Connected</div>`
+                : `<div class="tgr-input-group">
+                       <div class="tgr-input-icon">🔗</div>
+                       <input type="text" id="tgr-link-input" class="tgr-input" placeholder="Paste your 7% link here...">
+                       <button class="tgr-save-btn" onclick="Actions.saveTgrLink()">Save</button>
+                   </div>`
+            }
+                </div>
+
+                ${!savedLink ? `<div class="input-helper-text" onclick="Actions.openBotForLink()">Де взяти лінку?</div>` : ''}
 
 
                  <button class="cta-btn green-glow" onclick="Actions.shareReferralLink()">
