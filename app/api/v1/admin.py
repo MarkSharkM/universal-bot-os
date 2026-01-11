@@ -14,6 +14,7 @@ from app.models.bot import Bot
 from app.models.business_data import BusinessData
 from app.models.user import User
 from app.models.translation import Translation
+from app.models.analytics_event import AnalyticsEvent
 from app.schemas.bot import BotCreate, BotUpdate, BotResponse
 from app.services.ai_service import AIService
 from app.services.translation_service import TranslationService
@@ -645,6 +646,137 @@ async def get_bot_stats(
             "active": active_partners_count
         },
         "total_balance": float(total_balance)
+    }
+
+
+@router.get("/bots/{bot_id}/stats/analytics")
+async def get_bot_analytics(
+    bot_id: UUID,
+    days: int = Query(30, ge=1, le=90),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed analytics for charts.
+    
+    Args:
+        bot_id: Bot UUID
+        days: Number of days to analyze (default 30)
+        db: Database session
+    
+    Returns:
+        Analytics data (daily clicks, top partners)
+    """
+    from sqlalchemy import func, desc, and_
+    from datetime import datetime, timedelta
+    
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status_code=404, detail="Bot not found")
+        
+    since_date = datetime.now() - timedelta(days=days)
+    
+    # 1. Daily Clicks (for Line Chart)
+    # Group by date(created_at)
+    daily_clicks = db.query(
+        func.date(AnalyticsEvent.created_at).label('date'),
+        func.count(AnalyticsEvent.id).label('count')
+    ).filter(
+        and_(
+            AnalyticsEvent.bot_id == bot_id,
+            AnalyticsEvent.event_name == 'partner_click_direct',
+            AnalyticsEvent.created_at >= since_date
+        )
+    ).group_by(
+        func.date(AnalyticsEvent.created_at)
+    ).order_by(
+        func.date(AnalyticsEvent.created_at)
+    ).all()
+    
+    formatted_daily = [
+        {"date": str(row.date), "count": row.count} 
+        for row in daily_clicks
+    ]
+    
+    # Fill missing dates
+    final_daily = []
+    current_date = since_date.date()
+    end_date = datetime.now().date()
+    
+    daily_map = {d['date']: d['count'] for d in formatted_daily}
+    
+    while current_date <= end_date:
+        date_str = str(current_date)
+        final_daily.append({
+            "date": date_str,
+            "count": daily_map.get(date_str, 0)
+        })
+        current_date += timedelta(days=1)
+    
+    # 2. Top Partners (for Bar Chart / List)
+    # Parse event_data->>'partner_id'
+    # Note: SQLite vs Postgres JSON handling might differ, using Python generic way if needed
+    # But usually Postgres handles ->> fine. Railway uses Postgres.
+    
+    # Get all click events to aggregate in python if SQL is complex with JSON extraction
+    # OR try direct SQL grouping. Let's try direct SQL first.
+    
+    top_partners_query = db.query(
+        func.json_extract_path_text(AnalyticsEvent.event_data, 'partner_id').label('partner_id'),
+        func.count(AnalyticsEvent.id).label('count')
+    ).filter(
+        and_(
+            AnalyticsEvent.bot_id == bot_id,
+            AnalyticsEvent.event_name == 'partner_click_direct',
+            AnalyticsEvent.created_at >= since_date
+        )
+    ).group_by(
+        func.json_extract_path_text(AnalyticsEvent.event_data, 'partner_id')
+    ).order_by(
+        desc('count')
+    ).limit(10).all()
+    
+    # Fetch partner names
+    partner_ids = [row.partner_id for row in top_partners_query if row.partner_id]
+    
+    # If partner_ids are UUIDs, fetch names. If they are temp IDs, just use ID.
+    # Assuming standard UUIDs for partners.
+    
+    partner_names = {}
+    if partner_ids:
+        try:
+            # Filter valid UUIDs
+            valid_uuids = []
+            for pid in partner_ids:
+                try:
+                    UUID(str(pid))
+                    valid_uuids.append(pid)
+                except:
+                    pass
+            
+            if valid_uuids:
+                partners = db.query(BusinessData).filter(
+                    BusinessData.id.in_(valid_uuids)
+                ).all()
+                for p in partners:
+                    partner_names[str(p.id)] = p.data.get('bot_name', 'Unknown')
+        except Exception as e:
+            logger.error(f"Error fetching partner names: {e}")
+            
+    top_partners = []
+    for row in top_partners_query:
+        if not row.partner_id:
+            continue
+        name = partner_names.get(str(row.partner_id), f"Partner {str(row.partner_id)[:8]}")
+        top_partners.append({
+            "id": row.partner_id,
+            "name": name,
+            "count": row.count
+        })
+        
+    return {
+        "daily_clicks": final_daily,
+        "top_partners": top_partners,
+        "total_clicks": sum(d['count'] for d in final_daily)
     }
 
 

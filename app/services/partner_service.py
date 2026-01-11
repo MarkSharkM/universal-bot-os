@@ -151,16 +151,36 @@ class PartnerService:
                 tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 
-                # Update icon_url for partners with fetched avatars
+                # Update icon_url for partners with fetched avatars AND SAVE TO DB
                 avatar_map = {}
+                partners_to_update = []
+                
                 for result in results:
                     if isinstance(result, Exception):
                         continue
                     idx, avatar_url = result
                     if avatar_url:
                         avatar_map[idx] = avatar_url
+                        # Store partner object and new URL for batch update
+                        partners_to_update.append((partners[idx], avatar_url))
                         logger.info(f"Auto-fetched avatar for TOP partner {idx}: {avatar_url[:50]}...")
                 
+                # Batch update DB
+                try:
+                    from sqlalchemy.orm.attributes import flag_modified
+                    count = 0
+                    for partner, avatar_url in partners_to_update:
+                        if not partner.data.get('icon'): # Double check
+                            partner.data['icon'] = avatar_url
+                            flag_modified(partner, 'data')
+                            count += 1
+                    
+                    if count > 0:
+                        self.db.commit()
+                        logger.info(f"Persisted {count} fetched avatars to database")
+                except Exception as db_err:
+                    logger.error(f"Failed to persist avatars to DB: {db_err}")
+
                 # Update partner data with fetched avatars
                 for idx, avatar_url in avatar_map.items():
                     if partner_data_list[idx]['icon_url']:
@@ -293,16 +313,36 @@ class PartnerService:
                 tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 
-                # Update icon_url for partners with fetched avatars
+                # Update icon_url for partners with fetched avatars AND SAVE TO DB
                 avatar_map = {}
+                partners_to_update = []
+                
                 for result in results:
                     if isinstance(result, Exception):
                         continue
                     idx, avatar_url = result
                     if avatar_url:
                         avatar_map[idx] = avatar_url
+                        # Store partner object and new URL for batch update
+                        partners_to_update.append((partners[idx], avatar_url))
                         logger.info(f"Auto-fetched avatar for partner {idx}: {avatar_url[:50]}...")
                 
+                # Batch update DB
+                try:
+                    from sqlalchemy.orm.attributes import flag_modified
+                    count = 0
+                    for partner, avatar_url in partners_to_update:
+                        if not partner.data.get('icon'): # Double check
+                            partner.data['icon'] = avatar_url
+                            flag_modified(partner, 'data')
+                            count += 1
+                    
+                    if count > 0:
+                        self.db.commit()
+                        logger.info(f"Persisted {count} fetched avatars to database (regular partners)")
+                except Exception as db_err:
+                    logger.error(f"Failed to persist regular partner avatars to DB: {db_err}")
+
                 # Update partner data with fetched avatars
                 for idx, avatar_url in avatar_map.items():
                     if partner_data_list[idx]['icon_url']:
