@@ -63,20 +63,10 @@ function showTab(tabName) {
         loadDatabaseData();
     }
     if (tabName === 'ai') {
-        loadBotsForSelect('ai-bot-select', () => {
-            if (currentBotId) {
-                document.getElementById('ai-bot-select').value = currentBotId;
-                loadAIConfig();
-            }
-        });
+        if (currentBotId) loadAIConfig();
     }
     if (tabName === 'stats') {
-        loadBotsForSelect('stats-bot-select', () => {
-            if (currentBotId) {
-                document.getElementById('stats-bot-select').value = currentBotId;
-                loadStats();
-            }
-        });
+        if (currentBotId) loadStats();
     }
     if (tabName === 'monitoring') {
         if (currentBotId) {
