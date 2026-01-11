@@ -65,6 +65,8 @@ header {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    gap: 2rem;
+    flex-wrap: wrap;
 }
 
 header h1 {
