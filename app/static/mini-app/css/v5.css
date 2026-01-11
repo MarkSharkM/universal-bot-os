@@ -629,3 +629,114 @@
     font-size: 10px;
     color: var(--text-secondary);
 }
+
+/* --- TOP Page Styles --- */
+.top-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.top-header h2 {
+    font-size: 22px;
+    margin-bottom: 4px;
+    background: linear-gradient(90deg, #FFD700, #FFA000);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.top-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.top-list-container {
+    padding: 0 20px 80px 20px;
+    /* Bottom padding for scrolling */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.top-item {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 12px;
+    gap: 12px;
+    transition: all 0.2s;
+}
+
+.top-item:active {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(0.98);
+}
+
+.top-rank {
+    width: 28px;
+    min-width: 28px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.top-item[data-rank="1"] .top-rank {
+    font-size: 20px;
+}
+
+.top-item[data-rank="2"] .top-rank {
+    font-size: 18px;
+}
+
+.top-item[data-rank="3"] .top-rank {
+    font-size: 16px;
+}
+
+.top-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.top-info {
+    flex: 1;
+    min-width: 0;
+    /* Text truncation fix */
+}
+
+.top-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.top-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.top-action {
+    margin-left: auto;
+}
+
+.top-btn {
+    background: rgba(255, 215, 0, 0.1);
+    color: #FFD700;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
