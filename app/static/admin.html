@@ -364,13 +364,7 @@
             <h2>🗄️ Database Viewer</h2>
             <div id="database-message"></div>
 
-            <div
-                style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2563eb;">
-                <strong>Selected Bot:</strong> <span id="database-bot-name">-</span>
-                <br>
-                <small>Viewing data for selected bot. First 10 rows shown, click "Show More" to load additional
-                    rows.</small>
-            </div>
+            <!-- Selected Bot Info removed (in global header) -->
 
             <!-- Users & Messages Combined Tab Content -->
             <div id="database-users-tab" class="database-tab-content active">
@@ -564,10 +558,7 @@
             <h2>AI Configuration</h2>
             <div id="ai-message"></div>
 
-            <div class="form-group">
-                <label>Select Bot</label>
-                <select id="ai-bot-select" onchange="loadAIConfig()"></select>
-            </div>
+            <!-- Bot selector removed (use global header) -->
 
             <div id="ai-config-form" style="background: #f9fafb; padding: 20px; border-radius: 8px;">
                 <div class="form-group">
@@ -602,10 +593,7 @@
             <h2>Bot Statistics</h2>
             <div id="stats-message"></div>
 
-            <div class="form-group">
-                <label>Select Bot</label>
-                <select id="stats-bot-select" onchange="loadStats()"></select>
-            </div>
+            <!-- Bot selector removed (use global header) -->
 
             <div id="stats-content"></div>
         </div>

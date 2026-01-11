@@ -1,6 +1,6 @@
 // AI Config Logic
 async function loadAIConfig() {
-    const botId = document.getElementById('ai-bot-select').value;
+    const botId = currentBotId;
     if (!botId) return;
 
     try {
@@ -18,7 +18,7 @@ async function loadAIConfig() {
 }
 
 async function saveAIConfig() {
-    const botId = document.getElementById('ai-bot-select').value;
+    const botId = currentBotId;
     if (!botId) return;
 
     const data = {
@@ -49,7 +49,7 @@ async function saveAIConfig() {
 
 // Stats Logic
 async function loadStats() {
-    const botId = document.getElementById('stats-bot-select')?.value || currentBotId;
+    const botId = currentBotId;
     if (!botId) return;
 
     try {
