@@ -14,6 +14,19 @@
     color: var(--accent-gold) !important;
 }
 
+.icon-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 12px;
+    /* Standard v5 radius for icons */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    /* Width/Height inherited from replaced element classes */
+}
+
 /* --- Header --- */
 .v5-header {
     display: flex;

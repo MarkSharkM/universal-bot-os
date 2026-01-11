@@ -159,7 +159,7 @@ window.Pages.Partners = {
 
             card.innerHTML = `
                 <div class="partner-header">
-                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-icon" onerror="this.src='/static/mini-app/icon.png'">
+                    <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="partner-icon" onerror="handleImageError(this, this.alt)">
                     <div class="partner-info">
                         <div class="partner-name-row">
                             <h3 class="partner-name">${escapeHtml(partnerName)}</h3>

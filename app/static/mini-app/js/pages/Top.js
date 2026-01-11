@@ -94,7 +94,7 @@ window.Pages.Top = {
 
             item.innerHTML = `
                 <div class="top-rank">${rankBadge}</div>
-                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon" onerror="this.src='/static/mini-app/icon.png'">
+                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon" onerror="handleImageError(this, this.alt)">
                 <div class="top-info">
                     <div class="top-name">${escapeHtml(partnerName)}</div>
                     <div class="top-meta">
