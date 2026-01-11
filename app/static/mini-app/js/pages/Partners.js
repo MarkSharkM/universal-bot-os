@@ -61,8 +61,8 @@ window.Pages.Partners = {
                 const header = document.createElement('div');
                 header.className = 'partners-recommended-header';
                 header.innerHTML = `
-                    <h2>🔮 ${AppState.getAppData()?.translations?.recommended_title || 'Recommended for you'}</h2>
-                    <p class="recommended-subtitle">${AppState.getAppData()?.translations?.recommended_subtitle || 'Партнери, які найчастіше запускають шлях'}</p>
+                    <h2>🤖 ${AppState.getAppData()?.translations?.recommended_title || 'Перевірені Telegram-боти'}</h2>
+                    <p class="recommended-subtitle">${AppState.getAppData()?.translations?.recommended_subtitle || 'Обери будь-який — запускай та прокачуйся! 💪'}</p>
                 `;
                 container.appendChild(header);
             } else {
@@ -184,7 +184,7 @@ window.Pages.Partners = {
                 </div>
                 <div class="partner-row-right">
                     <button class="partner-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
-                        OPEN
+                        Запустити ↗
                     </button>
                 </div>
             `;
