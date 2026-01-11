@@ -250,6 +250,11 @@ window.Render = {
             if (el && text) el.textContent = text;
         };
 
+        const setPlaceholder = (id, text) => {
+            const el = document.getElementById(id);
+            if (el && text) el.placeholder = text;
+        };
+
         // Navigation
         const tabs = document.querySelectorAll('.tab');
         tabs.forEach(tab => {
@@ -262,10 +267,37 @@ window.Render = {
             }
         });
 
+        // Common
         setText('loading-text', translations.loading || 'Завантаження...');
+        setText('retry-btn', translations.retry_btn || 'Спробувати ще раз');
+
+        // Share Popup
         setText('share-popup-title', translations.share_popup_title || 'Поділися лінкою');
-        // ... (Other static translations can remain or be moved to a util if too large)
-        // For now, keeping core UI translations here is fine for render loop.
+        setText('share-popup-share-text', translations.share_button || '🧡 Поділитись лінкою');
+
+        // Wallet manual modal
+        setText('wallet-manual-title', translations.connect || 'Підключити TON гаманець');
+        setText('wallet-instructions-title', translations.how_to_find_address || 'Як знайти адресу гаманця:');
+        setText('wallet-instruction-1', translations.instruction_step_1 || 'Відкрий свій TON гаманець (Tonkeeper, MyTonWallet, Tonhub)');
+        setText('wallet-instruction-2', translations.instruction_step_2 || 'Знайди розділ "Receive" або "Отримати"');
+        setText('wallet-instruction-3', translations.instruction_step_3 || 'Скопіюй адресу (починається з EQ, UQ, kQ або 0Q)');
+        setText('wallet-modal-input-label', translations.wallet_input_label || 'Адреса TON гаманця:');
+        setText('wallet-manual-save-btn', translations.save || 'Зберегти');
+        setText('wallet-manual-close', translations.cancel || 'Скасувати');
+        setPlaceholder('wallet-modal-input', 'EQD0X...');
+
+        // Wallet Connect Modal (TON Connect style)
+        setText('wallet-connect-telegram-text', translations.connect_telegram_wallet || 'Connect Wallet in Telegram');
+        setText('wallet-connect-choose-text', translations.choose_other_wallet || 'Choose other application');
+        setText('wallet-connect-view-all-text', translations.view_all_wallets || 'View all wallets');
+
+        // Onboarding
+        setText('onboarding-title-1', translations.onboarding_title_1 || 'Тут заробляють на дії у Telegram');
+        setText('onboarding-step-1-text', translations.onboarding_step_1 || 'Активуй 7%');
+        setText('onboarding-step-2-text', translations.onboarding_step_2 || 'Поділись лінкою');
+        setText('onboarding-step-3-text', translations.onboarding_step_3 || 'Люди купують → ти отримуєш %');
+        setText('onboarding-next-text', translations.next_btn || 'Далі');
+        setText('onboarding-start-text', translations.start_btn || 'Почати');
     }
 };
 

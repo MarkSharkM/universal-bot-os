@@ -16,18 +16,8 @@ function openPartner(referralLink, partnerId) {
     }
 
     // Log partner click (Analytics for Charts)
-    if (AppState.getBotId()) {
-        const initData = AppState.getTg()?.initData || null;
-        // Use global sendCallback or Api.sendCallback
-        const sender = (typeof Api !== 'undefined' && Api.sendCallback) ? Api.sendCallback : (typeof sendCallback !== 'undefined' ? sendCallback : null);
-
-        if (sender) {
-            sender(AppState.getBotId(), {
-                type: 'analytics',
-                event: 'partner_click_direct',
-                data: { partner_id: partnerId || null }
-            }, initData).catch(err => console.error('Error logging partner click:', err));
-        }
+    if (typeof trackEvent === 'function') {
+        trackEvent('partner_click_direct', { partner_id: partnerId || null });
     }
 
     // Use correct Telegram WebApp API method based on link type
@@ -59,7 +49,8 @@ async function handleWalletSubmit(event) {
     const messageEl = document.getElementById('wallet-message');
 
     if (!walletAddress) {
-        showWalletMessage(AppState.getAppData()?.translations?.enter_wallet || 'Введіть адресу гаманця', 'error');
+        const msg = AppState.getAppData()?.translations?.enter_wallet_error || 'Введіть адресу гаманця';
+        showWalletMessage(msg, 'error');
         return;
     }
 
@@ -71,6 +62,9 @@ async function handleWalletSubmit(event) {
 
         if (typeof Toast !== 'undefined') {
             Toast.success('Wallet saved (Simulation)');
+        }
+        if (typeof trackEvent === 'function') {
+            trackEvent('wallet_simulation_success', { address: walletAddress });
         }
 
         // Update local state
@@ -96,7 +90,8 @@ async function saveTgrLink() {
 
     // Strict validation for _tgr_
     if (!link.includes('_tgr_')) {
-        if (typeof Toast !== 'undefined') Toast.error('Це не схоже на партнерське посилання (шукаю код _tgr_)');
+        const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Це не схоже на партнерське посилання (шукаю код _tgr_)';
+        if (typeof Toast !== 'undefined') Toast.error(msg);
         return;
     }
 
@@ -104,7 +99,9 @@ async function saveTgrLink() {
     if (!botId) return;
 
     try {
-        if (typeof Toast !== 'undefined') Toast.info('Збереження...');
+        const translations = AppState.getAppData()?.translations || {};
+        if (typeof Toast !== 'undefined') Toast.info(translations.saving || 'Збереження...');
+        if (typeof trackEvent === 'function') trackEvent('tgr_link_save_attempt');
 
         const initData = AppState.getTg()?.initData || '';
         const response = await fetch(`${API_BASE}/api/v1/mini-apps/mini-app/${botId}`, {
@@ -121,7 +118,9 @@ async function saveTgrLink() {
         const data = await response.json();
 
         if (data.ok) {
-            if (typeof Toast !== 'undefined') Toast.success('✅ Лінку оновлено! Тепер кнопки поширюють твою 7% лінку.');
+            const translations = AppState.getAppData()?.translations || {};
+            if (typeof Toast !== 'undefined') Toast.success(translations.tgr_link_updated || '✅ Лінку оновлено! Тепер кнопки поширюють твою 7% лінку.');
+            if (typeof trackEvent === 'function') trackEvent('tgr_link_save_success');
             // Update local state
             AppState.setTgrLink(link);
 
@@ -145,10 +144,12 @@ function openBotForLink() {
     if (botUsername) {
         const tg = AppState.getTg();
         const url = `https://t.me/${botUsername}?start=earnings`;
+        if (typeof trackEvent === 'function') trackEvent('open_bot_for_link');
         if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
         else window.open(url, '_blank');
     } else {
-        if (typeof Toast !== 'undefined') Toast.info('Відкрийте бота і натисніть /start');
+        const msg = AppState.getAppData()?.translations?.open_bot_manual || 'Відкрийте бота і натисніть /start';
+        if (typeof Toast !== 'undefined') Toast.info(msg);
     }
 }
 
@@ -176,14 +177,17 @@ async function saveManualWallet() {
     }
 
     try {
-        showWalletMessage(AppState.getAppData()?.translations?.saving || 'Збереження...', 'info');
+        const translations = AppState.getAppData()?.translations || {};
+        showWalletMessage(translations.saving || 'Збереження...', 'info');
+        if (typeof trackEvent === 'function') trackEvent('wallet_manual_save_attempt');
 
         const initData = AppState.getTg()?.initData || null;
         const result = await saveWallet(AppState.getBotId(), walletAddress, AppState.getUserId(), initData);
 
         if (result && result.ok !== false) {
             // Show toast notification
-            const successMsg = AppState.getAppData()?.translations?.wallet_saved || '✅ Гаманець збережено успішно!';
+            const successMsg = AppState.getAppData()?.translations?.wallet_saved_success || '✅ Гаманець збережено успішно!';
+            if (typeof trackEvent === 'function') trackEvent('wallet_manual_save_success');
             if (typeof Toast !== 'undefined') {
                 Toast.success(successMsg);
             }
@@ -245,6 +249,7 @@ function copyReferralLink() {
     // Try modern clipboard API first
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(link).then(() => {
+            if (typeof trackEvent === 'function') trackEvent('referral_link_copy');
             showCopySuccess();
         }).catch(err => {
             console.error('Error copying link:', err);
@@ -282,8 +287,13 @@ async function shareReferralLink() {
         linkToShare = `https://t.me/${botUsername}?start=${userId}`;
     }
 
-    const text = isTop ? "🔥 Join me & Earn 7% RevShare!" : "Look! I'm earning on Telegram with this bot 🚀";
+    const translations = AppState.getAppData()?.translations || {};
+    const textPro = translations.share_text_pro || "🔥 Join me & Earn 7% RevShare!";
+    const textStarter = translations.share_text_starter || "Look! I'm earning on Telegram with this bot 🚀";
+    const text = isTop ? textPro : textStarter;
     const url = `https://t.me/share/url?url=${encodeURIComponent(linkToShare)}&text=${encodeURIComponent(text)}`;
+
+    if (typeof trackEvent === 'function') trackEvent('referral_link_share', { type: isTop ? 'pro' : 'starter' });
 
     const tg = AppState.getTg();
     if (tg && tg.openTelegramLink) {
@@ -305,27 +315,32 @@ async function handleBuyTop(price) {
     // Check if tg.openInvoice is available (Telegram WebApp API)
     if (!tg || !tg.openInvoice) {
         // Fallback: show modal with instructions
+        const appData = AppState.getAppData() || {};
+        const translations = appData.translations || {};
+        const title = translations.buy_top_fallback_title || 'Розблокувати TOP';
+        const needed = appData.earnings?.invites_needed || 0;
+        let text = translations.buy_top_fallback_text || "Для розблокування TOP потрібно:\n• Запросити {{needed}} друзів\n• Або купити доступ за {{price}} ⭐\nДля покупки відкрийте бота та натисніть кнопку \"Розблокувати TOP\"";
+
+        text = text.replace('{{needed}}', needed).replace('{{price}}', price);
+
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>${AppState.getAppData()?.translations?.unlock_top || 'Розблокувати TOP'}</h2>
+                    <h2>${title}</h2>
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
                 </div>
                 <div class="modal-body">
                     <div class="instructions-text">
-                        <p>Для розблокування TOP потрібно:</p>
-                        <p>• Запросити ${AppState.getAppData().earnings?.invites_needed || 0} друзів</p>
-                        <p>• Або купити доступ за ${price} ⭐</p>
-                        <p>Для покупки відкрийте бота та натисніть кнопку "Розблокувати TOP"</p>
+                        ${text.split('\n').map(line => `<p>${line}</p>`).join('')}
                     </div>
                     <div class="modal-actions">
                         <button class="action-btn primary" onclick="openTelegramBot(); this.closest('.modal-overlay').remove();">
-                            Відкрити бота
+                            ${translations.open_bot || 'Відкрити бота'}
                         </button>
                         <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
-                            Закрити
+                            ${translations.cancel || 'Закрити'}
                         </button>
                     </div>
                 </div>
@@ -345,10 +360,12 @@ async function handleBuyTop(price) {
 
     // Use Telegram Stars Payment API (openInvoice in Mini App)
     try {
+        const translations = AppState.getAppData()?.translations || {};
         // Show loading state
         if (typeof Toast !== 'undefined') {
-            Toast.info(AppState.getAppData()?.translations?.creating_invoice || 'Створюємо рахунок...');
+            Toast.info(translations.creating_invoice || 'Створюємо рахунок...');
         }
+        if (typeof trackEvent === 'function') trackEvent('top_purchase_attempt', { price });
         if (typeof Haptic !== 'undefined') {
             Haptic.light();
         }
@@ -360,10 +377,11 @@ async function handleBuyTop(price) {
         tg.openInvoice(invoiceLink, (status) => {
             console.log('Payment callback received, status:', status);
             if (status === 'paid') {
+                const translations = AppState.getAppData()?.translations || {};
                 // Payment successful
                 console.log('✅ Payment successful, updating UI...');
                 if (typeof Toast !== 'undefined') {
-                    Toast.success(AppState.getAppData()?.translations?.top_unlocked || '✅ TOP розблоковано!');
+                    Toast.success(translations.top_unlocked || '✅ TOP розблоковано!');
                 }
                 if (typeof Haptic !== 'undefined') {
                     Haptic.success();
@@ -429,9 +447,10 @@ async function handleBuyTop(price) {
                     }
                 }
             } else if (status === 'failed' || status === 'cancelled') {
+                const translations = AppState.getAppData()?.translations || {};
                 // Payment failed or cancelled
                 if (typeof Toast !== 'undefined') {
-                    Toast.warning(AppState.getAppData()?.translations?.payment_cancelled || 'Оплата скасована');
+                    Toast.warning(translations.payment_cancelled || 'Оплата скасована');
                 }
                 if (typeof Haptic !== 'undefined') {
                     Haptic.error();
@@ -442,11 +461,12 @@ async function handleBuyTop(price) {
             }
         });
     } catch (error) {
+        const translations = AppState.getAppData()?.translations || {};
         console.error('Error creating invoice link:', error);
 
         // Show error and fallback to bot
         if (typeof Toast !== 'undefined') {
-            Toast.error(AppState.getAppData()?.translations?.payment_error || 'Помилка створення рахунку. Спробуйте через бота.');
+            Toast.error(translations.payment_error || 'Помилка створення рахунку. Спробуйте через бота.');
         }
         if (typeof Haptic !== 'undefined') {
             Haptic.error();
@@ -483,10 +503,9 @@ function openTelegramBot() {
 }
 
 function showActivate7Instructions() {
-    if (!AppState.getAppData() || !AppState.getAppData().earnings) return;
-
-    const earnings = AppState.getAppData().earnings || {};
-    const translations = earnings.translations || {};
+    const appData = AppState.getAppData();
+    const earnings = appData.earnings || {};
+    const translations = appData.translations || {};
     const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
 
     // Get bot username (universal for any bot)
@@ -496,13 +515,15 @@ function showActivate7Instructions() {
         console.error('❌ Bot username not found. Please sync username via API.');
         return;
     }
+    const title = translations.activate_7_title || `Як увімкнути ${commissionPercent}% (1 раз назавжди):`;
 
-    // Get instructions from translations or use default
-    const instructions = translations.block2_enable_steps ||
-        `1️⃣ Відкрий @${botUsername}
-2️⃣ «Партнерська програма»
-3️⃣ «Під'єднатись»
-→ ${commissionPercent}% активуються назавжди`;
+    let instructions = `${translations.activate_7_step_1 || '1️⃣ Відкрий @{{username}}'}\n${translations.activate_7_step_2 || '2️⃣ «Партнерська програма»'}\n${translations.activate_7_step_3 || '3️⃣ «Під\'єднатись»'}\n${translations.activate_7_footer || '→ {{percent}}% активуються назавжди'}`;
+
+    instructions = instructions
+        .replace('{{username}}', botUsername)
+        .replace('{{percent}}', commissionPercent);
+
+    if (typeof trackEvent === 'function') trackEvent('activate_7_modal_open');
 
     // Show modal with instructions
     const modal = document.createElement('div');
@@ -510,7 +531,7 @@ function showActivate7Instructions() {
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
-                <h2>${translations.block2_enable_title || `Як увімкнути ${commissionPercent}% (1 раз назавжди):`}</h2>
+                <h2>${title}</h2>
                 <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
             </div>
             <div class="modal-body">
@@ -519,10 +540,10 @@ function showActivate7Instructions() {
                 </div>
                 <div class="modal-actions">
                     <button class="action-btn primary" onclick="if(window.Actions && Actions.activatePartnerAndReturn) Actions.activatePartnerAndReturn(); else openTelegramBot();">
-                        Відкрити бота
+                        ${translations.open_bot || 'Відкрити бота'}
                     </button>
                     <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
-                        Закрити
+                        ${translations.cancel || 'Закрити'}
                     </button>
                 </div>
             </div>

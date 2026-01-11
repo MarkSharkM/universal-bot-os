@@ -8,11 +8,12 @@ window.Components = window.Components || {};
 window.Components.MoneyMath = function () {
     const container = document.createElement('div');
     container.className = 'v5-money-math';
+    const t = AppState.getAppData()?.translations || {};
 
     container.innerHTML = `
         <div class="math-header">
             ${Icons.Wallet} 
-            <span>Your Potential Earnings</span>
+            <span>${t.potential_earnings || 'Your Potential Earnings'}</span>
         </div>
         
         <div class="math-grid">
@@ -39,7 +40,7 @@ window.Components.MoneyMath = function () {
         </div>
         
         <div class="math-footer">
-            Estimates based on average active user engagement.
+            ${t.estimates_desc || 'Estimates based on average active user engagement.'}
         </div>
     `;
 

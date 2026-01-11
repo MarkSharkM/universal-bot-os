@@ -57,13 +57,12 @@ window.Components.Wallet = {
             };
         });
 
-        // Setup help button
-        const helpBtn = modal.querySelector('.wallet-help-btn');
         if (helpBtn) {
             helpBtn.onclick = () => {
                 const tg = AppState.getTg();
                 if (tg && tg.showAlert) {
-                    tg.showAlert(AppState.getAppData()?.translations?.ton_connect_help || 'TON Connect — це офіційний протокол для підключення TON гаманців у Telegram Mini Apps. Він дозволяє безпечно підключати гаманці без передачі приватних ключів.');
+                    const t = AppState.getAppData()?.translations || {};
+                    tg.showAlert(t.ton_connect_help || 'TON Connect — це офіційний протокол для підключення TON гаманців у Telegram Mini Apps. Він дозволяє безпечно підключати гаманці без передачі приватних ключів.');
                 }
             };
         }
@@ -125,8 +124,9 @@ window.Components.Wallet = {
                 const walletAddress = input.value.trim();
 
                 if (!walletAddress) {
+                    const t = AppState.getAppData()?.translations || {};
                     if (typeof Toast !== 'undefined') {
-                        Toast.error(AppState.getAppData()?.translations?.enter_wallet || 'Введіть адресу гаманця');
+                        Toast.error(t.enter_wallet_error || 'Введіть адресу гаманця');
                     }
                     return;
                 }
@@ -134,8 +134,9 @@ window.Components.Wallet = {
                 // Validate format
                 const walletPattern = /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/;
                 if (!walletPattern.test(walletAddress)) {
+                    const t = AppState.getAppData()?.translations || {};
                     if (typeof Toast !== 'undefined') {
-                        Toast.error('Невірний формат адреси гаманця');
+                        Toast.error(t.invalid_wallet_format || 'Невірний формат адреси гаманця');
                     }
                     return;
                 }
@@ -160,8 +161,9 @@ window.Components.Wallet = {
                         manualModal.style.display = 'none';
                         this.renderBanner(); // Re-render logic
 
+                        const t = AppState.getAppData()?.translations || {};
                         if (typeof Toast !== 'undefined') {
-                            Toast.success('✅ Гаманець збережено успішно!');
+                            Toast.success(t.wallet_saved_success || '✅ Гаманець збережено успішно!');
                         }
                         if (window.Telegram?.WebApp?.HapticFeedback) {
                             window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
@@ -176,8 +178,9 @@ window.Components.Wallet = {
                     }
                 } catch (error) {
                     console.error('Error saving wallet:', error);
+                    const t = AppState.getAppData()?.translations || {};
                     if (typeof Toast !== 'undefined') {
-                        Toast.error('❌ Помилка збереження: ' + (error.message || 'Невідома помилка'));
+                        Toast.error((t.wallet_save_error || '❌ Помилка збереження: ') + (error.message || 'Невідома помилка'));
                     }
                     if (window.Telegram?.WebApp?.HapticFeedback) {
                         window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
@@ -224,7 +227,8 @@ window.Components.Wallet = {
             // Setup button click
             const btn = document.getElementById('wallet-banner-btn');
             if (btn && !btn.hasAttribute('data-listener')) {
-                btn.textContent = AppState.getAppData()?.translations?.connect || 'Підключити';
+                const t = AppState.getAppData()?.translations || {};
+                btn.textContent = t.connect || 'Підключити';
                 btn.setAttribute('data-listener', 'true');
                 btn.addEventListener('click', () => {
                     if (window.trackEvent) trackEvent('wallet_banner_clicked');
@@ -237,8 +241,9 @@ window.Components.Wallet = {
 
         // Update banner text if needed
         const bannerText = banner.querySelector('p');
+        const t = AppState.getAppData()?.translations || {};
         if (bannerText) {
-            bannerText.textContent = AppState.getAppData()?.translations?.wallet_banner_text || 'Підключи гаманець → зможеш виводити';
+            bannerText.textContent = t.wallet_banner_text || 'Підключи гаманець → зможеш виводити';
         }
     }
 };

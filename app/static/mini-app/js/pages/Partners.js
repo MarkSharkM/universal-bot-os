@@ -14,6 +14,7 @@ window.Pages.Partners = {
             console.warn('[Pages.Partners] appData not available');
             return;
         }
+        const t = appData.translations || {};
 
         // Ensure we're on the partners page
         const partnersPage = document.getElementById('partners-page');
@@ -61,8 +62,8 @@ window.Pages.Partners = {
                 const header = document.createElement('div');
                 header.className = 'partners-recommended-header';
                 header.innerHTML = `
-                    <h2>🤖 ${AppState.getAppData()?.translations?.recommended_title || 'Перевірені Telegram-боти'}</h2>
-                    <p class="recommended-subtitle">${AppState.getAppData()?.translations?.recommended_subtitle || 'Обери будь-який — запускай та прокачуйся! 💪'}</p>
+                    <h2>🤖 ${t.recommended_title || 'Перевірені Telegram-боти'}</h2>
+                    <p class="recommended-subtitle">${t.recommended_subtitle || 'Обери будь-який — запускай та прокачуйся! 💪'}</p>
                 `;
                 container.appendChild(header);
             } else {
@@ -104,7 +105,7 @@ window.Pages.Partners = {
         if (partners.length === 0) {
             const emptyState = document.createElement('p');
             emptyState.className = 'empty-state';
-            emptyState.textContent = AppState.getAppData()?.translations?.no_partners_found || 'Партнерів не знайдено';
+            emptyState.textContent = t.no_partners_found || 'Партнерів не знайдено';
             container.appendChild(emptyState);
             return;
         }
@@ -184,7 +185,7 @@ window.Pages.Partners = {
                 </div>
                 <div class="partner-row-right">
                     <button class="partner-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
-                        Запустити ↗
+                        ${t.launch_btn || 'Запустити ↗'}
                     </button>
                 </div>
             `;
@@ -248,7 +249,7 @@ window.Pages.Partners = {
             </div>
 
             <button class="cta-btn main-action-btn" onclick="window.Telegram.WebApp.openTelegramLink('${partner.link}')">
-                🚀 Launch ${escapeHtml(partner.name)}
+                🚀 ${t.launch_btn?.replace(' ↗', '') || 'Launch'} ${escapeHtml(partner.name)}
             </button>
         `;
     }

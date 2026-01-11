@@ -1,0 +1,515 @@
+language,message_key,text
+uk,nav_home,Головна
+uk,nav_partners,Партнери
+uk,nav_top,TOP
+uk,friends,Друзі
+uk,top_activated,TOP ПРОГРАМА АКТИВНА
+uk,link_connected,Лінка підключена
+uk,input_link_placeholder,Встав свою 7% лінку тут...
+uk,save,Зберегти
+uk,how_to_get_link,Де взяти лінку?
+uk,unlock_top_title,Розблокувати TOP статус
+uk,unlock_top_subtitle,Запроси 5 друзів, щоб розблокувати ексклюзивні винагороди
+uk,invited,запрошено
+uk,goal,ЦІЛЬ
+uk,invite_earn,ЗАПРОШУЙ ТА ЗАРОБЛЯЙ
+uk,potential_earnings,Твій потенційний заробіток
+uk,user_count_1,1 ЮЗЕР
+uk,user_count_10,10 ЮЗЕРІВ
+uk,user_count_100,100 ЮЗЕРІВ
+uk,estimates_disclaimer,Оцінки базуються на середній активності залучених користувачів.
+uk,partners_title,Партнери
+uk,partners_subtitle,Перевірені боти та заробіток зірок за дії
+uk,top_bots_title,TOP Боти
+uk,top_bots_subtitle,Отримуй в x3-x7 більше зірок
+uk,browse_btn,Переглянути
+uk,stars_suffix,+ ЗІРКИ
+uk,x7_badge,⚡ x7
+uk,launch_btn,Запустити ↗
+uk,open_btn,Відкрити ↗
+uk,estimated_share,{{percent}}% частка
+uk,about_earnhub,Про EarnHub
+uk,footer_about_text,"EarnHub — це агрегатор реферальних програм, що пропонує бонуси за ріст мережі. Отримуйте вигоду від 7% монетизації Telegram та максимізуйте прибутки через наших партнерських ботів."
+uk,footer_disclaimer,Відмова від відповідальності: EarnHub не є фінансовою установою.
+uk,terms_of_use,Умови використання
+uk,privacy_policy,Політика конфіденційності
+uk,support,Підтримка
+uk,badge_7_path,7% шлях розпочато
+uk,badge_top_member,TOP учасник
+uk,badge_super_sharer,Супер поширювач
+uk,your_earnings,Ваш заробіток
+uk,program_active,✅ Програма 7% активна
+uk,program_inactive,❌ Програма 7% неактивна
+uk,achievements,Досягнення
+uk,unlock_top,Розблокувати TOP
+uk,to_pro,До Pro
+uk,to_hub,До Hub
+uk,max_level,Максимальний рівень
+uk,started_path,47 людей почали 7% шлях
+uk,top_opened_today,TOP відкривали 19 разів сьогодні
+uk,partners_clicked_most,Найчастіше клікають партнерів
+uk,share_popup_title,Поділися лінкою
+uk,next_btn,Далі
+uk,start_btn,Почати
+uk,enter_wallet_error,Введіть адресу гаманця
+uk,invalid_wallet_format,Невірний формат адреси гаманця
+uk,wallet_saved_success,✅ Гаманець збережено успішно!
+uk,wallet_save_error,❌ Помилка збереження: 
+uk,top_locked_title,TOP заблоковано
+uk,top_locked_subtitle,Запроси ще {{count}} друзів, щоб розблокувати TOP партнерів або купи доступ.
+uk,btn_unlock_top,Розблокувати за {{price}} зірок
+uk,top_profits_title,ТОП партнери
+uk,top_profits_subtitle,Найвигідніші пропозиції тижня
+uk,no_partners_found,Партнерів не знайдено
+uk,no_top_bots,TOP ботів поки немає
+uk,ton_connect_help,TON Connect — це офіційний протокол для підключення TON гаманців у Telegram Mini Apps. Він дозволяє безпечно підключати гаманці без передачі приватних ключів.
+uk,starter,Новачок
+uk,pro,Профі
+uk,hub,Хаб
+uk,creating_invoice,Створюємо рахунок...
+uk,top_unlocked,✅ TOP розблоковано!
+uk,payment_cancelled,Оплата скасована
+uk,payment_error,❌ Помилка оплати
+uk,saving,Збереження...
+uk,link_copied,✅ Лінк скопійовано!
+uk,copy_failed,Помилка копіювання
+uk,bot_id_missing,Помилка: Bot ID не знайдено
+uk,link_missing,Реферальна лінка відсутня
+uk,copied,✅ Скопійовано!
+uk,connect_telegram_wallet,Підключити гаманець у Telegram
+uk,choose_other_wallet,Обрати інший застосунок
+uk,view_all_wallets,Всі гаманці
+uk,wallet_payouts_info,Потрібно лише для майбутніх виплат
+uk,wallet_no_withdrawals,Ніколи не списуємо кошти
+uk,how_to_find_address,Як знайти адресу гаманця:
+uk,instruction_step_1,Відкрий свій TON гаманець (Tonkeeper, MyTonWallet, Tonhub)
+uk,instruction_step_2,Знайди розділ "Receive" або "Отримати"
+uk,instruction_step_3,Скопіюй адресу (починається з EQ, UQ, kQ або 0Q)
+uk,wallet_input_label,Адреса TON гаманця:
+uk,cancel,Скасувати
+uk,onboarding_title_1,Тут заробляють на дії у Telegram
+uk,onboarding_step_1,Активуй 7%
+uk,loading,Завантаження...
+uk,retry_btn,Спробувати ще раз
+uk,share_button,🧡 Поділитись лінкою
+uk,share_text_pro,🔥 Приєднуйся до мене та отримуй 7% RevShare!
+uk,share_text_starter,Дивись! Я заробляю в Telegram з цим ботом 🚀
+uk,activate_7_title,Як увімкнути 7% (1 раз назавжди):
+uk,activate_7_step_1,1️⃣ Відкрий @{{username}}
+uk,activate_7_step_2,2️⃣ «Партнерська програма»
+uk,activate_7_step_3,3️⃣ «Під'єднатись»
+uk,activate_7_footer,→ {{percent}}% активуються назавжди
+uk,buy_top_fallback_title,Розблокувати TOP
+uk,buy_top_fallback_text,"Для розблокування TOP потрібно:\n• Запросити {{needed}} друзів\n• Або купити доступ за {{price}} ⭐\nДля покупки відкрийте бота та натисніть кнопку \"Розблокувати TOP\""
+
+en,nav_home,Home
+en,nav_partners,Partners
+en,nav_top,TOP
+en,friends,Friends
+en,top_activated,TOP PROGRAM ACTIVE
+en,link_connected,Link Connected
+en,input_link_placeholder,Paste your 7% link here...
+en,save,Save
+en,how_to_get_link,How to get link?
+en,unlock_top_title,Unlock TOP Status
+en,unlock_top_subtitle,Invite 5 friends to unlock exclusive rewards
+en,invited,invited
+en,goal,GOAL
+en,invite_earn,INVITE & EARN
+en,potential_earnings,Your Potential Earnings
+en,user_count_1,1 USER
+en,user_count_10,10 USERS
+en,user_count_100,100 USERS
+en,estimates_disclaimer,Estimates based on average active user engagement.
+en,partners_title,Partners
+en,partners_subtitle,Verified Bots & Earn Stars for Actions
+en,top_bots_title,TOP Bots
+en,top_bots_subtitle,Get x3-x7 More Stars
+en,browse_btn,Browse
+en,stars_suffix,+ STARS
+en,x7_badge,⚡ x7
+en,launch_btn,Launch ↗
+en,open_btn,Open ↗
+en,estimated_share,{{percent}}% share
+en,about_earnhub,About EarnHub
+en,footer_about_text,"EarnHub is an aggregator of referral programs, offering bonuses for network growth. Benefit from 7% Telegram monetization and maximize returns through our partner bots."
+en,footer_disclaimer,Disclaimer: EarnHub is not a financial institution.
+en,terms_of_use,Terms of Use
+en,privacy_policy,Privacy Policy
+en,support,Support
+en,badge_7_path,7% Path Started
+en,badge_top_member,TOP Member
+en,badge_super_sharer,Super Sharer
+en,your_earnings,Your Earnings
+en,program_active,✅ 7% Program Active
+en,program_inactive,❌ 7% Program Inactive
+en,achievements,Achievements
+en,unlock_top,Unlock TOP
+en,to_pro,To Pro
+en,to_hub,To Hub
+en,max_level,Max Level
+en,started_path,47 people started 7% path
+en,top_opened_today,TOP opened 19 times today
+en,partners_clicked_most,Most clicked partners
+en,share_popup_title,Share Link
+en,next_btn,Next
+en,start_btn,Start
+en,enter_wallet_error,Enter wallet address
+en,invalid_wallet_format,Invalid wallet address format
+en,wallet_saved_success,✅ Wallet saved successfully!
+en,wallet_save_error,❌ Save error: 
+en,top_locked_title,TOP Locked
+en,top_locked_subtitle,Invite {{count}} more friends to unlock TOP partners or buy access.
+en,btn_unlock_top,Unlock for {{price}} Stars
+en,top_profits_title,TOP Partners
+en,top_profits_subtitle,Best offers of the week
+en,no_partners_found,No partners found
+en,no_top_bots,No TOP bots available yet
+en,ton_connect_help,TON Connect is the official protocol for connecting TON wallets in Telegram Mini Apps. It allows you to safely connect wallets without sharing private keys.
+en,starter,Starter
+en,pro,Pro
+en,hub,Hub
+en,creating_invoice,Creating invoice...
+en,top_unlocked,✅ TOP unlocked!
+en,payment_cancelled,Payment cancelled
+en,payment_error,❌ Payment error
+en,saving,Saving...
+en,link_copied,✅ Link copied!
+en,copy_failed,Copy failed
+en,bot_id_missing,Error: Bot ID not found
+en,link_missing,Referral link missing
+en,copied,✅ Copied!
+en,connect_telegram_wallet,Connect Wallet in Telegram
+en,choose_other_wallet,Choose other application
+en,view_all_wallets,View all wallets
+en,wallet_payouts_info,Only needed for future payouts
+en,wallet_no_withdrawals,We never withdraw funds
+en,how_to_find_address,How to find wallet address:
+en,instruction_step_1,Open your TON wallet (Tonkeeper, MyTonWallet, Tonhub)
+en,instruction_step_2,Go to "Receive" or "Get" section
+en,instruction_step_3,Copy address (starts with EQ, UQ, kQ or 0Q)
+en,wallet_input_label,TON Wallet Address:
+en,cancel,Cancel
+en,onboarding_title_1,Earn from actions in Telegram
+en,onboarding_step_1,Activate 7%
+en,loading,Loading...
+en,retry_btn,Retry
+en,share_button,🧡 Share the link
+en,share_text_pro,🔥 Join me & Earn 7% RevShare!
+en,share_text_starter,Look! I'm earning on Telegram with this bot 🚀
+en,activate_7_title,How to enable 7% (once forever):
+en,activate_7_step_1,1️⃣ Open @{{username}}
+en,activate_7_step_2,2️⃣ "Partner Program"
+en,activate_7_step_3,3️⃣ "Connect"
+en,activate_7_footer,→ {{percent}}% active forever
+en,buy_top_fallback_title,Unlock TOP
+en,buy_top_fallback_text,"To unlock TOP you need:\n• Invite {{needed}} friends\n• Or buy access for {{price}} ⭐\nTo buy, open the bot and click \"Unlock TOP\" button"
+
+ru,nav_home,Главная
+ru,nav_partners,Партнеры
+ru,nav_top,TOP
+ru,friends,Друзья
+ru,top_activated,TOP ПРОГРАММА АКТИВНА
+ru,link_connected,Ссылка подключена
+ru,input_link_placeholder,Вставь свою 7% ссылку здесь...
+ru,save,Сохранить
+ru,how_to_get_link,Где взять ссылку?
+ru,unlock_top_title,Разблокировать TOP статус
+ru,unlock_top_subtitle,Пригласи 5 друзей, чтобы разблокировать эксклюзивные награды
+ru,invited,приглашено
+ru,goal,ЦЕЛЬ
+ru,invite_earn,ПРИГЛАШАЙ И ЗАРАБАТЫВАЙ
+ru,potential_earnings,Твой потенциальный заработок
+ru,user_count_1,1 ЮЗЕР
+ru,user_count_10,10 ЮЗЕРОВ
+ru,user_count_100,100 ЮЗЕРОВ
+ru,estimates_disclaimer,Оценки основаны на средней активности привлеченных пользователей.
+ru,partners_title,Партнеры
+ru,partners_subtitle,Проверенные боты и заработок звезд за действия
+ru,top_bots_title,TOP Боты
+ru,top_bots_subtitle,Получай в x3-x7 больше звезд
+ru,browse_btn,Посмотреть
+ru,stars_suffix,+ ЗВЕЗДЫ
+ru,x7_badge,⚡ x7
+ru,launch_btn,Запустить ↗
+ru,open_btn,Открыть ↗
+ru,estimated_share,{{percent}}% доля
+ru,about_earnhub,О EarnHub
+ru,footer_about_text,"EarnHub — это агрегатор реферальных программ, предлагающий бонусы за рост сети. Получайте выгоду от 7% монетизации Telegram и максимизируйте прибыль через наших партнерских ботов."
+ru,footer_disclaimer,Отказ от ответственности: EarnHub не является финансовым учреждением.
+ru,terms_of_use,Условия использования
+ru,privacy_policy,Политика конфиденциальности
+ru,support,Поддержка
+ru,badge_7_path,7% путь начат
+ru,badge_top_member,TOP участник
+ru,badge_super_sharer,Супер распространитель
+ru,your_earnings,Ваш заработок
+ru,program_active,✅ Программа 7% активна
+ru,program_inactive,❌ Програма 7% неактивна
+ru,achievements,Достижения
+ru,unlock_top,Разблокировать TOP
+ru,to_pro,До Pro
+ru,to_hub,До Hub
+ru,max_level,Максимальный уровень
+ru,started_path,47 человек начали 7% путь
+ru,top_opened_today,TOP открывали 19 раз сегодня
+ru,partners_clicked_most,Чаще всего кликают партнеров
+ru,share_popup_title,Поделись ссылкой
+ru,next_btn,Далее
+ru,start_btn,Начать
+ru,enter_wallet_error,Введите адрес кошелька
+ru,invalid_wallet_format,Неверный формат адреса кошелька
+ru,wallet_saved_success,✅ Кошелек сохранен успешно!
+ru,wallet_save_error,❌ Ошибка сохранения: 
+ru,top_locked_title,TOP заблокировано
+ru,top_locked_subtitle,Пригласи еще {{count}} друзей, чтобы разблокировать TOP партнеров или купи доступ.
+ru,btn_unlock_top,Разблокировать за {{price}} звезд
+ru,top_profits_title,ТОП партнеры
+ru,top_profits_subtitle,Самые выгодные предложения недели
+ru,no_partners_found,Партнеров не найдено
+ru,no_top_bots,TOP ботов пока нет
+ru,ton_connect_help,TON Connect — это официальный протокол для подключения TON кошельков в Telegram Mini Apps. Он позволяет безопасно подключать кошельки без передачи приватных ключей.
+ru,starter,Новичок
+ru,pro,Профи
+ru,hub,Хаб
+ru,creating_invoice,Создаем счет...
+ru,top_unlocked,✅ TOP разблокирован!
+ru,payment_cancelled,Оплата отменена
+ru,payment_error,❌ Ошибка оплаты
+ru,saving,Сохранение...
+ru,link_copied,✅ Ссылка скопирована!
+ru,copy_failed,Ошибка копирования
+ru,bot_id_missing,Ошибка: Bot ID не найден
+ru,link_missing,Реферальная ссылка отсутствует
+ru,copied,✅ Скопировано!
+ru,connect_telegram_wallet,Подключить кошелек в Telegram
+ru,choose_other_wallet,Выбрать другое приложение
+ru,view_all_wallets,Все кошельки
+ru,wallet_payouts_info,Требуется только для будущих выплат
+ru,wallet_no_withdrawals,Мы никогда не списываем средства
+ru,how_to_find_address,Как найти адрес кошелька:
+ru,instruction_step_1,Открой свой TON кошелек (Tonkeeper, MyTonWallet, Tonhub)
+ru,instruction_step_2,Найди раздел "Receive" или "Получить"
+ru,instruction_step_3,Скопируй адрес (начинается с EQ, UQ, kQ или 0Q)
+ru,wallet_input_label,Адрес TON кошелька:
+ru,cancel,Отмена
+ru,onboarding_title_1,Здесь зарабатывают на действиях в Telegram
+ru,onboarding_step_1,Активируй 7%
+ru,loading,Загрузка...
+ru,retry_btn,Повторить
+ru,share_button,🧡 Поделиться ссылкой
+ru,share_text_pro,🔥 Присоединяйся ко мне и получай 7% RevShare!
+ru,share_text_starter,Смотри! Я зарабатываю в Telegram с этим ботом 🚀
+ru,activate_7_title,Как включить 7% (1 раз навсегда):
+ru,activate_7_step_1,1️⃣ Открой @{{username}}
+ru,activate_7_step_2,2️⃣ «Партнерская программа»
+ru,activate_7_step_3,3️⃣ «Подключиться»
+ru,activate_7_footer,→ {{percent}}% активируются навсегда
+ru,buy_top_fallback_title,Разблокировать TOP
+ru,buy_top_fallback_text,"Для разблокировки TOP нужно:\n• Пригласить {{needed}} друзей\n• Или купить доступ за {{price}} ⭐\nДля покупки откройте бота и нажмите кнопку \"Разблокировать TOP\""
+
+de,nav_home,Startseite
+de,nav_partners,Partner
+de,nav_top,TOP
+de,friends,Freunde
+de,top_activated,TOP PROGRAMM AKTIV
+de,link_connected,Link verbunden
+de,input_link_placeholder,Füge deinen 7% Link hier ein...
+de,save,Speichern
+de,how_to_get_link,Wie bekomme ich den Link?
+de,unlock_top_title,TOP Status freischalten
+de,unlock_top_subtitle,Lade 5 Freunde ein, um exklusive Belohnungen freizuschalten
+de,invited,eingeladen
+de,goal,ZIEL
+de,invite_earn,EINLADEN & VERDIENEN
+de,potential_earnings,Deine potenziellen Einnahmen
+de,user_count_1,1 NUTZER
+de,user_count_10,10 NUTZER
+de,user_count_100,100 NUTZER
+de,estimates_disclaimer,Schätzungen basieren auf der durchschnittlichen Aktivität der geworbenen Nutzer.
+de,partners_title,Partner
+de,partners_subtitle,Geprüfte Bots & Stars für Aktionen verdienen
+de,top_bots_title,TOP Bots
+de,top_bots_subtitle,Erhalte x3-x7 mehr Stars
+de,browse_btn,Durchsuchen
+de,stars_suffix,+ STARS
+de,x7_badge,⚡ x7
+de,launch_btn,Starten ↗
+de,open_btn,Öffnen ↗
+de,estimated_share,{{percent}}% Anteil
+de,about_earnhub,Über EarnHub
+de,footer_about_text,"EarnHub ist ein Aggregator von Empfehlungsprogrammen, der Boni für das Netzwerkwachstum bietet. Profitiere von der 7% Telegram-Monetarisierung und maximiere deine Erträge durch unsere Partner-Bots."
+de,footer_disclaimer,Haftungsausschluss: EarnHub ist kein Finanzinstitut.
+de,terms_of_use,Nutzungsbedingungen
+de,privacy_policy,Datenschutzrichtlinie
+de,support,Support
+de,badge_7_path,7% Pfad gestartet
+de,badge_top_member,TOP Mitglied
+de,badge_super_sharer,Super-Teiler
+de,your_earnings,Deine Einnahmen
+de,program_active,✅ 7% Programm aktiv
+de,program_inactive,❌ 7% Programm inaktiv
+de,achievements,Erfolge
+de,unlock_top,TOP freischalten
+de,to_pro,Zu Pro
+de,to_hub,Zu Hub
+de,max_level,Maximales Level
+de,started_path,47 Personen haben den 7% Pfad gestartet
+de,top_opened_today,TOP wurde heute 19 Mal geöffnet
+de,partners_clicked_most,Am häufigsten angeklickte Partner
+de,share_popup_title,Link teilen
+de,next_btn,Weiter
+de,start_btn,Starten
+de,enter_wallet_error,Wallet-Adresse eingeben
+de,invalid_wallet_format,Ungültiges Format der Wallet-Adresse
+de,wallet_saved_success,✅ Wallet erfolgreich gespeichert!
+de,wallet_save_error,❌ Fehler beim Speichern: 
+de,top_locked_title,TOP gesperrt
+de,top_locked_subtitle,Lade noch {{count}} Freunde ein, um TOP Partner freizuschalten oder kaufe Zugang.
+de,btn_unlock_top,Freischalten für {{price}} Stars
+de,top_profits_title,TOP Partner
+de,top_profits_subtitle,Beste Angebote der Woche
+de,no_partners_found,Keine Partner gefunden
+de,no_top_bots,Noch keine TOP Bots verfügbar
+de,ton_connect_help,TON Connect ist das offizielle Protokoll zum Verbinden von TON Wallets in Telegram Mini Apps. Es ermöglicht das sichere Verbinden von Wallets, ohne private Schlüssel preiszugeben.
+de,starter,Anfänger
+de,pro,Profi
+de,hub,Hub
+de,creating_invoice,Rechnung wird erstellt...
+de,top_unlocked,✅ TOP freigeschaltet!
+de,payment_cancelled,Zahlung abgebrochen
+de,payment_error,❌ Zahlungsfehler
+de,saving,Speichern...
+de,link_copied,✅ Link kopiert!
+de,copy_failed,Kopieren fehlgeschlagen
+de,bot_id_missing,Fehler: Bot ID nicht gefunden
+de,link_missing,Empfehlungslink fehlt
+de,copied,✅ Kopiert!
+de,connect_telegram_wallet,Wallet in Telegram verbinden
+de,choose_other_wallet,Andere App wählen
+de,view_all_wallets,Alle Wallets
+de,wallet_payouts_info,Nur für zukünftige Auszahlungen benötigt
+de,wallet_no_withdrawals,Wir heben niemals Geld ab
+de,how_to_find_address,So findest du die Wallet-Adresse:
+de,instruction_step_1,Öffne deine TON Wallet (Tonkeeper, MyTonWallet, Tonhub)
+de,instruction_step_2,Gehe zum Bereich "Empfangen" oder "Erhalt"
+de,instruction_step_3,Kopiere die Adresse (beginnt mit EQ, UQ, kQ oder 0Q)
+de,wallet_input_label,TON Wallet-Adresse:
+de,cancel,Abbrechen
+de,onboarding_title_1,Hier verdienen Sie an Aktionen in Telegram
+de,onboarding_step_1,Aktiviere 7%
+de,loading,Laden...
+de,retry_btn,Wiederholen
+de,share_button,🧡 Link teilen
+de,share_text_pro,🔥 Mach mit & verdiene 7% RevShare!
+de,share_text_starter,Schau mal! Ich verdiene in Telegram mit diesem Bot 🚀
+de,activate_7_title,So aktivierst du 7% (einmalig für immer):
+de,activate_7_step_1,1️⃣ Öffne @{{username}}
+de,activate_7_step_2,2️⃣ „Partnerprogramm“
+de,activate_7_step_3,3️⃣ „Verbinden“
+de,activate_7_footer,→ {{percent}}% dauerhaft aktiv
+de,buy_top_fallback_title,TOP freischalten
+de,buy_top_fallback_text,"Um TOP freizuschalten, musst du:\n• {{needed}} Freunde einladen\n• Oder den Zugang für {{price}} ⭐ kaufen\nZum Kaufen öffne den Bot und klicke auf die Schaltfläche \"TOP freischalten\""
+
+es,nav_home,Inicio
+es,nav_partners,Socios
+es,nav_top,TOP
+es,friends,Amigos
+es,top_activated,PROGRAMA TOP ACTIVO
+es,link_connected,Enlace conectado
+es,input_link_placeholder,Pega tu enlace del 7% aquí...
+es,save,Guardar
+es,how_to_get_link,¿Cómo obtener el enlace?
+es,unlock_top_title,Desbloquear Estado TOP
+es,unlock_top_subtitle,Invita a 5 amigos para desbloquear recompensas exclusivas
+es,invited,invitado
+es,goal,META
+es,invite_earn,INVITA Y GANA
+es,potential_earnings,Tus Ganancias Potenciales
+es,user_count_1,1 USUARIO
+es,user_count_10,10 USUARIOS
+es,user_count_100,100 USUARIOS
+es,estimates_disclaimer,Estimaciones basadas en la actividad promedio de los usuarios invitados.
+es,partners_title,Socios
+es,partners_subtitle,Bots verificados y gana Stars por acciones
+es,top_bots_title,Bots TOP
+es,top_bots_subtitle,Gana x3-x7 más Stars
+es,browse_btn,Explorar
+es,stars_suffix,+ STARS
+es,x7_badge,⚡ x7
+es,launch_btn,Lanzar ↗
+es,open_btn,Abrir ↗
+es,estimated_share,{{percent}}% de participación
+es,about_earnhub,Sobre EarnHub
+es,footer_about_text,"EarnHub es un agregador de programas de referidos que ofrece bonos por el crecimiento de la red. Benefíciese de la monetización del 7% de Telegram y maximice sus ganancias a través de nuestros bots asociados."
+es,footer_disclaimer,Descargo de responsabilidad: EarnHub no es una institución financiera.
+es,terms_of_use,Términos de uso
+es,privacy_policy,Política de privacidad
+es,support,Soporte
+es,badge_7_path,Camino del 7% iniciado
+es,badge_top_member,Miembro TOP
+es,badge_super_sharer,Súper compartidor
+es,your_earnings,Tus ganancias
+es,program_active,✅ Programa 7% activo
+es,program_inactive,❌ Programa 7% inactivo
+es,achievements,Logros
+es,unlock_top,Desbloquear TOP
+es,to_pro,A Pro
+es,to_hub,A Hub
+es,max_level,Nivel máximo
+es,started_path,47 personas iniciaron el camino del 7%
+es,top_opened_today,TOP abierto 19 veces hoy
+es,partners_clicked_most,Socios más clicados
+es,share_popup_title,Compartir enlace
+es,next_btn,Siguiente
+es,start_btn,Empezar
+es,enter_wallet_error,Introduce la dirección del monedero
+es,invalid_wallet_format,Formato de dirección de monedero no válido
+es,wallet_saved_success,✅ ¡Monedero guardado con éxito!
+es,wallet_save_error,❌ Error al guardar: 
+es,top_locked_title,TOP Bloqueado
+es,top_locked_subtitle,Invita a {{count}} amigos más para desbloquear socios TOP o compra el acceso.
+es,btn_unlock_top,Desbloquear por {{price}} Stars
+es,top_profits_title,Socios TOP
+es,top_profits_subtitle,Mejores ofertas de la semana
+es,no_partners_found,No se encontraron socios
+es,no_top_bots,No hay bots TOP disponibles todavía
+es,ton_connect_help,TON Connect es el protocolo oficial para conectar monederos TON en las Mini Apps de Telegram. Permite conectar monederos de forma segura sin compartir claves privadas.
+es,starter,Principiante
+es,pro,Pro
+es,hub,Hub
+es,creating_invoice,Creando factura...
+es,top_unlocked,✅ TOP desbloqueado!
+es,payment_cancelled,Pago cancelado
+es,payment_error,❌ Error de pago
+es,saving,Guardando...
+es,link_copied,✅ ¡Enlace copiado!
+es,copy_failed,Error al copiar
+es,bot_id_missing,Error: Bot ID no encontrado
+es,link_missing,Falta el enlace de referido
+es,copied,✅ ¡Copiado!
+es,connect_telegram_wallet,Conectar monedero en Telegram
+es,choose_other_wallet,Elegir otra aplicación
+es,view_all_wallets,Todos los monederos
+es,wallet_payouts_info,Solo necesario para futuros pagos
+es,wallet_no_withdrawals,Nunca retiramos fondos
+es,how_to_find_address,Cómo encontrar la dirección del monedero:
+es,instruction_step_1,Abre tu monedero TON (Tonkeeper, MyTonWallet, Tonhub)
+es,instruction_step_2,Ve a la sección "Recibir" o "Obtener"
+es,instruction_step_3,Copia la dirección (empieza por EQ, UQ, kQ o 0Q)
+es,wallet_input_label,Dirección del monedero TON:
+es,cancel,Cancelar
+es,onboarding_title_1,Aquí ganas por acciones en Telegram
+es,onboarding_step_1,Activa el 7%
+es,loading,Cargando...
+es,retry_btn,Reintentar
+es,share_button,🧡 Compartir enlace
+es,share_text_pro,🔥 ¡Únete a mí y gana un 7% de RevShare!
+es,share_text_starter,¡Mira! Estoy ganando en Telegram con este bot 🚀
+es,activate_7_title,Cómo activar el 7% (una vez para siempre):
+es,activate_7_step_1,1️⃣ Abre @{{username}}
+es,activate_7_step_2,2️⃣ „Programa de socios“
+es,activate_7_step_3,3️⃣ „Conectar“
+es,activate_7_footer,→ {{percent}}% activo para siempre
+es,buy_top_fallback_title,Desbloquear TOP
+es,buy_top_fallback_text,"Для разблокировки TOP потрібно:\n• Invita a {{needed}} amigos\n• O compra el acceso por {{price}} ⭐\nPara comprar, abre el bot y haz clic en el botón \"Desbloquear TOP\""

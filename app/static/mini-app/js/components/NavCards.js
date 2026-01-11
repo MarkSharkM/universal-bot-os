@@ -8,6 +8,7 @@ window.Components = window.Components || {};
 window.Components.NavCards = function () {
     const grid = document.createElement('div');
     grid.className = 'v5-nav-grid';
+    const t = AppState.getAppData()?.translations || {};
 
     // --- Partners Card ---
     const partnersCard = document.createElement('div');
@@ -19,9 +20,9 @@ window.Components.NavCards = function () {
             <div class="badge-pill purple-badge">+ STARS</div>
         </div>
         <div class="v5-card-body">
-            <div class="lbl">Browse</div>
-            <div class="tit text-purple">Partners</div>
-            <div class="desc">Verified Bots & Earn Stars for Actions</div>
+            <div class="lbl">${t.browse || 'Browse'}</div>
+            <div class="tit text-purple">${t.partners || 'Partners'}</div>
+            <div class="desc">${t.verified_partners_desc || 'Verified Bots & Earn Stars for Actions'}</div>
         </div>
         <div class="v5-card-footer">
             <div class="arrow-btn">${Icons.ChevronRight}</div>
@@ -38,9 +39,9 @@ window.Components.NavCards = function () {
             <div class="badge-pill gold-badge">⚡ x7</div>
         </div>
         <div class="v5-card-body">
-            <div class="lbl">Browse</div>
-            <div class="tit text-gold">TOP Bots</div>
-            <div class="desc">Get x3-x7 More Stars</div>
+            <div class="lbl">${t.browse || 'Browse'}</div>
+            <div class="tit text-gold">${t.top_bots || 'TOP Bots'}</div>
+            <div class="desc">${t.top_bots_desc || 'Get x3-x7 More Stars'}</div>
         </div>
         <div class="v5-card-footer">
             <div class="arrow-btn">${Icons.ChevronRight}</div>

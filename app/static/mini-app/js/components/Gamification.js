@@ -94,6 +94,7 @@ window.Components.Gamification = {
         if (!container) return;
 
         const appData = AppState.getAppData();
+        const t = appData?.translations || {};
         const status = this.calculateStatus();
         const badges = this.getBadges();
         const referralCount = AppState.getReferralCount();
@@ -105,9 +106,9 @@ window.Components.Gamification = {
 
         // Status labels
         const statusLabels = {
-            starter: { label: 'Starter', icon: '🌱', color: '#4CAF50' },
-            pro: { label: 'Pro', icon: '⚡', color: '#2196F3' },
-            hub: { label: 'Hub', icon: '🔥', color: '#FF9800' }
+            starter: { label: t.starter || 'Starter', icon: '🌱', color: '#4CAF50' },
+            pro: { label: t.pro || 'Pro', icon: '⚡', color: '#2196F3' },
+            hub: { label: t.hub || 'Hub', icon: '🔥', color: '#FF9800' }
         };
 
         const currentStatus = statusLabels[status] || statusLabels.starter;
@@ -118,13 +119,13 @@ window.Components.Gamification = {
 
         if (status === 'starter') {
             progressPercent = Math.min(50, (referralCount * 25));
-            progressLabel = 'До Pro';
+            progressLabel = t.to_pro || 'До Pro';
         } else if (status === 'pro') {
             progressPercent = Math.min(80, 50 + (referralCount * 10));
-            progressLabel = 'До Hub';
+            progressLabel = t.to_hub || 'До Hub';
         } else {
             progressPercent = 100;
-            progressLabel = 'Максимальний рівень';
+            progressLabel = t.max_level || 'Максимальний рівень';
         }
 
         // TOP progress
@@ -134,10 +135,10 @@ window.Components.Gamification = {
             <div class="gamification-content">
                 <!-- Earnings Overview (Integrated /earnings) -->
                 <div class="earnings-overview">
-                    <div class="earnings-overview-title">${appData?.translations?.your_earnings || 'Ваш заробіток'}</div>
+                    <div class="earnings-overview-title">${t.your_earnings || 'Ваш заробіток'}</div>
                     <div class="earnings-amount">${balance} ${currency}</div>
                     <div class="earnings-7percent-info">
-                        ${AppState.getDidStart7Flow() ? '✅ 7% Program Active' : '❌ 7% Program Inactive'}
+                        ${AppState.getDidStart7Flow() ? (t.program_active || '✅ 7% Program Active') : (t.program_inactive || '❌ 7% Program Inactive')}
                     </div>
                 </div>
 

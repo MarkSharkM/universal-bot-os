@@ -46,19 +46,23 @@ window.Pages.Top = {
                 // Render Locked State
                 const invitesNeeded = appData.earnings?.invites_needed || 5;
                 const buyPrice = appData.earnings?.buy_top_price || 1;
+                const t = appData.translations || {};
+
+                const subtitle = (t.top_locked_subtitle || `Invite ${invitesNeeded} more friends to unlock TOP partners or buy access.`).replace('{{count}}', invitesNeeded);
+                const btnLabel = (t.btn_unlock_top || `Unlock for ${buyPrice} Stars`).replace('{{price}}', buyPrice).replace('{{buy_top_price}}', buyPrice);
 
                 container.innerHTML = `
                     <div class="top-locked-state">
                         <div class="locked-icon">🔒</div>
-                        <h3>${appData.translations?.top_locked_title || 'TOP Locked'}</h3>
-                        <p>${appData.translations?.top_locked_subtitle || `Invite ${invitesNeeded} more friends to unlock TOP partners or buy access.`}</p>
+                        <h3>${t.top_locked_title || 'TOP Locked'}</h3>
+                        <p>${subtitle}</p>
                         
                         <div class="locked-actions">
                             <button class="top-buy-btn" onclick="Actions.buyTop()">
-                                ${appData.translations?.btn_unlock_top || `Unlock for ${buyPrice} Stars`}
+                                ${btnLabel}
                             </button>
                             <button class="top-share-btn" onclick="Actions.share()">
-                                ${appData.translations?.share_button || 'Invite Friends'}
+                                ${t.share_button || 'Invite Friends'}
                             </button>
                         </div>
                     </div>
@@ -74,9 +78,10 @@ window.Pages.Top = {
             // Render header
             const header = document.createElement('div');
             header.className = 'top-header';
+            const t = appData.translations || {};
             header.innerHTML = `
-                <h2>🏆 ${AppState.getAppData()?.translations?.top_profits_title || 'ТОП партнери'}</h2>
-                <p class="top-subtitle">${AppState.getAppData()?.translations?.top_profits_subtitle || 'Найвигідніші пропозиції тижня'}</p>
+                <h2>🏆 ${t.top_profits_title || 'ТОП партнери'}</h2>
+                <p class="top-subtitle">${t.top_profits_subtitle || 'Найвигідніші пропозиції тижня'}</p>
             `;
             container.appendChild(header);
 
@@ -153,6 +158,9 @@ window.Pages.Top = {
 
             const link = partner.referral_link || partner.link;
 
+            const t = AppState.getAppData()?.translations || {};
+            const commissionLabel = (t.estimated_share || '{{percent}}% share').replace('{{percent}}', commission);
+
             // Updated Layout: Grid for Podium/Card
             item.innerHTML = `
                 <div class="top-row-left">
@@ -163,12 +171,12 @@ window.Pages.Top = {
                     <div class="top-name-new">${escapeHtml(partnerName)}</div>
                     <div class="top-metrics">
                         <span class="metric-score">${scoreDisplay}</span>
-                        ${commission > 0 ? `<span class="metric-separator">•</span><span class="metric-commission">${commission}% share</span>` : ''}
+                        ${commission > 0 ? `<span class="metric-separator">•</span><span class="metric-commission">${commissionLabel}</span>` : ''}
                     </div>
                 </div>
                 <div class="top-row-right">
                     <button class="top-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
-                        Відкрити ↗
+                        ${t.open_btn || 'Відкрити ↗'}
                     </button>
                 </div>
             `;

@@ -792,7 +792,93 @@ async def get_mini_app_data(
             import re
             bot_username = re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
         
-        earnings_translations = {
+        # Group all UI translations
+        ui_translations = {
+            # Navigation
+            "nav_home": translation_service.get_translation('nav_home', user_lang),
+            "nav_partners": translation_service.get_translation('nav_partners', user_lang),
+            "nav_top": translation_service.get_translation('nav_top', user_lang),
+            "loading": translation_service.get_translation('loading', user_lang),
+            "retry_btn": translation_service.get_translation('retry_btn', user_lang),
+
+            # Hero / Quest
+            "stat_friends": translation_service.get_translation('stat_friends', user_lang),
+            "top_program_active": translation_service.get_translation('top_program_active', user_lang),
+            "link_connected": translation_service.get_translation('link_connected', user_lang),
+            "paste_link_placeholder": translation_service.get_translation('paste_link_placeholder', user_lang),
+            "save": translation_service.get_translation('save', user_lang),
+            "where_to_get_link": translation_service.get_translation('where_to_get_link', user_lang),
+            "share_your_link": translation_service.get_translation('share_your_link', user_lang),
+            "unlock_top_status": translation_service.get_translation('unlock_top_status', user_lang),
+            "invite_5_subtitle": translation_service.get_translation('invite_5_subtitle', user_lang),
+            "invited_count": translation_service.get_translation('invited_count', user_lang),
+            "goal_text": translation_service.get_translation('goal_text', user_lang),
+            "invite_and_earn": translation_service.get_translation('invite_and_earn', user_lang),
+            
+            # Nav Cards
+            "browse": translation_service.get_translation('browse', user_lang),
+            "partners": translation_service.get_translation('partners', user_lang),
+            "verified_partners_desc": translation_service.get_translation('verified_partners_desc', user_lang),
+            "top_bots": translation_service.get_translation('top_bots', user_lang),
+            "top_bots_desc": translation_service.get_translation('top_bots_desc', user_lang),
+
+            # Money Math
+            "potential_earnings": translation_service.get_translation('potential_earnings', user_lang),
+            "estimates_desc": translation_service.get_translation('estimates_desc', user_lang),
+
+            # Wallet
+            "connect": translation_service.get_translation('connect', user_lang),
+            "wallet_banner_text": translation_service.get_translation('wallet_banner_text', user_lang),
+            "enter_wallet_error": translation_service.get_translation('enter_wallet_error', user_lang),
+            "invalid_wallet_format": translation_service.get_translation('invalid_wallet_format', user_lang),
+            "wallet_saved_success": translation_service.get_translation('wallet_saved_success', user_lang),
+            "wallet_save_error": translation_service.get_translation('wallet_save_error', user_lang),
+            "ton_connect_help": translation_service.get_translation('ton_connect_help', user_lang),
+
+            # Partners Page
+            "no_partners": translation_service.get_translation('no_partners', user_lang),
+            "recommended_title": translation_service.get_translation('recommended_title', user_lang),
+            "recommended_subtitle": translation_service.get_translation('recommended_subtitle', user_lang),
+            "show_all": translation_service.get_translation('show_all', user_lang),
+            "no_partners_found": translation_service.get_translation('no_partners_found', user_lang),
+            "launch_btn": translation_service.get_translation('launch_btn', user_lang),
+
+            # Top Page
+            "top_locked_title": translation_service.get_translation('top_locked_title', user_lang),
+            "top_locked_subtitle": translation_service.get_translation('top_locked_subtitle', user_lang),
+            "no_top_bots": translation_service.get_translation('no_top_bots', user_lang),
+            "top_profits_title": translation_service.get_translation('top_profits_title', user_lang),
+            "top_profits_subtitle": translation_service.get_translation('top_profits_subtitle', user_lang),
+            "open_btn": translation_service.get_translation('open_btn', user_lang),
+            "estimated_share": translation_service.get_translation('estimated_share', user_lang),
+            
+            # Footer
+            "about_earnhub": translation_service.get_translation('about_earnhub', user_lang),
+            "footer_about_text": translation_service.get_translation('footer_about_text', user_lang),
+            "footer_disclaimer": translation_service.get_translation('footer_disclaimer', user_lang),
+            "terms_of_use": translation_service.get_translation('terms_of_use', user_lang),
+            "privacy_policy": translation_service.get_translation('privacy_policy', user_lang),
+            "support": translation_service.get_translation('support', user_lang),
+            
+            # Gamification
+            "badge_7_path": translation_service.get_translation('badge_7_path', user_lang),
+            "badge_top_member": translation_service.get_translation('badge_top_member', user_lang),
+            "badge_super_sharer": translation_service.get_translation('badge_super_sharer', user_lang),
+            "your_earnings": translation_service.get_translation('your_earnings', user_lang),
+            "program_active": translation_service.get_translation('program_active', user_lang),
+            "program_inactive": translation_service.get_translation('program_inactive', user_lang),
+            "achievements": translation_service.get_translation('achievements', user_lang),
+            "unlock_top": translation_service.get_translation('unlock_top', user_lang),
+            "to_pro": translation_service.get_translation('to_pro', user_lang),
+            "to_hub": translation_service.get_translation('to_hub', user_lang),
+            "max_level": translation_service.get_translation('max_level', user_lang),
+            
+            # Social Proof
+            "started_path": translation_service.get_translation('started_path', user_lang),
+            "top_opened_today": translation_service.get_translation('top_opened_today', user_lang),
+            "partners_clicked_most": translation_service.get_translation('partners_clicked_most', user_lang),
+            
+            # Legacy/Specific (keeping for compatibility)
             "block2_title": translation_service.get_translation('earnings_block2_title', user_lang),
             "block2_how_it_works": translation_service.get_translation('earnings_block2_how_it_works', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
             "block2_examples": translation_service.get_translation('earnings_block2_examples', user_lang).replace('{{commission}}', str(commission_percent)).replace('[[commission]]', str(commission_percent)),
@@ -809,6 +895,34 @@ async def get_mini_app_data(
             "btn_unlock_top": translation_service.get_translation('earnings_btn_unlock_top', user_lang, {'buy_top_price': earnings_data["buy_top_price"]}),
             "btn_top_partners": translation_service.get_translation('earnings_btn_top_partners', user_lang),
             "btn_activate_7": translation_service.get_translation('earnings_btn_activate_7', user_lang),
+            "share_popup_title": translation_service.get_translation('share_popup_title', user_lang),
+            "share_button": translation_service.get_translation('share_button', user_lang),
+            
+            # Onboarding
+            "onboarding_title_1": translation_service.get_translation('onboarding_title_1', user_lang),
+            "onboarding_step_1": translation_service.get_translation('onboarding_step_1', user_lang),
+            "onboarding_step_2": translation_service.get_translation('onboarding_step_2', user_lang),
+            "onboarding_step_3": translation_service.get_translation('onboarding_step_3', user_lang),
+            "next_btn": translation_service.get_translation('next_btn', user_lang),
+            "start_btn": translation_service.get_translation('start_btn', user_lang),
+
+            # Wallet Details
+            "connect_telegram_wallet": translation_service.get_translation('connect_telegram_wallet', user_lang),
+            "choose_other_wallet": translation_service.get_translation('choose_other_wallet', user_lang),
+            "view_all_wallets": translation_service.get_translation('view_all_wallets', user_lang),
+            "wallet_payouts_info": translation_service.get_translation('wallet_payouts_info', user_lang),
+            "wallet_no_withdrawals": translation_service.get_translation('wallet_no_withdrawals', user_lang),
+            "how_to_find_address": translation_service.get_translation('how_to_find_address', user_lang),
+            "instruction_step_1": translation_service.get_translation('instruction_step_1', user_lang),
+            "instruction_step_2": translation_service.get_translation('instruction_step_2', user_lang),
+            "instruction_step_3": translation_service.get_translation('instruction_step_3', user_lang),
+            "wallet_input_label": translation_service.get_translation('wallet_input_label', user_lang),
+            "cancel": translation_service.get_translation('cancel', user_lang),
+
+            # Gamification Labels
+            "starter": translation_service.get_translation('starter', user_lang),
+            "pro": translation_service.get_translation('pro', user_lang),
+            "hub": translation_service.get_translation('hub', user_lang),
         }
         
         # Get user custom_data for Revenue Launcher
@@ -818,9 +932,6 @@ async def get_mini_app_data(
         try:
             from app.models.message import Message
             import datetime
-            
-            # Check if we recently logged a start message (avoid spam on refresh)
-            # For now, just log it. Admin panel shows recent messages.
             
             # Create message
             msg = Message(
@@ -844,6 +955,7 @@ async def get_mini_app_data(
             
         return {
             "ok": True,
+            "translations": ui_translations,  # ADDED: global translations object at root
             "user": {
                 "wallet": wallet or "",
                 "balance": float(user.balance) if user.balance else 0.0,
@@ -861,7 +973,7 @@ async def get_mini_app_data(
                 "required_invites": earnings_data["required_invites"],
                 "commission_rate": earnings_data["commission_rate"],
                 "buy_top_price": earnings_data["buy_top_price"],
-                "translations": earnings_translations,
+                "translations": ui_translations,
             },
             "partners": partners,
             "top_partners": top_partners,

@@ -8,6 +8,21 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Load .env BEFORE importing anything from app
+try:
+    from dotenv import load_dotenv
+    root_env = Path(__file__).parent.parent / ".env"
+    parent_env = Path(__file__).parent.parent.parent / ".env"
+    
+    if root_env.exists():
+        load_dotenv(root_env)
+        print(f"✅ Loaded .env from {root_env}")
+    elif parent_env.exists():
+        load_dotenv(parent_env)
+        print(f"✅ Loaded .env from {parent_env}")
+except ImportError:
+    print("⚠️  python-dotenv not installed, relying on system environment")
+
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, engine
 from app.models.translation import Translation
@@ -70,7 +85,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='Import translations from CSV')
     parser.add_argument('--csv', help='Path to translations CSV file', 
-                       default=str(Path(__file__).parent.parent / "old-prod-hub-bot" / "translations_for prod tg.csv"))
+                       default=str(Path(__file__).parent / "mini_app_ui_translations.csv"))
     
     args = parser.parse_args()
     csv_path = Path(args.csv)
