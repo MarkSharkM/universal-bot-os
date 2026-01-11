@@ -34,12 +34,42 @@ window.Pages.Top = {
 
         const container = document.getElementById('top-list');
         if (container) {
+            container.innerHTML = '';
+
+            const topStatus = appData.user?.top_status || 'locked';
+            const canUnlock = appData.earnings?.can_unlock_top || false;
+
+            // Logic: Show TOP only if unlocked or eligible (5+ invites)
+            const isUnlocked = topStatus !== 'locked' || canUnlock;
+
+            if (!isUnlocked) {
+                // Render Locked State
+                const invitesNeeded = appData.earnings?.invites_needed || 5;
+                const buyPrice = appData.earnings?.buy_top_price || 1;
+
+                container.innerHTML = `
+                    <div class="top-locked-state">
+                        <div class="locked-icon">🔒</div>
+                        <h3>${appData.translations?.top_locked_title || 'TOP Locked'}</h3>
+                        <p>${appData.translations?.top_locked_subtitle || `Invite ${invitesNeeded} more friends to unlock TOP partners or buy access.`}</p>
+                        
+                        <div class="locked-actions">
+                            <button class="top-buy-btn" onclick="Actions.buyTop()">
+                                ${appData.translations?.btn_unlock_top || `Unlock for ${buyPrice} Stars`}
+                            </button>
+                            <button class="top-share-btn" onclick="Actions.share()">
+                                ${appData.translations?.share_button || 'Invite Friends'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
             if (topPartners.length === 0) {
                 container.innerHTML = `<p class="empty-state">${AppState.getAppData()?.translations?.no_top_bots || 'TOP ботів поки немає'}</p>`;
                 return;
             }
-
-            container.innerHTML = '';
 
             // Render header
             const header = document.createElement('div');

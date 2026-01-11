@@ -656,6 +656,71 @@
     color: var(--text-secondary);
 }
 
+/* TOP Locked State */
+.top-locked-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 16px;
+    background: var(--bg-card);
+    /* Fallback */
+    background: var(--card-bg, #1c1c1e);
+    border-radius: 12px;
+    margin: 8px 4px;
+    /* Matches 4px side margins */
+}
+
+.locked-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.top-locked-state h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: var(--text-primary);
+}
+
+.top-locked-state p {
+    margin: 0 0 24px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 280px;
+}
+
+.locked-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 280px;
+}
+
+.top-buy-btn,
+.top-share-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+}
+
+.top-buy-btn {
+    background: #007aff;
+    background: var(--primary-color, #007aff);
+    color: white;
+}
+
+.top-share-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+/* TOP List Container (Existing) */
 .top-list-container {
     padding: 0 4px 80px 4px;
     /* Bottom padding for scrolling */
