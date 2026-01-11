@@ -427,10 +427,12 @@ async def mini_app_webhook(
                     user_id=user.id,
                     role="user",
                     content=command_name,
+                    custom_data={
                         "source": "mini_app",
                         "event": event,
                         "platform": "telegram_miniapp",
                         **event_data  # Merge details like partner_id
+                    },
                     timestamp=datetime.datetime.utcnow()
                 )
                 db.add(msg)
