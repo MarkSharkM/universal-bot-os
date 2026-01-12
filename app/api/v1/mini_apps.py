@@ -84,7 +84,16 @@ async def mini_app_html_simple(
     if html_path.exists():
         try:
             html_content = html_path.read_text(encoding='utf-8')
-            return HTMLResponse(content=html_content)
+            html_content = html_path.read_text(encoding='utf-8')
+            # Prevent caching of index.html to ensure fresh version is always loaded
+            return HTMLResponse(
+                content=html_content,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
+            )
         except Exception as e:
             logger.error(f"Error reading Mini App HTML: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error loading Mini App: {str(e)}")
@@ -219,7 +228,16 @@ async def mini_app_html(
     if html_path.exists():
         try:
             html_content = html_path.read_text(encoding='utf-8')
-            return HTMLResponse(content=html_content)
+            html_content = html_path.read_text(encoding='utf-8')
+            # Prevent caching of index.html to ensure fresh version is always loaded
+            return HTMLResponse(
+                content=html_content,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
+            )
         except Exception as e:
             logger.error(f"Error reading Mini App HTML: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error loading Mini App: {str(e)}")
