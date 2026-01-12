@@ -261,29 +261,29 @@ window.Render = {
             const tabName = tab.getAttribute('data-tab');
             const label = tab.querySelector('.tab-label');
             if (label) {
-                if (tabName === 'home') label.textContent = translations.nav_home || 'Головна';
-                if (tabName === 'partners') label.textContent = translations.nav_partners || 'Партнери';
+                if (tabName === 'home') label.textContent = translations.nav_home || 'Home';
+                if (tabName === 'partners') label.textContent = translations.nav_partners || 'Partners';
                 if (tabName === 'top') label.textContent = translations.nav_top || 'TOP';
             }
         });
 
         // Common
-        setText('loading-text', translations.loading || 'Завантаження...');
-        setText('retry-btn', translations.retry_btn || 'Спробувати ще раз');
+        setText('loading-text', translations.loading || 'Loading...');
+        setText('retry-btn', translations.retry_btn || 'Try again');
 
         // Share Popup
-        setText('share-popup-title', translations.share_popup_title || 'Поділися лінкою');
-        setText('share-popup-share-text', translations.share_button || '🧡 Поділитись лінкою');
+        setText('share-popup-title', translations.share_popup_title || 'Share Link');
+        setText('share-popup-share-text', translations.share_button || '🧡 Share Link');
 
         // Wallet manual modal
-        setText('wallet-manual-title', translations.connect || 'Підключити TON гаманець');
-        setText('wallet-instructions-title', translations.how_to_find_address || 'Як знайти адресу гаманця:');
-        setText('wallet-instruction-1', translations.instruction_step_1 || 'Відкрий свій TON гаманець (Tonkeeper, MyTonWallet, Tonhub)');
-        setText('wallet-instruction-2', translations.instruction_step_2 || 'Знайди розділ "Receive" або "Отримати"');
-        setText('wallet-instruction-3', translations.instruction_step_3 || 'Скопіюй адресу (починається з EQ, UQ, kQ або 0Q)');
-        setText('wallet-modal-input-label', translations.wallet_input_label || 'Адреса TON гаманця:');
-        setText('wallet-manual-save-btn', translations.save || 'Зберегти');
-        setText('wallet-manual-close', translations.cancel || 'Скасувати');
+        setText('wallet-manual-title', translations.connect || 'Connect TON Wallet');
+        setText('wallet-instructions-title', translations.how_to_find_address || 'How to find wallet address:');
+        setText('wallet-instruction-1', translations.instruction_step_1 || 'Open your TON wallet (Tonkeeper, MyTonWallet, Tonhub)');
+        setText('wallet-instruction-2', translations.instruction_step_2 || 'Find "Receive" section');
+        setText('wallet-instruction-3', translations.instruction_step_3 || 'Copy address (starts with EQ, UQ, kQ or 0Q)');
+        setText('wallet-modal-input-label', translations.wallet_input_label || 'TON Wallet Address:');
+        setText('wallet-manual-save-btn', translations.save || 'Save');
+        setText('wallet-manual-close', translations.cancel || 'Cancel');
         setPlaceholder('wallet-modal-input', 'EQD0X...');
 
         // Wallet Connect Modal (TON Connect style)
@@ -292,12 +292,12 @@ window.Render = {
         setText('wallet-connect-view-all-text', translations.view_all_wallets || 'View all wallets');
 
         // Onboarding
-        setText('onboarding-title-1', translations.onboarding_title_1 || 'Тут заробляють на дії у Telegram');
-        setText('onboarding-step-1-text', translations.onboarding_step_1 || 'Активуй 7%');
-        setText('onboarding-step-2-text', translations.onboarding_step_2 || 'Поділись лінкою');
-        setText('onboarding-step-3-text', translations.onboarding_step_3 || 'Люди купують → ти отримуєш %');
-        setText('onboarding-next-text', translations.next_btn || 'Далі');
-        setText('onboarding-start-text', translations.start_btn || 'Почати');
+        setText('onboarding-title-1', translations.onboarding_title_1 || 'Earn rewards for actions in Telegram');
+        setText('onboarding-step-1-text', translations.onboarding_step_1 || 'Activate 7%');
+        setText('onboarding-step-2-text', translations.onboarding_step_2 || 'Share your link');
+        setText('onboarding-step-3-text', translations.onboarding_step_3 || 'People buy → you earn %');
+        setText('onboarding-next-text', translations.next_btn || 'Next');
+        setText('onboarding-start-text', translations.start_btn || 'Start');
     }
 };
 
