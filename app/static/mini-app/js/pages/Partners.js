@@ -101,6 +101,7 @@ window.Pages.Partners = {
         if (!container) return;
 
         const appData = AppState.getAppData();
+        const t = appData.translations || {};
 
         if (partners.length === 0) {
             const emptyState = document.createElement('p');
@@ -198,6 +199,7 @@ window.Pages.Partners = {
         console.log('[Pages.Partners] renderDetail:', partnerId);
         const appData = AppState.getAppData();
         if (!appData) return;
+        const t = appData.translations || {};
 
         const partners = [...(appData.partners || []), ...(appData.top_partners || [])];
         const partner = partners.find(p => String(p.id) === String(partnerId));

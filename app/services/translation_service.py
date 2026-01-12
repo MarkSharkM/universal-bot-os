@@ -149,6 +149,8 @@ class TranslationService:
             'verified_partners_desc': 'Перевірені боти та заробіток зірок за дії',
             'top_bots': 'TOP Боти',
             'top_bots_desc': 'Отримуй в x3-x7 більше зірок',
+            'recommended_title': 'Перевірені Telegram-боти',
+            'recommended_subtitle': 'Обери будь-який — запускай та прокачуйся! 💪',
         },
         'en': {
             'nav_home': 'Home',
@@ -273,6 +275,8 @@ class TranslationService:
             'verified_partners_desc': 'Verified Bots & Earn Stars for Actions',
             'top_bots': 'TOP Bots',
             'top_bots_desc': 'Get x3-x7 More Stars',
+            'recommended_title': 'Verified Telegram Bots',
+            'recommended_subtitle': 'Pick any — launch & upgrade! 💪',
         },
         'ru': {
             'nav_home': 'Главная',
@@ -397,6 +401,8 @@ class TranslationService:
             'verified_partners_desc': 'Проверенные боты и заработок звезд за действия',
             'top_bots': 'TOP Боты',
             'top_bots_desc': 'Получай в x3-x7 больше звезд',
+            'recommended_title': 'Проверенные Telegram-боты',
+            'recommended_subtitle': 'Выбирай любой — запускай и прокачивайся! 💪',
         },
         'de': {
             'nav_home': 'Startseite',
@@ -521,6 +527,8 @@ class TranslationService:
             'verified_partners_desc': 'Geprüfte Bots & Stars für Aktionen verdienen',
             'top_bots': 'TOP Bots',
             'top_bots_desc': 'Erhalte x3-x7 mehr Stars',
+            'recommended_title': 'Verifizierte Telegram-Bots',
+            'recommended_subtitle': 'Wähle einen aus — starte und verbessere dich! 💪',
         },
         'es': {
             'nav_home': 'Inicio',
@@ -645,6 +653,8 @@ class TranslationService:
             'verified_partners_desc': 'Bots verificados y gana Stars por acciones',
             'top_bots': 'Bots TOP',
             'top_bots_desc': 'Gana x3-x7 más Stars',
+            'recommended_title': 'Bots de Telegram verificados',
+            'recommended_subtitle': '¡Elige cualquiera — lanza y mejora! 💪',
         }
     }
     
