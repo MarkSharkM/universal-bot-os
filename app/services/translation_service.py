@@ -151,6 +151,7 @@ class TranslationService:
             'top_bots_desc': 'Отримуй в x3-x7 більше зірок',
             'recommended_title': 'Перевірені Telegram-боти',
             'recommended_subtitle': 'Обери будь-який — запускай та прокачуйся! 💪',
+            'wallet_btn': 'Гаманець',
         },
         'en': {
             'nav_home': 'Home',
@@ -277,6 +278,7 @@ class TranslationService:
             'top_bots_desc': 'Get x3-x7 More Stars',
             'recommended_title': 'Verified Telegram Bots',
             'recommended_subtitle': 'Pick any — launch & upgrade! 💪',
+            'wallet_btn': 'Wallet',
         },
         'ru': {
             'nav_home': 'Главная',
@@ -403,6 +405,7 @@ class TranslationService:
             'top_bots_desc': 'Получай в x3-x7 больше звезд',
             'recommended_title': 'Проверенные Telegram-боты',
             'recommended_subtitle': 'Выбирай любой — запускай и прокачивайся! 💪',
+            'wallet_btn': 'Кошелек',
         },
         'de': {
             'nav_home': 'Startseite',
@@ -529,6 +532,7 @@ class TranslationService:
             'top_bots_desc': 'Erhalte x3-x7 mehr Stars',
             'recommended_title': 'Verifizierte Telegram-Bots',
             'recommended_subtitle': 'Wähle einen aus — starte und verbessere dich! 💪',
+            'wallet_btn': 'Wallet',
         },
         'es': {
             'nav_home': 'Inicio',
@@ -655,6 +659,7 @@ class TranslationService:
             'top_bots_desc': 'Gana x3-x7 más Stars',
             'recommended_title': 'Bots de Telegram verificados',
             'recommended_subtitle': '¡Elige cualquiera — lanza y mejora! 💪',
+            'wallet_btn': 'Billetera',
         }
     }
     

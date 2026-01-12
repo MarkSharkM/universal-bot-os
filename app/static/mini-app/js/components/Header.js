@@ -21,9 +21,12 @@ window.Components.Header = function (user, isTop) {
     // Wallet Logic (Unlocked for all)
     const walletAddress = user?.wallet || AppState.getAppData()?.user?.wallet;
     const isConnected = walletAddress && walletAddress.length > 5;
+    const t = AppState.getAppData()?.translations || {};
+    // FIX: Show simple "Wallet" text with active indicator instead of raw address
     const walletText = isConnected
-        ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
-        : 'Wallet';
+        ? (t.wallet_btn || 'Wallet')
+        : (t.wallet_btn || 'Wallet');
+
     const walletClass = isConnected ? 'wallet-btn active' : 'wallet-btn';
 
     header.innerHTML = `
