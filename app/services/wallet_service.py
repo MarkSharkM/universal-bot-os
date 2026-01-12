@@ -144,8 +144,9 @@ class WalletService:
             return False
         
         # Check if wallet is already same (prevent spam)
-        current_user = self.user_service.get_user_by_id(user_id)
-        if current_user and current_user.wallet == wallet_address.strip():
+        # Use get_wallet accessor as User model stores it in custom_data
+        current_wallet = self.user_service.get_wallet(user_id)
+        if current_wallet and current_wallet == wallet_address.strip():
             logger.info(f"save_wallet: Wallet already set to {wallet_address[:10]}... for user {user_id}, skipping update/notify")
             return True
 
