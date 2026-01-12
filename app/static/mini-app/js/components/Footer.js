@@ -17,6 +17,12 @@ window.Components.Footer = function () {
     `;
     const disclaimer = t.footer_disclaimer || `Disclaimer: EarnHub is not a financial institution.`;
 
+    // Dynamic Bot Info for Support Link
+    const config = AppState.getAppData()?.config || {};
+    const botUsername = config.username || 'HubAggregatorBot'; // Fallback if missing
+    // Remove @ if present
+    const cleanUsername = botUsername.replace('@', '');
+
     container.innerHTML = `
         <div class="footer-header">
             <div class="tit">${t.about_earnhub || 'About EarnHub'}</div>
@@ -42,7 +48,7 @@ window.Components.Footer = function () {
                 <span>${t.privacy_policy || 'Privacy Policy'}</span>
             </button>
             
-            <button class="link-card" onclick="Telegram.WebApp.openTelegramLink('https://t.me/HubAggregatorBot')">
+            <button class="link-card" onclick="Telegram.WebApp.openTelegramLink('https://t.me/${cleanUsername}')">
                 <div class="icon-circle">${Icons.Headphones}</div>
                 <span>${t.support || 'Support'}</span>
             </button>

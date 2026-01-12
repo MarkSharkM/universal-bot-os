@@ -65,6 +65,11 @@ window.Render.closeLegalPage = function () {
 };
 
 window.Render.renderTerms = function () {
+    const config = AppState.getAppData()?.config || {};
+    const botName = config.name || 'EarnHub';
+    const botUsername = config.username || 'HubAggregatorBot';
+    const cleanUsername = botUsername.replace('@', '');
+
     const content = `**Умови користування**
 
 Використовуючи цей Mini App, ви погоджуєтесь із наведеними нижче умовами.
@@ -79,7 +84,7 @@ window.Render.renderTerms = function () {
 Ми зберігаємо лише мінімальний обсяг даних, необхідний для роботи застосунку. Детальніше див. Політику конфіденційності.
 
 **Контакт**
-Підтримка: t.me/HubAggregatorBot`;
+Підтримка: t.me/${cleanUsername}`;
 
     const htmlContent = content
         .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>')
@@ -89,9 +94,12 @@ window.Render.renderTerms = function () {
 };
 
 window.Render.renderPrivacy = function () {
+    const config = AppState.getAppData()?.config || {};
+    const botName = config.name || 'EarnHub';
+
     const content = `**Політика конфіденційності**
 
-Hub Aggregator («ми») обробляє лише мінімальні дані, необхідні для роботи винагород і реферальних програм у Telegram.
+${botName} («ми») обробляє лише мінімальні дані, необхідні для роботи винагород і реферальних програм у Telegram.
 
 1. Ідентифікатор користувача Telegram, нікнейм та мова інтерфейсу;
 2. Зв’язки рефералів і журнали активності винагород;
