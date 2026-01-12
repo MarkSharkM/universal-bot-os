@@ -271,12 +271,28 @@ window.Render = {
         setText('loading-text', translations.loading || 'Loading...');
         setText('retry-btn', translations.retry_btn || 'Try again');
 
+        // Home Page Static Elements
+        setText('trust-item-1', translations.trust_item_1 || '🟢 Official Telegram Partner Program');
+        setText('trust-item-2', translations.trust_item_2 || '🟢 Revenue share model (up to 7%)');
+        setText('trust-item-3', translations.trust_item_3 || '🟢 Wallet: optional');
+
+        setText('share-copy-1', translations.share_copy_1 || 'Your link works 24/7');
+        setText('share-copy-2', translations.share_copy_2 || 'Every new user can launch this path further');
+
+        setText('wallet-banner-text', translations.wallet_banner_text || 'Connect wallet → enable withdrawals');
+        setText('wallet-banner-btn', translations.wallet_banner_btn || 'Connect');
+
+        setText('info-title-text', translations.info_title || 'Bot Info');
+
         // Share Popup
         setText('share-popup-title', translations.share_popup_title || 'Share Link');
+        setText('share-popup-text', translations.share_popup_text || 'I joined the Telegram partner program. It works automatically.');
         setText('share-popup-share-text', translations.share_button || '🧡 Share Link');
+        setText('share-popup-close-text', translations.close_btn || 'Close');
 
         // Wallet manual modal
         setText('wallet-manual-title', translations.connect || 'Connect TON Wallet');
+        setText('wallet-modal-copy', translations.wallet_modal_copy || 'Only needed for future payouts\nWe never withdraw funds');
         setText('wallet-instructions-title', translations.how_to_find_address || 'How to find wallet address:');
         setText('wallet-instruction-1', translations.instruction_step_1 || 'Open your TON wallet (Tonkeeper, MyTonWallet, Tonhub)');
         setText('wallet-instruction-2', translations.instruction_step_2 || 'Find "Receive" section');
@@ -287,15 +303,17 @@ window.Render = {
         setPlaceholder('wallet-modal-input', 'EQD0X...');
 
         // Wallet Connect Modal (TON Connect style)
+        setText('wallet-connect-title', translations.wallet_connect_title || 'Connect your TON wallet');
+        setText('wallet-connect-subtitle', translations.wallet_connect_subtitle || 'Use Wallet in Telegram or choose other application');
         setText('wallet-connect-telegram-text', translations.connect_telegram_wallet || 'Connect Wallet in Telegram');
         setText('wallet-connect-choose-text', translations.choose_other_wallet || 'Choose other application');
         setText('wallet-connect-view-all-text', translations.view_all_wallets || 'View all wallets');
 
         // Onboarding
-        setText('onboarding-title-1', translations.onboarding_title_1 || 'Earn rewards for actions in Telegram');
+        setText('onboarding-title-1', translations.onboarding_title_1 || 'Earn from actions in Telegram');
         setText('onboarding-step-1-text', translations.onboarding_step_1 || 'Activate 7%');
         setText('onboarding-step-2-text', translations.onboarding_step_2 || 'Share your link');
-        setText('onboarding-step-3-text', translations.onboarding_step_3 || 'People buy → you earn %');
+        setText('onboarding-step-3-text', translations.onboarding_step_3 || 'People buy → you get %');
         setText('onboarding-next-text', translations.next_btn || 'Next');
         setText('onboarding-start-text', translations.start_btn || 'Start');
     }
