@@ -24,7 +24,7 @@
     <!-- Loading Screen -->
     <div id="loading" class="loading-screen">
         <div class="spinner"></div>
-        <p id="loading-text">Завантаження...</p>
+        <p id="loading-text">Loading...</p>
     </div>
 
     <!-- Onboarding Screens (shown on first visit) -->
@@ -32,13 +32,13 @@
         <!-- Screen 1 -->
         <div id="onboarding-screen-1" class="onboarding-content active">
             <div class="onboarding-illustration">🚀</div>
-            <h1 id="onboarding-title-1">Тут заробляють на дії у Telegram</h1>
+            <h1 id="onboarding-title-1">Earn from actions in Telegram</h1>
             <div class="onboarding-progress">
                 <span class="progress-dot active">●</span>
                 <span class="progress-dot">○</span>
             </div>
             <button id="onboarding-next-btn" class="onboarding-btn primary-action-btn">▶️ <span
-                    id="onboarding-next-text">Далі</span></button>
+                    id="onboarding-next-text">Next</span></button>
         </div>
 
         <!-- Screen 2 -->
@@ -46,15 +46,15 @@
             <div class="onboarding-steps">
                 <div class="onboarding-step">
                     <span class="step-number">1️⃣</span>
-                    <p id="onboarding-step-1-text">Активуй 7%</p>
+                    <p id="onboarding-step-1-text">Activate 7%</p>
                 </div>
                 <div class="onboarding-step">
                     <span class="step-number">2️⃣</span>
-                    <p id="onboarding-step-2-text">Поділись лінкою</p>
+                    <p id="onboarding-step-2-text">Share your link</p>
                 </div>
                 <div class="onboarding-step">
                     <span class="step-number">3️⃣</span>
-                    <p id="onboarding-step-3-text">Люди купують → ти отримуєш %</p>
+                    <p id="onboarding-step-3-text">People buy → you get %</p>
                 </div>
             </div>
             <div class="onboarding-progress">
@@ -62,7 +62,7 @@
                 <span class="progress-dot active">●</span>
             </div>
             <button id="onboarding-start-btn" class="onboarding-btn primary-action-btn">▶️ <span
-                    id="onboarding-start-text">Почати</span></button>
+                    id="onboarding-start-text">Start</span></button>
         </div>
     </div>
 
@@ -71,7 +71,7 @@
         <div class="wallet-connect-content">
             <!-- Header -->
             <div class="wallet-connect-header">
-                <button class="wallet-connect-close" id="wallet-modal-close" aria-label="Закрити">✕</button>
+                <button class="wallet-connect-close" id="wallet-modal-close" aria-label="Close">✕</button>
             </div>
 
             <!-- Title -->
@@ -116,7 +116,7 @@
                     <span class="ton-connect-icon">💎</span>
                     <span>TON Connect</span>
                 </div>
-                <button class="wallet-help-btn" aria-label="Допомога">?</button>
+                <button class="wallet-help-btn" aria-label="Help">?</button>
             </div>
         </div>
     </div>
@@ -124,27 +124,27 @@
     <!-- Fallback: Manual Input Modal (if TON Connect not available) -->
     <div id="wallet-manual-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content wallet-modal-content">
-            <h2 id="wallet-manual-title">Підключити TON гаманець</h2>
-            <p class="wallet-modal-copy" id="wallet-modal-copy">Потрібно лише для майбутніх виплат<br>Ніколи не списуємо
-                кошти</p>
+            <h2 id="wallet-manual-title">Connect TON Wallet</h2>
+            <p class="wallet-modal-copy" id="wallet-modal-copy">Only needed for future payouts<br>We never withdraw
+                funds</p>
             <div class="wallet-instructions">
-                <p class="wallet-instructions-title" id="wallet-instructions-title">Як знайти адресу гаманця:</p>
+                <p class="wallet-instructions-title" id="wallet-instructions-title">How to find wallet address:</p>
                 <ul class="wallet-instructions-list">
-                    <li id="wallet-instruction-1">Відкрий свій TON гаманець (Tonkeeper, MyTonWallet, Tonhub)</li>
-                    <li id="wallet-instruction-2">Знайди розділ "Receive" або "Отримати"</li>
-                    <li id="wallet-instruction-3">Скопіюй адресу (починається з EQ, UQ, kQ або 0Q)</li>
+                    <li id="wallet-instruction-1">Open your TON wallet (Tonkeeper, MyTonWallet, Tonhub)</li>
+                    <li id="wallet-instruction-2">Go to "Receive" or "Get" section</li>
+                    <li id="wallet-instruction-3">Copy address (starts with EQ, UQ, kQ or 0Q)</li>
                 </ul>
             </div>
             <form id="wallet-manual-form-el" class="wallet-form">
-                <label for="wallet-modal-input" class="wallet-input-label" id="wallet-modal-input-label">Адреса TON
-                    гаманця:</label>
+                <label for="wallet-modal-input" class="wallet-input-label" id="wallet-modal-input-label">TON Wallet
+                    Address:</label>
                 <input type="text" id="wallet-modal-input" class="wallet-input"
-                    placeholder="EQD0X... або UQD0X... (48 символів)" pattern="^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$"
+                    placeholder="EQD0X... or UQD0X... (48 chars)" pattern="^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$"
                     required aria-describedby="wallet-input-hint">
-                <p id="wallet-input-hint" class="wallet-input-hint">Приклад: EQD0X... або UQD0X...</p>
+                <p id="wallet-input-hint" class="wallet-input-hint">Example: EQD0X... or UQD0X...</p>
                 <div class="wallet-form-actions">
-                    <button type="submit" class="primary-action-btn" id="wallet-manual-save-btn">Зберегти</button>
-                    <button type="button" id="wallet-manual-close" class="secondary-action-btn">Скасувати</button>
+                    <button type="submit" class="primary-action-btn" id="wallet-manual-save-btn">Save</button>
+                    <button type="button" id="wallet-manual-close" class="secondary-action-btn">Cancel</button>
                 </div>
             </form>
         </div>
@@ -153,13 +153,13 @@
     <!-- Share Auto-popup -->
     <div id="share-popup" class="share-popup" style="display: none;">
         <div class="share-popup-content">
-            <h3 id="share-popup-title">Поділися лінкою</h3>
-            <p id="share-popup-text">Я підʼєднався до партнерської програми Telegram. Це працює автоматично.</p>
+            <h3 id="share-popup-title">Share Link</h3>
+            <p id="share-popup-text">I joined the Telegram partner program. It works automatically.</p>
             <div class="share-popup-actions">
                 <button id="share-popup-share-btn" class="primary-action-btn">▶️ <span
-                        id="share-popup-share-text">Поділитися</span></button>
+                        id="share-popup-share-text">Share</span></button>
                 <button id="share-popup-close-btn" class="secondary-action-btn">✕ <span
-                        id="share-popup-close-text">Закрити</span></button>
+                        id="share-popup-close-text">Close</span></button>
             </div>
         </div>
     </div>
@@ -169,25 +169,25 @@
         <!-- Header -->
         <header class="app-header" role="banner">
             <h1 id="bot-name">Mini App</h1>
-            <button id="close-btn" class="close-btn" aria-label="Закрити Mini App" type="button">×</button>
+            <button id="close-btn" class="close-btn" aria-label="Close Mini App" type="button">×</button>
         </header>
 
         <!-- Navigation Tabs -->
-        <nav class="tabs" role="navigation" aria-label="Головна навігація">
-            <button class="tab active" data-tab="home" aria-label="Головна" aria-current="page">
+        <nav class="tabs" role="navigation" aria-label="Main Navigation">
+            <button class="tab active" data-tab="home" aria-label="Home" aria-current="page">
                 <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
                     <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                 </svg>
-                <span class="tab-label">Головна</span>
+                <span class="tab-label">Home</span>
             </button>
-            <button class="tab" data-tab="partners" aria-label="Партнери">
+            <button class="tab" data-tab="partners" aria-label="Partners">
                 <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
                     <path
                         d="M16.5 12.25c1.52 0 2.75-1.23 2.75-2.75S18.02 6.75 16.5 6.75s-2.75 1.23-2.75 2.75 1.23 2.75 2.75 2.75ZM7.5 12.25c1.52 0 2.75-1.23 2.75-2.75S9.02 6.75 7.5 6.75 4.75 7.98 4.75 9.5s1.23 2.75 2.75 2.75Zm9 1.5c-2.1 0-6.25 1.05-6.25 3.15V19h12.5v-2.1c0-2.1-4.15-3.15-6.25-3.15Zm-9 0C5.4 13.75 1.25 14.8 1.25 16.9V19h7.5v-2.1c0-.86.37-1.6.98-2.22-.66-.5-1.58-.93-2.23-.93Z" />
                 </svg>
-                <span class="tab-label">Партнери</span>
+                <span class="tab-label">Partners</span>
             </button>
-            <button class="tab" data-tab="top" aria-label="TOP партнери">
+            <button class="tab" data-tab="top" aria-label="TOP Partners">
                 <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
                     <path
                         d="M12 2l2.85 6.63L22 9.24l-5.4 4.68L18.2 21 12 17.27 5.8 21l1.6-7.08L2 9.24l7.15-.61L12 2z" />
@@ -199,7 +199,7 @@
         <!-- Pull-to-refresh indicator - DISABLED -->
         <!-- <div id="pull-to-refresh" class="pull-to-refresh">
             <div class="pull-to-refresh-icon">⬇️</div>
-            <div class="pull-to-refresh-text">Потягніть для оновлення</div>
+            <div class="pull-to-refresh-text">Pull to refresh</div>
         </div> -->
 
         <!-- Content Areas -->
@@ -209,7 +209,7 @@
                 <!-- Trust Header (Static) -->
                 <div class="trust-header" id="trust-header">
                     <div class="trust-item" id="trust-item-1">🟢 Official Telegram Partner Program</div>
-                    <div class="trust-item" id="trust-item-2">🟢 Revenue share model (до 7%)</div>
+                    <div class="trust-item" id="trust-item-2">🟢 Revenue share model (up to 7%)</div>
                     <div class="trust-item" id="trust-item-3">🟢 Wallet: optional</div>
                 </div>
 
@@ -221,18 +221,18 @@
                 <!-- Share Strip (Always Visible) -->
                 <div class="share-strip" id="share-strip">
                     <div class="share-copy" id="share-copy">
-                        <p id="share-copy-1">Твоя лінка працює 24/7</p>
-                        <p id="share-copy-2">Кожен новий юзер може запускати цей шлях далі</p>
+                        <p id="share-copy-1">Your link works 24/7</p>
+                        <p id="share-copy-2">Every new user can launch this path further</p>
                     </div>
-                    <button class="share-btn" id="share-btn" aria-label="Поділитися">▶️ <span
-                            id="share-btn-text">Поділитися</span></button>
+                    <button class="share-btn" id="share-btn" aria-label="Share">▶️ <span
+                            id="share-btn-text">Share</span></button>
                 </div>
 
                 <!-- Wallet Banner (Contextual, shown if not connected) -->
                 <div class="wallet-banner" id="wallet-banner" style="display: none;">
                     <div class="wallet-banner-content">
-                        <p id="wallet-banner-text">Підключи гаманець → зможеш виводити</p>
-                        <button class="wallet-banner-btn" id="wallet-banner-btn">Підключити</button>
+                        <p id="wallet-banner-text">Connect wallet → enable withdrawals</p>
+                        <button class="wallet-banner-btn" id="wallet-banner-btn">Connect</button>
                     </div>
                 </div>
 
@@ -249,7 +249,7 @@
                 <!-- Info Section (Integrated /info command) -->
                 <div class="info-section" id="info-section">
                     <button class="info-collapse-btn" id="info-collapse-btn">
-                        <span>ℹ️ <span id="info-title-text">Інформація про бот</span></span>
+                        <span>ℹ️ <span id="info-title-text">Bot Info</span></span>
                         <span class="collapse-icon">▼</span>
                     </button>
                     <div class="info-content" id="info-content" style="display: none;">
@@ -269,22 +269,22 @@
                 <!-- Search & Filters (shown only when expanded) -->
                 <div class="page-header" id="partners-page-header" style="display: none;">
                     <div class="search-box">
-                        <input type="text" id="partner-search" class="search-input" placeholder="🔍 Пошук партнерів...">
-                        <button class="filter-btn" id="filter-btn" aria-label="Фільтри">⚙️</button>
+                        <input type="text" id="partner-search" class="search-input" placeholder="🔍 Search partners...">
+                        <button class="filter-btn" id="filter-btn" aria-label="Filters">⚙️</button>
                     </div>
                     <div class="filter-panel" id="filter-panel" style="display: none;">
                         <div class="filter-group">
-                            <label id="sort-label">Сортування:</label>
+                            <label id="sort-label">Sort by:</label>
                             <select id="sort-select" class="filter-select">
-                                <option value="name" id="sort-name">За назвою</option>
-                                <option value="commission" id="sort-commission">За комісією</option>
-                                <option value="new" id="sort-new">Спочатку нові</option>
+                                <option value="name" id="sort-name">Name</option>
+                                <option value="commission" id="sort-commission">Commission</option>
+                                <option value="new" id="sort-new">Newest</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label id="category-label">Категорія:</label>
+                            <label id="category-label">Category:</label>
                             <div class="filter-chips">
-                                <button class="chip active" data-filter="all" id="filter-all">Всі</button>
+                                <button class="chip active" data-filter="all" id="filter-all">All</button>
                                 <button class="chip" data-filter="new" id="filter-new">NEW</button>
                                 <button class="chip" data-filter="top" id="filter-top">TOP</button>
                             </div>
@@ -322,7 +322,7 @@
             <!-- Partner Detail Page (hidden by default) -->
             <section id="partner-detail-page" class="page">
                 <div class="detail-header">
-                    <button class="back-btn" onclick="goBack()" id="back-btn">← Назад</button>
+                    <button class="back-btn" onclick="goBack()" id="back-btn">← Back</button>
                     <h2 id="partner-detail-name"></h2>
                 </div>
                 <div class="partner-detail-content" id="partner-detail-content">
@@ -335,14 +335,63 @@
     <!-- Offline Indicator -->
     <div id="offline-indicator" class="offline-indicator" style="display: none;">
         <span class="offline-icon">📡</span>
-        <span class="offline-text">Немає інтернет-з'єднання</span>
+        <span class="offline-text">No internet connection</span>
     </div>
 
     <!-- Error Message (hidden by default) -->
     <div id="error-message" class="error-message" style="display: none;">
         <p id="error-text"></p>
-        <button id="retry-btn" class="retry-btn">Спробувати ще раз</button>
+        <button id="retry-btn" class="retry-btn">Retry</button>
     </div>
+
+    <!-- START: Instant Language Detection Script -->
+    <script>
+        (function () {
+            try {
+                // Default to English
+                let lang = 'en';
+
+                // Try to get language from Telegram WebApp
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                    lang = window.Telegram.WebApp.initDataUnsafe.user.language_code || 'en';
+                }
+                // Also check URL parameters as fallback
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('tgWebAppStartParam')) {
+                    // Check if referrer param contains language hint? (optional, skipping for now)
+                }
+
+                // Normalize language code
+                lang = lang.substring(0, 2).toLowerCase();
+
+                // Store globally for other scripts
+                window.__INITIAL_LANG__ = lang;
+
+                // Static translations for instant loader update
+                const loaderTexts = {
+                    'uk': 'Завантаження...',
+                    'ru': 'Загрузка...',
+                    'de': 'Laden...',
+                    'es': 'Cargando...',
+                    'en': 'Loading...'
+                };
+
+                // Apply immediately
+                const text = loaderTexts[lang] || loaderTexts['en'];
+                const loaderEl = document.getElementById('loading-text');
+                if (loaderEl) {
+                    loaderEl.textContent = text;
+                }
+
+                // Set HTML lang attribute
+                document.documentElement.lang = lang;
+
+            } catch (e) {
+                console.error('Instant language detection failed:', e);
+            }
+        })();
+    </script>
+    <!-- END: Instant Language Detection Script -->
 
     <!-- Scripts (load synchronously to maintain order) -->
     <script src="/static/mini-app/js/utils.js?v=5.5.6"></script>
@@ -385,7 +434,7 @@
                 const errorText = document.getElementById('error-text');
                 const loading = document.getElementById('loading');
                 if (errorEl && errorText) {
-                    errorText.textContent = 'Помилка завантаження модулів. Перезавантажте сторінку.';
+                    errorText.textContent = 'Module loading error. Please reload.';
                     errorEl.style.display = 'block';
                     if (loading) loading.style.display = 'none';
                 }
