@@ -250,6 +250,12 @@ async function handleWalletConnected(address) {
 
             // Update app data
             const appData = AppState.getAppData();
+            const knownWallet = appData?.user?.wallet;
+
+            // LOGIC: If the wallet we just connected is ALREADY the one in our database (loaded on startup),
+            // implies this is just a session restore/page reload. Don't spam the user with "Connected!" toast.
+            const isSilent = (knownWallet && knownWallet === address);
+
             if (appData && appData.user) {
                 appData.user.wallet = address;
                 AppState.setAppData(appData);
@@ -267,11 +273,16 @@ async function handleWalletConnected(address) {
                 Render.renderWalletBanner();
             }
 
-            if (typeof Toast !== 'undefined') {
-                Toast.success(AppState.getAppData()?.translations?.wallet_connected || '✅ Гаманець підключено успішно!');
-            }
-            if (typeof Haptic !== 'undefined') {
-                Haptic.success();
+            // Only show success notification if it's a NEW connection (not silent restore)
+            if (!isSilent) {
+                if (typeof Toast !== 'undefined') {
+                    Toast.success(AppState.getAppData()?.translations?.wallet_connected || '✅ Гаманець підключено успішно!');
+                }
+                if (typeof Haptic !== 'undefined') {
+                    Haptic.success();
+                }
+            } else {
+                console.log('🤫 Silent connection restore (wallet unchanged), skipping toast.');
             }
         } else {
             console.error('❌ Cannot save wallet - missing requirements:', {
