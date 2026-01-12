@@ -207,8 +207,21 @@ function initTonConnect() {
 /**
  * Handle wallet connected
  */
+let lastSavedAddress = null;
+
+/**
+ * Handle wallet connected
+ */
 async function handleWalletConnected(address) {
     console.log('🎉 handleWalletConnected called with address:', address);
+
+    // Prevent duplicate saves for same session/address
+    if (lastSavedAddress === address) {
+        console.log('⚠️ Wallet already processed in this session, skipping API call.');
+        return;
+    }
+    lastSavedAddress = address; // Mark as processing immediately
+
     console.log('📏 Address length:', address.length);
     console.log('🆔 Address start:', address.substring(0, 5));
     try {
