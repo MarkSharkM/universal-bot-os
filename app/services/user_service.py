@@ -57,7 +57,7 @@ class UserService:
                 bot_id=self.bot_id,
                 external_id=str(external_id),
                 platform=platform,
-                language_code=language_code or 'uk',
+                language_code=language_code or 'en',
                 custom_data={
                     'username': username,
                     'first_name': first_name,

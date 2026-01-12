@@ -22,7 +22,7 @@ class TranslationService:
     
     SUPPORTED_LANGUAGES = ['uk', 'en', 'ru', 'de', 'es']
     FALLBACK_LANG = 'en'
-    DEFAULT_LANG = 'uk'
+    DEFAULT_LANG = 'en'
     
     # Global UI Defaults (Fallback if not in DB or bot.config)
     GLOBAL_UI_DEFAULTS = {
