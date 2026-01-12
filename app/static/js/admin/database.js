@@ -61,17 +61,55 @@ async function loadMessages(offset = 0, reset = false) {
             row.id = `msg-row-${msg.id}`;
             row.setAttribute('data-user-id', msg.user_id);
 
-            const commandPreview = msg.command_content ? (msg.command_content.length > 20 ? msg.command_content.substring(0, 20) + '...' : msg.command_content) : '-';
+            // --- UI POLISH START ---
+
+            // 1. COMMAND BADGES
+            const rawCommand = msg.command_content || '-';
+            let commandStyle = 'color: #374151; font-weight: 500;'; // Default
+            let commandBg = '#f3f4f6';
+
+            if (rawCommand.includes('/partners')) { commandBg = '#dcfce7'; commandStyle = 'color: #166534; font-weight: 600;'; }
+            else if (rawCommand.includes('/top')) { commandBg = '#dbeafe'; commandStyle = 'color: #1e40af; font-weight: 600;'; }
+            else if (rawCommand.includes('/start')) { commandBg = '#fef9c3'; commandStyle = 'color: #854d0e; font-weight: 600;'; }
+            else if (rawCommand.includes('mini_app')) { commandBg = '#f3e8ff'; commandStyle = 'color: #6b21a8; font-weight: 500;'; }
+
+            const commandBadge = `<span style="background: ${commandBg}; ${commandStyle} padding: 2px 6px; border-radius: 4px; font-size: 8px;">${rawCommand.length > 25 ? rawCommand.substring(0, 25) + '...' : rawCommand}</span>`;
+
             const commandExpandId = `cmd-${msg.id}`;
 
+            // 2. WALLET TRUNCATION
+            let walletDisplay = '-';
+            if (msg.wallet_address) {
+                const w = msg.wallet_address;
+                walletDisplay = w.length > 12
+                    ? `<span title="${w}" style="font-family: monospace; color: #4b5563; cursor: help;">${w.substring(0, 4)}...${w.substring(w.length - 4)}</span>`
+                    : w;
+            }
+
+            // 3. MINI APP EVENT HANDLING (Response/Time)
+            const isMiniAppEvent = (msg.source && msg.source.includes('mini_app')) || (rawCommand.startsWith('/'));
+
+            let responseDisplay = '-';
+            let timeDisplay = '-';
+
+            if (!msg.response_content && isMiniAppEvent) {
+                responseDisplay = '<span style="color: #9ca3af; font-style: italic; font-size: 8px;">(Event Log)</span>';
+                timeDisplay = '<span style="color: #9ca3af;">-</span>';
+            } else {
+                responseDisplay = msg.response_content ? (msg.response_content.substring(0, 15) + '...') : '-';
+                timeDisplay = msg.response_time_seconds ? `${msg.response_time_seconds}s` : '-';
+            }
+
+            // --- UI POLISH END ---
+
             row.innerHTML = `
-                <td style="font-size: 9px;">${new Date(msg.created_at).toLocaleString('uk-UA')}</td>
-                <td style="font-size: 9px;">${msg.user_id.substring(0, 8)}...</td>
+                <td style="font-size: 9px; white-space: nowrap;">${new Date(msg.created_at).toLocaleString('uk-UA')}</td>
+                <td style="font-size: 9px;">${msg.user_id.substring(0, 6)}...</td>
                 <td style="font-size: 9px;">${msg.external_id || '-'}</td>
                 <td style="font-size: 9px;">${msg.username || '-'}</td>
                 <td style="font-size: 9px;">${msg.device || '-'}</td>
                 <td style="font-size: 9px;">${msg.language || '-'}</td>
-                <td class="cell-wallet" style="font-size: 9px;">${msg.wallet_address || '-'}</td>
+                <td class="cell-wallet" style="font-size: 9px;">${walletDisplay}</td>
                 <td class="cell-invited" style="font-size: 9px; text-align: center;">${msg.total_invited || 0}</td>
                 <td class="cell-top" style="font-size: 9px; text-align: center;">
                     ${msg.top_status === 'open'
@@ -82,21 +120,22 @@ async function loadMessages(offset = 0, reset = false) {
                 <td style="font-size: 9px;">${msg.is_active ? '✅' : '❌'}</td>
                 <td style="font-size: 9px;">${new Date(msg.created_at).toLocaleDateString()}</td>
                 <td style="font-size: 9px;">${msg.last_activity ? new Date(msg.last_activity).toLocaleDateString() : '-'}</td>
-                <td style="font-size: 9px; max-width: 150px;">
-                     <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                        <span style="font-size: 9px; color: #6b7280;">${commandPreview}</span>
+                <td style="font-size: 9px; max-width: 180px;">
+                     <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        ${commandBadge}
                         ${msg.custom_data?.partner_id ? `<span style="background: #e0f2fe; color: #0284c7; padding: 1px 3px; border-radius: 3px; font-size: 8px;">P: ${msg.custom_data.partner_id.substring(0, 5)}...</span>` : ''}
                         <span style="font-size: 8px; color: #9ca3af;">▼</span>
                     </div>
-                    <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word;">
-                        <div>${msg.command_content || '-'}</div>
+                    <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                        <div style="font-weight:bold; margin-bottom:2px;">Full Command:</div>
+                        <div style="color:#4b5563;">${msg.command_content || '-'}</div>
                         ${msg.custom_data?.partner_id ? `<div style="margin-top: 4px; color: #0284c7;"><strong>Partner ID:</strong> ${msg.custom_data.partner_id}</div>` : ''}
                         ${msg.custom_data ? `<div style="margin-top: 4px; border-top: 1px solid #eee; padding-top: 2px; color: #9ca3af;">${JSON.stringify(msg.custom_data, null, 2)}</div>` : ''}
                     </div>
                 </td>
                 <td style="font-size: 9px;">${msg.source || '-'}</td>
-                <td style="font-size: 9px;">${msg.response_content ? (msg.response_content.substring(0, 15) + '...') : '-'}</td>
-                <td style="font-size: 9px;">${msg.response_time_seconds || '-'}s</td>
+                <td style="font-size: 9px;">${responseDisplay}</td>
+                <td style="font-size: 9px;">${timeDisplay}</td>
                 <td style="font-size: 9px;">
                     <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Edit</button>
                     <button onclick="deleteUser('${msg.user_id}', '${msg.external_id}')" style="background: #dc2626; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Hard Del</button>
