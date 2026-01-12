@@ -38,7 +38,7 @@ window.Components.Header = function (user, isTop) {
             </div>
         </div>
         
-        <button class="${walletClass}" onclick="document.dispatchEvent(new CustomEvent('open-wallet-modal'))">
+        <button class="${walletClass}" onclick="${isConnected ? "window.open('https://t.me/wallet', '_blank')" : "document.dispatchEvent(new CustomEvent('open-wallet-modal'))"}">
             ${Icons.Wallet}
             <span>${walletText}</span>
         </button>
