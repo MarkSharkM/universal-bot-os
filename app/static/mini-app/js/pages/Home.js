@@ -36,13 +36,13 @@ window.Pages.Home = {
         const hero = Components.Hero(isTop, referralCount);
         container.appendChild(hero);
 
-        // 3. Navigation Cards (Partners / Top Bots)
-        const navCards = Components.NavCards();
-        container.appendChild(navCards);
-
-        // 4. Money Math
+        // 3. Money Math (Your Potential Earnings)
         const moneyMath = Components.MoneyMath();
         container.appendChild(moneyMath);
+
+        // 4. Navigation Cards (Partners / Top Bots)
+        const navCards = Components.NavCards();
+        container.appendChild(navCards);
 
         // 5. Footer (About)
         const footer = Components.Footer();
