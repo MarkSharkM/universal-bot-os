@@ -685,6 +685,36 @@ async function activatePartnerAndReturn() {
     }
 }
 
+function fallbackCopyText(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Ensure it's not visible but part of DOM
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopySuccess();
+        } else {
+            console.error('Fallback copy failed.');
+            if (typeof Toast !== 'undefined') Toast.error('Copy failed');
+        }
+    } catch (err) {
+        console.error('Fallback copy error:', err);
+        if (typeof Toast !== 'undefined') Toast.error('Error copying text');
+    }
+
+    document.body.removeChild(textArea);
+}
+
 window.Actions = {
     openPartner,
     handleWalletSubmit,
