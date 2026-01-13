@@ -37,14 +37,13 @@ window.Components.Hero = function (isTop, referralCount) {
                 ? `<div class="link-active">${t.link_connected || '✅ Link Connected'}</div>`
                 : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
-                       <input type="text" id="tgr-link-input" class="tgr-input" placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}" 
-                              onfocus="setTimeout(() => this.scrollIntoView({behavior: 'smooth', block: 'center'}), 300)">
+                       <input type="text" id="tgr-link-input" class="tgr-input" placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}">
                        <button class="tgr-save-btn" onclick="Actions.saveTgrLink()">${t.save || 'Save'}</button>
                    </div>`
             }
                 </div>
 
-                ${!savedLink ? `<div class="input-helper-text" style="cursor: pointer; padding: 10px;" onclick="Actions.openBotForLink()">${t.where_to_get_link || 'Де взяти лінку?'}</div>` : ''}
+                ${!savedLink ? `<div class="input-helper-text" style="cursor: pointer; padding: 10px;" onclick="Actions.showActivate7Instructions()">${t.where_to_get_link || 'Де взяти лінку?'}</div>` : ''}
 
 
                  <button class="cta-btn green-glow" onclick="Actions.shareReferralLink()">
