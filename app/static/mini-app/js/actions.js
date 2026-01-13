@@ -676,6 +676,8 @@ window.Actions = {
     shareReferralLink,
     handleBuyTop,
     openTelegramBot,
+    saveTgrLink,
+    openBotForLink,
     showActivate7Instructions,
     activatePartnerAndReturn,
     fallbackCopyText,
