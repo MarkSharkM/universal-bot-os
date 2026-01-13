@@ -22,6 +22,13 @@ function setupEventHandlers() {
         if (tgApp.onEvent) {
             tgApp.onEvent('viewportChanged', ({ isStateStable }) => {
                 if (isStateStable) {
+                    // Prevent reload if user is typing (keyboard open triggers viewport change)
+                    const activeTag = document.activeElement?.tagName;
+                    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
+                        console.log('viewportChanged: User is typing, skipping reload to keep keyboard open');
+                        return;
+                    }
+
                     // App might have been brought to foreground
                     if (typeof loadAppData === 'function') {
                         console.log('Viewport stable, reloading data...'); // Debug
