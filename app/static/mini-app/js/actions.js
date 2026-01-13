@@ -502,30 +502,75 @@ function openTelegramBot() {
     }
 }
 
+
+
+function validateTgrInput(input) {
+    const btn = document.getElementById('tgr-save-btn');
+    const helper = document.getElementById('tgr-input-helper');
+    if (!btn) return;
+
+    const val = input.value.trim();
+
+    // Basic validation
+    if (val.length > 5 && (val.includes('t.me') || val.includes('_tgr_'))) {
+        btn.disabled = false;
+        btn.classList.remove('disabled');
+        if (helper) helper.style.display = 'none';
+    } else {
+        btn.disabled = true;
+        btn.classList.add('disabled');
+        // Optional: show helper only if typed something invalid
+        if (val.length > 0 && helper) {
+            helper.textContent = 'Link must contain t.me or _tgr_';
+            helper.style.display = 'block';
+            helper.style.color = '#ff4d4d'; // Red warning
+        } else if (helper) {
+            helper.style.display = 'none';
+        }
+    }
+}
+
+function editTgrLink() {
+    // Clear local state only for UI purposes
+    // We don't delete from backend immediately to avoid accidental loss
+    // We just re-render Hero in "edit mode" (savedLink = null)
+
+    const appData = AppState.getAppData();
+    // Trick: we temporarily stash the real link but clear view
+    // Ideally we would have a separate 'isEditing' state, 
+    // but clearing the TGR link in AppState works for now:
+    AppState.setTgrLink(null);
+
+    if (typeof Render !== 'undefined' && Render.renderHome) {
+        Render.renderHome();
+        // Focus the input? NO, per strict rules: "User controls focus"
+        // But we can show a toast
+        if (typeof Toast !== 'undefined') Toast.info('Edit mode: Paste your new link');
+    }
+}
+
 function showActivate7Instructions() {
     const appData = AppState.getAppData();
     const earnings = appData.earnings || {};
     const translations = appData.translations || {};
     const commissionPercent = Math.round((earnings.commission_rate || 0.07) * 100);
-
-    // Get bot username (universal for any bot)
     const botUsername = typeof getBotUsername === 'function' ? getBotUsername() : null;
 
     if (!botUsername) {
-        console.error('❌ Bot username not found. Please sync username via API.');
+        console.error('Bot username missing');
         return;
     }
-    const title = translations.activate_7_title || `Як увімкнути ${commissionPercent}% (1 раз назавжди):`;
 
+    const title = translations.activate_7_title || `Як увімкнути ${commissionPercent}% (1 раз назавжди):`;
     let instructions = `${translations.activate_7_step_1 || '1️⃣ Відкрий @{{username}}'}\n${translations.activate_7_step_2 || '2️⃣ «Партнерська програма»'}\n${translations.activate_7_step_3 || '3️⃣ «Під\'єднатись»'}\n${translations.activate_7_footer || '→ {{percent}}% активуються назавжди'}`;
 
     instructions = instructions
         .replace('{{username}}', botUsername)
         .replace('{{percent}}', commissionPercent);
 
-    if (typeof trackEvent === 'function') trackEvent('activate_7_modal_open');
+    // IMPORTANT NOTE per Senior QA rule:
+    const note = translations.activate_7_note || '⚠️ Important: After connecting, tap "Open App" in chat to return here.';
 
-    // Show modal with instructions
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
@@ -537,13 +582,16 @@ function showActivate7Instructions() {
             <div class="modal-body">
                 <div class="instructions-text">
                     ${instructions.split('\n').map(line => `<p>${line}</p>`).join('')}
+                    <div class="instruction-note" style="margin-top:12px; font-size:11px; color:#aaa; border-left: 2px solid #555; padding-left:8px;">
+                        ${note}
+                    </div>
                 </div>
                 <div class="modal-actions">
-                    <button class="action-btn primary" onclick="if(window.Actions && Actions.activatePartnerAndReturn) Actions.activatePartnerAndReturn(); else openTelegramBot();">
+                    <button class="action-btn primary" onclick="Actions.activatePartnerAndReturn()">
                         ${translations.open_bot || 'Відкрити бота'}
                     </button>
                     <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
-                        ${translations.cancel || 'Закрити'}
+                        ${translations.cancel || 'Скасувати'}
                     </button>
                 </div>
             </div>
@@ -551,40 +599,9 @@ function showActivate7Instructions() {
     `;
 
     document.body.appendChild(modal);
-
-    // Close on overlay click
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
+        if (e.target === modal) modal.remove();
     });
-}
-
-function fallbackCopyText(text) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-        document.execCommand('copy');
-        showCopySuccess();
-    } catch (err) {
-        console.error('Fallback copy failed:', err);
-        const msg = AppState.getAppData()?.translations?.copy_failed || 'Не вдалося скопіювати лінк';
-        if (AppState.getTg()?.showAlert) {
-            if (typeof Toast !== 'undefined') {
-                Toast.error(msg);
-            } else if (AppState.getTg()?.showAlert) {
-                AppState.getTg().showAlert(msg);
-            }
-        }
-    }
-
-    document.body.removeChild(textArea);
 }
 
 function showCopySuccess() {
@@ -678,6 +695,9 @@ window.Actions = {
     openTelegramBot,
     saveTgrLink,
     openBotForLink,
+    saveManualWallet,
+    validateTgrInput,
+    editTgrLink,
     showActivate7Instructions,
     activatePartnerAndReturn,
     fallbackCopyText,

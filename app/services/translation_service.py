@@ -138,6 +138,7 @@ class TranslationService:
             'stat_friends': 'Друзі',
             'top_program_active': 'ТОП ПРОГРАМА АКТИВНА',
             'paste_link_placeholder': 'Встав свою 7% лінку тут...',
+            'activate_7_note': '⚠️ Важливо: Після підключення натисніть "Launch" в чаті.',
             'where_to_get_link': 'Де взяти лінку?',
             'share_your_link': 'ПОДІЛИТИСЬ ЛІНКОЮ',
             'invited_count': '{{count}} запрошено',

@@ -34,12 +34,29 @@ window.Components.Hero = function (isTop, referralCount) {
                 
                 <div class="tgr-link-section">
                      ${savedLink
-                ? `<div class="link-active">${t.link_connected || '✅ Link Connected'}</div>`
+                ? `<div class="link-active">
+                       <span class="status-icon">✅</span>
+                       <span class="status-text">${t.link_connected || 'Link Connected'}</span>
+                       <button class="edit-link-btn" onclick="Actions.editTgrLink()">${Icons.Edit || '✏️'}</button>
+                   </div>
+                   <div class="link-preview-text">${savedLink.length > 25 ? savedLink.substring(0, 25) + '...' : savedLink}</div>`
                 : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
-                       <input type="text" id="tgr-link-input" class="tgr-input" placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}">
-                       <button class="tgr-save-btn" onclick="Actions.saveTgrLink()">${t.save || 'Save'}</button>
-                   </div>`
+                       <input type="url" 
+                              inputmode="url" 
+                              autocomplete="off" 
+                              autocorrect="off" 
+                              autocapitalize="off" 
+                              spellcheck="false"
+                              id="tgr-link-input" 
+                              class="tgr-input" 
+                              placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}"
+                              oninput="Actions.validateTgrInput(this)">
+                       <button id="tgr-save-btn" class="tgr-save-btn disabled" disabled onclick="Actions.saveTgrLink()">
+                           ${t.save || 'Save'}
+                       </button>
+                   </div>
+                   <div id="tgr-input-helper" class="input-helper-status" style="display:none;"></div>`
             }
                 </div>
 
