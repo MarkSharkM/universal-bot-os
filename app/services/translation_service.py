@@ -29,7 +29,7 @@ class TranslationService:
         'uk': {
             'nav_home': 'Головна',
             'nav_partners': 'Партнери',
-            'nav_top': 'TOP',
+            'nav_top': 'ТОП',
             'friends': 'Друзі',
             'top_activated': 'TOP ПРОГРАМА АКТИВНА',
             'link_connected': 'Лінка підключена',
