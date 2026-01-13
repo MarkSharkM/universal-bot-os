@@ -96,7 +96,11 @@ async function saveTgrLink() {
     }
 
     const botId = AppState.getBotId();
-    if (!botId) return;
+    if (!botId) {
+        console.error('❌ Bot ID missing in saveTgrLink');
+        if (typeof Toast !== 'undefined') Toast.error('Bot ID not found. Reload app.');
+        return;
+    }
 
     try {
         const translations = AppState.getAppData()?.translations || {};
@@ -270,10 +274,10 @@ async function shareReferralLink() {
 
     let linkToShare;
 
-    if (isTop && tgrLink) {
-        // Share TGR Link (Direct Revenue)
+    if (tgrLink) {
+        // Share TGR Link (Direct Revenue) - PRIORITY
         // Extract simple link if user pasted full text
-        const match = tgrLink.match(/(https:\/\/t\.me\/[a-zA-Z0-9_]+(?:\?start=|\?startapp=)[a-zA-Z0-9_]+)/);
+        const match = tgrLink.match(/(https:\/\/t\.me\/[a-zA-Z0-9_]+(?:\?start=|\\?startapp=)[a-zA-Z0-9_]+)/);
         linkToShare = match ? match[1] : tgrLink;
     } else {
         // Share Internal Link (Quest Progress)
@@ -290,10 +294,12 @@ async function shareReferralLink() {
     const translations = AppState.getAppData()?.translations || {};
     const textPro = translations.share_text_pro || "🔥 Join me & Earn 7% RevShare!";
     const textStarter = translations.share_text_starter || "Look! I'm earning on Telegram with this bot 🚀";
-    const text = isTop ? textPro : textStarter;
+
+    // If using TGR link, use PRO text, otherwise Starter text
+    const text = tgrLink ? textPro : textStarter;
     const url = `https://t.me/share/url?url=${encodeURIComponent(linkToShare)}&text=${encodeURIComponent(text)}`;
 
-    if (typeof trackEvent === 'function') trackEvent('referral_link_share', { type: isTop ? 'pro' : 'starter' });
+    if (typeof trackEvent === 'function') trackEvent('referral_link_share', { type: tgrLink ? 'pro' : 'starter' });
 
     const tg = AppState.getTg();
     if (tg && tg.openTelegramLink) {
