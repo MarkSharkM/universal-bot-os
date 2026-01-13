@@ -51,7 +51,9 @@ window.Components.Hero = function (isTop, referralCount) {
                               id="tgr-link-input" 
                               class="tgr-input" 
                               placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}"
-                              oninput="Actions.validateTgrInput(this)">
+                              oninput="Actions.validateTgrInput(this)"
+                              onfocus="document.body.classList.add('keyboard-open')"
+                              onblur="document.body.classList.remove('keyboard-open')">
                        <button id="tgr-save-btn" class="tgr-save-btn disabled" disabled onclick="Actions.saveTgrLink()">
                            ${t.save || 'Save'}
                        </button>

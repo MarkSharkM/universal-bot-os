@@ -695,15 +695,12 @@ window.Actions = {
     openTelegramBot,
     saveTgrLink,
     openBotForLink,
-    saveManualWallet,
     validateTgrInput,
     editTgrLink,
     showActivate7Instructions,
     activatePartnerAndReturn,
     fallbackCopyText,
-    showCopySuccess,
     showCopySuccess
-
 };
 // Developer Tools
 window.toggleDevMode = function (mode) {
