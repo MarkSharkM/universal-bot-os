@@ -1027,6 +1027,8 @@ async def get_mini_app_data(
             "ok": True,
             "translations": ui_translations,  # ADDED: global translations object at root
             "user": {
+                "id": str(user.id),
+                "language_code": user_lang,  # CRITICAL: Required for Legal.js and other client-side localization
                 "wallet": wallet or "",
                 "balance": float(user.balance) if user.balance else 0.0,
                 "total_invited": earnings_data["total_invited"],
