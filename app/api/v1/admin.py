@@ -2781,6 +2781,78 @@ async def debug_referrals(
         "sample_logs": sample_logs
     }
 
+@router.post("/bots/{bot_id}/fix-icons-now")
+async def fix_icons_now(
+    bot_id: UUID,
+    db: Session = Depends(get_db)
+):
+    """
+    Temporary endpoint to force-fetch missing icons for specific bots.
+    Triggers the restoration logic immediately.
+    """
+    try:
+        from app.adapters.telegram import TelegramAdapter
+        from app.models.business_data import BusinessData
+        import re
+        
+        adapter = TelegramAdapter()
+        search_terms = ['randgift_bot', 'boinker_bot', 'EasyGiftDropbot', 'm5bank_bot']
+        
+        partners = db.query(BusinessData).filter(
+            BusinessData.bot_id == bot_id,
+            BusinessData.data_type == 'partner'
+        ).all()
+        
+        results = []
+        updates_count = 0
+        
+        for partner in partners:
+            data = partner.data
+            link = data.get('referral_link', '')
+            name = data.get('bot_name', 'Unknown')
+            current_icon = data.get('icon')
+            
+            is_match = False
+            for term in search_terms:
+                if term.lower() in link.lower():
+                    is_match = True
+                    break
+            
+            if is_match:
+                if current_icon:
+                    results.append(f"Skipped {name}: Already has icon")
+                    continue
+                
+                # Extract username
+                match = re.search(r't\.me/([a-zA-Z0-9_]+)', link)
+                if match:
+                    username = match.group(1)
+                    avatar_url = await adapter.get_bot_avatar_url(bot_id, username)
+                    if avatar_url:
+                        partner.data['icon'] = avatar_url
+                        from sqlalchemy.orm.attributes import flag_modified
+                        flag_modified(partner, 'data')
+                        results.append(f"Fixed {name}: Icon restored")
+                        updates_count += 1
+                    else:
+                        results.append(f"Failed {name}: Could not fetch avatar")
+                else:
+                    results.append(f"Skipped {name}: Could not parse username")
+        
+        if updates_count > 0:
+            db.commit()
+            
+        return {
+            "success": True,
+            "updates_count": updates_count,
+            "details": results
+        }
+            
+    except Exception as e:
+        logger.error(f"Error fixing icons: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 
