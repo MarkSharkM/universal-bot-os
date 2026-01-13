@@ -389,6 +389,16 @@
             } catch (e) {
                 console.error('Instant language detection failed:', e);
             }
+
+            // EMERGENCY: Unregister any legacy Service Workers to prevent caching issues
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (let registration of registrations) {
+                        console.log('Unregistering Service Worker:', registration);
+                        registration.unregister();
+                    }
+                });
+            }
         })();
     </script>
     <!-- END: Instant Language Detection Script -->

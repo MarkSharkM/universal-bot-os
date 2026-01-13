@@ -582,6 +582,21 @@ class TranslationService:
             'recommended_title': 'Проверенные Telegram-боты',
             'recommended_subtitle': 'Выбирай любой — запускай и прокачивайся! 💪',
             'wallet_btn': 'Кошелек',
+            
+            # --- Missing Static Elements (Added for full Index.html coverage) ---
+            'trust_item_1': '🟢 Официальная партнерская программа Telegram',
+            'trust_item_2': '🟢 Модель разделения дохода (до 7%)',
+            'trust_item_3': '🟢 Кошелек: опционально',
+            'share_copy_1': 'Твоя ссылка работает 24/7',
+            'share_copy_2': 'Каждый новый юзер может запускать этот путь дальше',
+            'wallet_banner_text': 'Подключи кошелек → сможешь выводить',
+            'wallet_banner_btn': 'Подключить',
+            'info_title': 'Информация о боте',
+            'wallet_connect_title': 'Подключить TON кошелек',
+            'wallet_connect_subtitle': 'Используйте Wallet в Telegram или другое приложение',
+            'wallet_modal_copy': 'Нужно только для будущих выплат\nНикогда не списываем средства',
+            'share_popup_text': 'Я подключился к партнерской программе Telegram. Это работает автоматически.',
+            'close_btn': 'Закрыть',
         },
         'de': {
             'nav_home': 'Startseite',
@@ -710,6 +725,21 @@ class TranslationService:
             'recommended_title': 'Verifizierte Telegram-Bots',
             'recommended_subtitle': 'Wähle einen aus — starte und verbessere dich! 💪',
             'wallet_btn': 'Wallet',
+            
+            # --- Missing Static Elements (Added for full Index.html coverage) ---
+            'trust_item_1': '🟢 Offizielles Telegram-Partnerprogramm',
+            'trust_item_2': '🟢 Umsatzbeteiligungsmodell (bis zu 7%)',
+            'trust_item_3': '🟢 Wallet: optional',
+            'share_copy_1': 'Dein Link funktioniert 24/7',
+            'share_copy_2': 'Jeder neue Nutzer kann diesen Weg weitergehen',
+            'wallet_banner_text': 'Wallet verbinden → Auszahlungen aktivieren',
+            'wallet_banner_btn': 'Verbinden',
+            'info_title': 'Bot-Informationen',
+            'wallet_connect_title': 'Verbinde deine TON-Wallet',
+            'wallet_connect_subtitle': 'Nutze Wallet in Telegram oder eine andere App',
+            'wallet_modal_copy': 'Nur für zukünftige Auszahlungen benötigt\nWir heben niemals Geld ab',
+            'share_popup_text': 'Ich bin dem Telegram-Partnerprogramm beigetreten. Es funktioniert automatisch.',
+            'close_btn': 'Schließen',
         },
         'es': {
             'nav_home': 'Inicio',
@@ -838,6 +868,21 @@ class TranslationService:
             'recommended_title': 'Bots de Telegram verificados',
             'recommended_subtitle': '¡Elige cualquiera — lanza y mejora! 💪',
             'wallet_btn': 'Billetera',
+            
+            # --- Missing Static Elements (Added for full Index.html coverage) ---
+            'trust_item_1': '🟢 Programa oficial de socios de Telegram',
+            'trust_item_2': '🟢 Modelo de reparto de ingresos (hasta el 7%)',
+            'trust_item_3': '🟢 Billetera: opcional',
+            'share_copy_1': 'Tu enlace funciona 24/7',
+            'share_copy_2': 'Cada nuevo usuario puede iniciar este camino',
+            'wallet_banner_text': 'Conectar billetera → activar retiros',
+            'wallet_banner_btn': 'Conectar',
+            'info_title': 'Información del bot',
+            'wallet_connect_title': 'Conectar tu billetera TON',
+            'wallet_connect_subtitle': 'Usa Wallet en Telegram o elige otra aplicación',
+            'wallet_modal_copy': 'Solo necesario para futuros pagos\nNunca retiramos fondos',
+            'share_popup_text': 'Me uní al programa de socios de Telegram. Funciona automáticamente.',
+            'close_btn': 'Cerrar',
         }
     }
     

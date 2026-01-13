@@ -30,33 +30,33 @@ Support: t.me/{{username}}`,
 Data processing is carried out in accordance with Telegram Terms of Service.`
     },
     uk: {
-        terms_title: 'Умови користування',
-        terms_body: `**Умови користування**
+        terms_title: 'Умови використання',
+        terms_body: `**Умови використання**
 
-Використовуючи цей Mini App, ви погоджуєтесь із наведеними нижче умовами.
+Використовуючи цей Mini App, ви погоджуєтесь з умовами нижче.
 
 **Сервіс**
-Ми надаємо гейміфікований сервіс цифрових винагород і реферальних програм у межах Telegram. Усі винагороди нараховуються автоматично після виконання відповідних дій, згідно з правилами Партнерської програми Telegram. Перевірка й зарахування можуть тривати кілька днів, доки Telegram підтвердить активність.
+Ми надаємо гейміфікований сервіс цифрових винагород та реферальних програм у Telegram. Всі винагороди нараховуються автоматично після виконання дій, згідно з правилами Партнерської програми Telegram. Перевірка та нарахування можуть зайняти кілька днів, поки Telegram підтвердить активність.
 
-**Справедливе використання та антифрод**
-Ми можемо обмежити або скасувати винагороди у випадках зловживання, створення кількох акаунтів чи забороненої активності.
+**Чесне використання**
+Ми можемо обмежити або скасувати винагороди у випадках зловживання, створення мультиаккаунтів або забороненої активності.
 
-**Дані та конфіденційність**
-Ми зберігаємо лише мінімальний обсяг даних, необхідний для роботи застосунку. Детальніше див. Політику конфіденційності.
+**Дані та Конфіденційність**
+Ми зберігаємо тільки мінімальний обсяг даних, необхідний для роботи програми. Детальніше див. Політику конфіденційності.
 
 **Контакт**
 Підтримка: t.me/{{username}}`,
         privacy_title: 'Політика конфіденційності',
-        privacy_body: `**Політика конфіденційності**
+        privacy_body: `**Политика конфіденційності**
 
-{{botname}} («ми») обробляє лише мінімальні дані, необхідні для роботи винагород і реферальних програм у Telegram.
+{{botname}} («ми») обробляє лише мінімальні дані, необхідні для роботи винагород та реферальних програм у Telegram.
 
-1. Ідентифікатор користувача Telegram, нікнейм та мова інтерфейсу;
-2. Зв’язки рефералів і журнали активності винагород;
-3. Дані антифроду та базової аналітики.
+1. Telegram ID користувача, нікнейм та мова інтерфейсу;
+2. Реферальні зв'язки та журнали активності винагород;
+3. Дані анти-фрод та базова аналітика.
 
-**Ми не збираємо платіжну інформацію.** Дані зберігаються лише поки акаунт активний або до звернення в підтримку щодо видалення.
-Обробка даних здійснюється відповідно до Правил користування Telegram.`
+**Ми не збираємо платіжну інформацію.** Дані зберігаються лише поки обліковий запис активний або до запиту в підтримку про видалення.
+Обробка даних здійснюється відповідно до Умов надання послуг Telegram.`
     },
     ru: {
         terms_title: 'Условия использования',
@@ -107,6 +107,31 @@ Soporte: t.me/{{username}}`,
 
 **No recopilamos información de pago.**
 El procesamiento de datos cumple con los Términos de Servicio de Telegram.`
+    },
+    de: {
+        terms_title: 'Nutzungsbedingungen',
+        terms_body: `**Nutzungsbedingungen**
+
+Durch die Nutzung dieser Mini-App stimmen Sie den folgenden Bedingungen zu.
+
+**Service**
+Wir bieten einen gamifizierten digitalen Belohnungs- und Empfehlungsdienst innerhalb von Telegram an. Alle Belohnungen werden automatisch nach Abschluss der entsprechenden Aktionen gutgeschrieben, gemäß den Regeln des Telegram-Partnerprogramms.
+
+**Faire Nutzung**
+Wir können Belohnungen bei Missbrauch oder verbotenen Aktivitäten einschränken oder stornieren.
+
+**Datenschutz**
+Wir speichern nur die minimal notwendigen Daten. Siehe Datenschutzrichtlinie.
+
+**Kontakt**
+Support: t.me/{{username}}`,
+        privacy_title: 'Datenschutzrichtlinie',
+        privacy_body: `**Datenschutzrichtlinie**
+
+{{botname}} verarbeitet nur minimale Daten: Benutzer-ID, Spitzname, Sprache und Empfehlungsverbindungen.
+
+**Wir sammeln keine Zahlungsinformationen.**
+Die Datenverarbeitung erfolgt in Übereinstimmung mit den Telegram-Nutzungsbedingungen.`
     }
 };
 
