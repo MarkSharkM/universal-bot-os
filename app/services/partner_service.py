@@ -132,63 +132,64 @@ class PartnerService:
             })
         
         # Second pass: fetch avatars in parallel (if any)
-        if avatar_tasks:
-            try:
-                from app.adapters.telegram import TelegramAdapter
-                import asyncio
-                adapter = TelegramAdapter()
-                
-                # Create tasks for parallel fetching
-                async def fetch_avatar(idx, username):
-                    try:
-                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, username)
-                        return idx, avatar_url
-                    except Exception as e:
-                        logger.warning(f"Could not auto-fetch avatar for @{username}: {e}")
-                        return idx, None
-                
-                # Fetch all avatars in parallel
-                tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
-                results = await asyncio.gather(*tasks, return_exceptions=True)
-                
-                # Update icon_url for partners with fetched avatars AND SAVE TO DB
-                avatar_map = {}
-                partners_to_update = []
-                
-                for result in results:
-                    if isinstance(result, Exception):
-                        continue
-                    idx, avatar_url = result
-                    if avatar_url:
-                        avatar_map[idx] = avatar_url
-                        # Store partner object and new URL for batch update
-                        partners_to_update.append((partners[idx], avatar_url))
-                        logger.info(f"Auto-fetched avatar for TOP partner {idx}: {avatar_url[:50]}...")
-                
-                # Batch update DB
-                try:
-                    from sqlalchemy.orm.attributes import flag_modified
-                    count = 0
-                    for partner, avatar_url in partners_to_update:
-                        if not partner.data.get('icon'): # Double check
-                            partner.data['icon'] = avatar_url
-                            flag_modified(partner, 'data')
-                            count += 1
-                    
-                    if count > 0:
-                        self.db.commit()
-                        logger.info(f"Persisted {count} fetched avatars to database")
-                except Exception as db_err:
-                    logger.error(f"Failed to persist avatars to DB: {db_err}")
-
-                # Update partner data with fetched avatars
-                for idx, avatar_url in avatar_map.items():
-                    if partner_data_list[idx]['icon_url']:
-                        continue  # Don't override custom icon
-                    partner_data_list[idx]['icon_url'] = avatar_url
-                    
-            except Exception as e:
-                logger.warning(f"Error fetching TOP avatars in parallel: {e}")
+        # DISABLED FOR PERFORMANCE
+        # if avatar_tasks:
+        #     try:
+        #         from app.adapters.telegram import TelegramAdapter
+        #         import asyncio
+        #         adapter = TelegramAdapter()
+        #         
+        #         # Create tasks for parallel fetching
+        #         async def fetch_avatar(idx, username):
+        #             try:
+        #                 avatar_url = await adapter.get_bot_avatar_url(self.bot_id, username)
+        #                 return idx, avatar_url
+        #             except Exception as e:
+        #                 logger.warning(f"Could not auto-fetch avatar for @{username}: {e}")
+        #                 return idx, None
+        #         
+        #         # Fetch all avatars in parallel
+        #         tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
+        #         results = await asyncio.gather(*tasks, return_exceptions=True)
+        #         
+        #         # Update icon_url for partners with fetched avatars AND SAVE TO DB
+        #         avatar_map = {}
+        #         partners_to_update = []
+        #         
+        #         for result in results:
+        #             if isinstance(result, Exception):
+        #                 continue
+        #             idx, avatar_url = result
+        #             if avatar_url:
+        #                 avatar_map[idx] = avatar_url
+        #                 # Store partner object and new URL for batch update
+        #                 partners_to_update.append((partners[idx], avatar_url))
+        #                 logger.info(f"Auto-fetched avatar for TOP partner {idx}: {avatar_url[:50]}...")
+        #         
+        #         # Batch update DB
+        #         try:
+        #             from sqlalchemy.orm.attributes import flag_modified
+        #             count = 0
+        #             for partner, avatar_url in partners_to_update:
+        #                 if not partner.data.get('icon'): # Double check
+        #                     partner.data['icon'] = avatar_url
+        #                     flag_modified(partner, 'data')
+        #                     count += 1
+        #             
+        #             if count > 0:
+        #                 self.db.commit()
+        #                 logger.info(f"Persisted {count} fetched avatars to database")
+        #         except Exception as db_err:
+        #             logger.error(f"Failed to persist avatars to DB: {db_err}")
+        #
+        #         # Update partner data with fetched avatars
+        #         for idx, avatar_url in avatar_map.items():
+        #             if partner_data_list[idx]['icon_url']:
+        #                 continue  # Don't override custom icon
+        #             partner_data_list[idx]['icon_url'] = avatar_url
+        #             
+        #     except Exception as e:
+        #         logger.warning(f"Error fetching TOP avatars in parallel: {e}")
         
         # Third pass: build final partner list
         for partner_data in partner_data_list:
@@ -294,63 +295,64 @@ class PartnerService:
             })
         
         # Second pass: fetch avatars in parallel (if any)
-        if avatar_tasks:
-            try:
-                from app.adapters.telegram import TelegramAdapter
-                import asyncio
-                adapter = TelegramAdapter()
-                
-                # Create tasks for parallel fetching
-                async def fetch_avatar(idx, username):
-                    try:
-                        avatar_url = await adapter.get_bot_avatar_url(self.bot_id, username)
-                        return idx, avatar_url
-                    except Exception as e:
-                        logger.warning(f"Could not auto-fetch avatar for @{username}: {e}")
-                        return idx, None
-                
-                # Fetch all avatars in parallel
-                tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
-                results = await asyncio.gather(*tasks, return_exceptions=True)
-                
-                # Update icon_url for partners with fetched avatars AND SAVE TO DB
-                avatar_map = {}
-                partners_to_update = []
-                
-                for result in results:
-                    if isinstance(result, Exception):
-                        continue
-                    idx, avatar_url = result
-                    if avatar_url:
-                        avatar_map[idx] = avatar_url
-                        # Store partner object and new URL for batch update
-                        partners_to_update.append((partners[idx], avatar_url))
-                        logger.info(f"Auto-fetched avatar for partner {idx}: {avatar_url[:50]}...")
-                
-                # Batch update DB
-                try:
-                    from sqlalchemy.orm.attributes import flag_modified
-                    count = 0
-                    for partner, avatar_url in partners_to_update:
-                        if not partner.data.get('icon'): # Double check
-                            partner.data['icon'] = avatar_url
-                            flag_modified(partner, 'data')
-                            count += 1
-                    
-                    if count > 0:
-                        self.db.commit()
-                        logger.info(f"Persisted {count} fetched avatars to database (regular partners)")
-                except Exception as db_err:
-                    logger.error(f"Failed to persist regular partner avatars to DB: {db_err}")
-
-                # Update partner data with fetched avatars
-                for idx, avatar_url in avatar_map.items():
-                    if partner_data_list[idx]['icon_url']:
-                        continue  # Don't override custom icon
-                    partner_data_list[idx]['icon_url'] = avatar_url
-                    
-            except Exception as e:
-                logger.warning(f"Error fetching avatars in parallel: {e}")
+        # DISABLED FOR PERFORMANCE: This blocks the request if Telegram API is slow/down
+        # if avatar_tasks:
+        #     try:
+        #         from app.adapters.telegram import TelegramAdapter
+        #         import asyncio
+        #         adapter = TelegramAdapter()
+        #         
+        #         # Create tasks for parallel fetching
+        #         async def fetch_avatar(idx, username):
+        #             try:
+        #                 avatar_url = await adapter.get_bot_avatar_url(self.bot_id, username)
+        #                 return idx, avatar_url
+        #             except Exception as e:
+        #                 logger.warning(f"Could not auto-fetch avatar for @{username}: {e}")
+        #                 return idx, None
+        #         
+        #         # Fetch all avatars in parallel
+        #         tasks = [fetch_avatar(idx, username) for idx, username in avatar_tasks.items()]
+        #         results = await asyncio.gather(*tasks, return_exceptions=True)
+        #         
+        #         # Update icon_url for partners with fetched avatars AND SAVE TO DB
+        #         avatar_map = {}
+        #         partners_to_update = []
+        #         
+        #         for result in results:
+        #             if isinstance(result, Exception):
+        #                 continue
+        #             idx, avatar_url = result
+        #             if avatar_url:
+        #                 avatar_map[idx] = avatar_url
+        #                 # Store partner object and new URL for batch update
+        #                 partners_to_update.append((partners[idx], avatar_url))
+        #                 logger.info(f"Auto-fetched avatar for partner {idx}: {avatar_url[:50]}...")
+        #         
+        #         # Batch update DB
+        #         try:
+        #             from sqlalchemy.orm.attributes import flag_modified
+        #             count = 0
+        #             for partner, avatar_url in partners_to_update:
+        #                 if not partner.data.get('icon'): # Double check
+        #                     partner.data['icon'] = avatar_url
+        #                     flag_modified(partner, 'data')
+        #                     count += 1
+        #             
+        #             if count > 0:
+        #                 self.db.commit()
+        #                 logger.info(f"Persisted {count} fetched avatars to database (regular partners)")
+        #         except Exception as db_err:
+        #             logger.error(f"Failed to persist regular partner avatars to DB: {db_err}")
+        #
+        #         # Update partner data with fetched avatars
+        #         for idx, avatar_url in avatar_map.items():
+        #             if partner_data_list[idx]['icon_url']:
+        #                 continue  # Don't override custom icon
+        #             partner_data_list[idx]['icon_url'] = avatar_url
+        #             
+        #     except Exception as e:
+        #         logger.warning(f"Error fetching avatars in parallel: {e}")
         
         # Third pass: build final partner list
         for partner_data in partner_data_list:
