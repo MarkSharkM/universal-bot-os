@@ -113,6 +113,11 @@
     box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.45);
 }
 
+/* Hide tabs when keyboard is open (to prevent pushing content up) */
+body.keyboard-open .tabs {
+    display: none !important;
+}
+
 .tab {
     flex: 1;
     display: flex;
@@ -221,4 +226,3 @@
         transform: translateX(-100%);
     }
 }
-
