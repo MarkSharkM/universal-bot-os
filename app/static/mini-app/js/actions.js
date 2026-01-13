@@ -562,14 +562,15 @@ function showActivate7Instructions() {
     }
 
     const title = translations.activate_7_title || `Як увімкнути ${commissionPercent}% (1 раз назавжди):`;
-    let instructions = `${translations.activate_7_step_1 || '1️⃣ Відкрий @{{username}}'}\n${translations.activate_7_step_2 || '2️⃣ «Партнерська програма»'}\n${translations.activate_7_step_3 || '3️⃣ «Під\'єднатись»'}\n${translations.activate_7_footer || '→ {{percent}}% активуються назавжди'}`;
+
+    // Updated instructions with 4th step for the "Important" note
+    const noteText = translations.activate_7_note || '⚠️ Важливо: Після підключення натисніть "Open App" у чаті, щоб повернутися сюди.';
+
+    let instructions = `${translations.activate_7_step_1 || '1️⃣ Відкрий @{{username}}'}\n${translations.activate_7_step_2 || '2️⃣ «Партнерська програма»'}\n${translations.activate_7_step_3 || '3️⃣ «Під\'єднатись»'}\n4️⃣ ${noteText}\n${translations.activate_7_footer || '→ {{percent}}% активуються назавжди'}`;
 
     instructions = instructions
         .replace('{{username}}', botUsername)
         .replace('{{percent}}', commissionPercent);
-
-    // IMPORTANT NOTE per Senior QA rule:
-    const note = translations.activate_7_note || '⚠️ Important: After connecting, tap "Open App" in chat to return here.';
 
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
@@ -582,9 +583,6 @@ function showActivate7Instructions() {
             <div class="modal-body">
                 <div class="instructions-text">
                     ${instructions.split('\n').map(line => `<p>${line}</p>`).join('')}
-                    <div class="instruction-note" style="margin-top:12px; font-size:11px; color:#aaa; border-left: 2px solid #555; padding-left:8px;">
-                        ${note}
-                    </div>
                 </div>
                 <div class="modal-actions">
                     <button class="action-btn primary" onclick="Actions.activatePartnerAndReturn()">
