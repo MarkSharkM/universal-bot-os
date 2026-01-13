@@ -2787,15 +2787,22 @@ async def fix_icons_now(
     db: Session = Depends(get_db)
 ):
     """
-    Temporary endpoint to force-fetch missing icons for specific bots.
-    Triggers the restoration logic immediately.
+    Temporary endpoint to force-fetch missing icons with DEBUG logs.
     """
     try:
-        from app.adapters.telegram import TelegramAdapter
         from app.models.business_data import BusinessData
+        from app.models.bot import Bot
+        import httpx
         import re
         
-        adapter = TelegramAdapter()
+        # Get bot token
+        bot = db.query(Bot).filter(Bot.id == bot_id).first()
+        if not bot or not bot.token:
+            return {"error": "Bot token not found"}
+        
+        token = bot.token
+        base_url = f"https://api.telegram.org/bot{token}"
+        
         search_terms = ['randgift_bot', 'boinker_bot', 'EasyGiftDropbot', 'm5bank_bot']
         
         partners = db.query(BusinessData).filter(
@@ -2806,38 +2813,68 @@ async def fix_icons_now(
         results = []
         updates_count = 0
         
-        for partner in partners:
-            data = partner.data
-            link = data.get('referral_link', '')
-            name = data.get('bot_name', 'Unknown')
-            current_icon = data.get('icon')
-            
-            is_match = False
-            for term in search_terms:
-                if term.lower() in link.lower():
-                    is_match = True
-                    break
-            
-            if is_match:
-                if current_icon:
-                    results.append(f"Skipped {name}: Already has icon")
-                    continue
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            for partner in partners:
+                data = partner.data
+                link = data.get('referral_link', '')
+                name = data.get('bot_name', 'Unknown')
                 
-                # Extract username
-                match = re.search(r't\.me/([a-zA-Z0-9_]+)', link)
-                if match:
-                    username = match.group(1)
-                    avatar_url = await adapter.get_bot_avatar_url(bot_id, username)
-                    if avatar_url:
-                        partner.data['icon'] = avatar_url
-                        from sqlalchemy.orm.attributes import flag_modified
-                        flag_modified(partner, 'data')
-                        results.append(f"Fixed {name}: Icon restored")
-                        updates_count += 1
+                is_match = False
+                for term in search_terms:
+                    if term.lower() in link.lower():
+                        is_match = True
+                        break
+                
+                if is_match:
+                    # Extract username
+                    match = re.search(r't\.me/([a-zA-Z0-9_]+)', link)
+                    if match:
+                        username = match.group(1)
+                        chat_id = f"@{username}"
+                        
+                        # 1. getChat
+                        try:
+                            resp = await client.post(f"{base_url}/getChat", json={"chat_id": chat_id})
+                            chat_res = resp.json()
+                            
+                            if not chat_res.get('ok'):
+                                results.append(f"FAIL {name} ({username}): getChat error: {chat_res} ({resp.status_code})")
+                                continue
+                                
+                            user_id = chat_res['result']['id']
+                            
+                            # 2. getUserProfilePhotos
+                            resp = await client.post(f"{base_url}/getUserProfilePhotos", json={"user_id": user_id, "limit": 1})
+                            photos_res = resp.json()
+                            
+                            if not photos_res.get('ok'):
+                                results.append(f"FAIL {name}: photos error: {photos_res}")
+                                continue
+                                
+                            photos = photos_res['result']
+                            if photos['total_count'] == 0:
+                                results.append(f"FAIL {name}: No profile photos found")
+                                continue
+                                
+                            # 3. getFile
+                            file_id = photos['photos'][0][-1]['file_id']
+                            resp = await client.post(f"{base_url}/getFile", json={"file_id": file_id})
+                            file_res = resp.json()
+                            
+                            file_path = file_res['result']['file_path']
+                            full_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
+                            
+                            # Update DB
+                            partner.data['icon'] = full_url
+                            from sqlalchemy.orm.attributes import flag_modified
+                            flag_modified(partner, 'data')
+                            updates_count += 1
+                            results.append(f"SUCCESS {name}: {full_url}")
+                            
+                        except Exception as inner_e:
+                            results.append(f"ERROR {name}: {str(inner_e)}")
                     else:
-                        results.append(f"Failed {name}: Could not fetch avatar")
-                else:
-                    results.append(f"Skipped {name}: Could not parse username")
+                        results.append(f"SKIP {name}: No username in link")
         
         if updates_count > 0:
             db.commit()
