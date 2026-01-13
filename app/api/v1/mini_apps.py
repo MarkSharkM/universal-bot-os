@@ -22,7 +22,8 @@ from app.services import (
 from app.utils.telegram_webapp import (
     validate_telegram_init_data,
     get_user_id_from_init_data,
-    get_start_param_from_init_data
+    get_start_param_from_init_data,
+    parse_init_data
 )
 
 logger = logging.getLogger(__name__)
@@ -770,6 +771,57 @@ async def get_mini_app_data(
                     # (Though usually ref_param is the INVITER's ID, so this logs that 'user' was invited)
                 except Exception as ref_err:
                     logger.error(f"Error logging Mini App referral: {ref_err}")
+
+        # SYNC USER DATA FROM INIT_DATA (Language, Name, Username)
+        if init_data:
+            try:
+                parsed_data = parse_init_data(init_data)
+                user_data = parsed_data.get('user', {})
+                
+                if user_data:
+                    is_modified = False
+                    
+                    # 1. Sync Language (Critical for correct translations)
+                    new_lang = user_data.get('language_code')
+                    if new_lang and user.language_code != new_lang:
+                        user.language_code = new_lang
+                        is_modified = True
+                        logger.info(f"Updated user language: {user.id} -> {new_lang}")
+                    
+                    # 2. Sync Profile Info (First Name, Last Name, Username)
+                    # Initialize custom_data if needed
+                    if not user.custom_data:
+                        user.custom_data = {}
+                        
+                    # First Name
+                    new_first_name = user_data.get('first_name')
+                    if new_first_name and user.custom_data.get('first_name') != new_first_name:
+                        user.custom_data['first_name'] = new_first_name
+                        is_modified = True
+                        
+                    # Last Name
+                    new_last_name = user_data.get('last_name')
+                    if new_last_name and user.custom_data.get('last_name') != new_last_name:
+                        user.custom_data['last_name'] = new_last_name
+                        is_modified = True
+                        
+                    # Username
+                    new_username = user_data.get('username')
+                    if new_username and user.custom_data.get('username') != new_username:
+                        user.custom_data['username'] = new_username
+                        is_modified = True
+                    
+                    # 3. Save changes
+                    if is_modified:
+                        from sqlalchemy.orm.attributes import flag_modified
+                        flag_modified(user, 'custom_data')
+                        db.commit()
+                        # Refresh to ensure services see updated data
+                        db.refresh(user)
+                        
+            except Exception as sync_err:
+                logger.error(f"Error syncing user data from init_data: {sync_err}")
+                # Don't fail the request, just log error
 
         # Get user language for localization
         user_lang = user.language_code or 'en'
