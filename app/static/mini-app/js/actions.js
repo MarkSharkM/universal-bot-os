@@ -88,9 +88,12 @@ async function saveTgrLink() {
         return;
     }
 
-    // Strict validation for _tgr_
-    if (!link.includes('_tgr_')) {
-        const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Це не схоже на партнерське посилання (шукаю код _tgr_)';
+    // Flexible validation: accept partner links (_tgr_) OR bot links (t.me/Bot?start=)
+    const isPartnerLink = link.includes('_tgr_');
+    const isBotLink = link.includes('t.me') && link.includes('?start');
+
+    if (!isPartnerLink && !isBotLink) {
+        const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Потрібне посилання з _tgr_ або t.me/Bot?start=';
         if (typeof Toast !== 'undefined') Toast.error(msg);
         return;
     }

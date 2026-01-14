@@ -36,10 +36,16 @@ window.Components.Hero = function (isTop, referralCount) {
                      ${savedLink
                 ? `<div class="link-active">
                        <span class="status-icon">✅</span>
-                       <span class="status-text">${t.link_connected || 'Link Connected'}</span>
+                       <span class="status-text">${t.link_connected || 'Лінка підключена'}</span>
                        <button class="edit-link-btn" onclick="Actions.editTgrLink()">${Icons.Edit || '✏️'}</button>
                    </div>
-                   <div class="link-preview-text">${savedLink.length > 25 ? savedLink.substring(0, 25) + '...' : savedLink}</div>`
+                   <div class="link-preview-box" onclick="navigator.clipboard.writeText('${savedLink}').then(() => Toast.success('${t.link_copied || 'Скопійовано!'}'))" style="cursor:pointer; background: rgba(0,230,118,0.05); border: 1px solid rgba(0,230,118,0.2); border-radius: 12px; padding: 12px; margin-top: 8px; word-break: break-all; font-size: 12px; color: #00E676; font-family: 'SF Mono', 'Courier New', monospace;">
+                       <div style="display:flex; align-items:center; gap:8px;">
+                           <span style="opacity:0.7;">🔗</span>
+                           <span style="flex:1;">${savedLink}</span>
+                           <span style="opacity:0.5; font-size:10px;">📋</span>
+                       </div>
+                   </div>`
                 : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
                        <input type="url" 
