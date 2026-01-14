@@ -2,7 +2,7 @@
 Command Service - Multi-tenant command router
 Routes bot commands to appropriate handlers (replaces Switch_Commands logic)
 """
-from typing import Dict, Any, Optional, Callable, List
+from typing import Dict, Any, Optional, Callable, List, Tuple
 from sqlalchemy.orm import Session
 from uuid import UUID
 import re
@@ -186,6 +186,44 @@ class CommandService:
             return int(buy_top_price_str)
         except:
             return 1
+    
+    def _get_share_content(self, user: Any, lang: str) -> Tuple[str, str]:
+        """
+        Get share link and share text based on TGR status.
+        Priority: TGR Link > Standard Referral Link
+        
+        Args:
+            user: User object
+            lang: Language code
+            
+        Returns:
+            Tuple of (link_to_share, text_for_share)
+        """
+        # 1. Check for TGR Link (Saved by user)
+        tgr_link = user.custom_data.get('tgr_link') if user.custom_data else None
+
+        if tgr_link:
+            # Use PRO text for TGR link
+            share_text = self.translation_service.get_translation('share_text_pro', lang)
+            if not share_text or share_text == 'share_text_pro':
+                 share_text = "🔥 Join me & Earn 7% RevShare!"
+            # Return TGR link and Pro text
+            return tgr_link, share_text
+
+        # 2. Fallback: Standard Referral Link
+        referral_link = self.referral_service.generate_referral_link(user.id)
+        
+        # Use STARTER text
+        share_text = self.translation_service.get_translation('share_text_starter', lang)
+        
+        # Fallback to old 'share_referral' logic if starter text missing
+        if not share_text or share_text == 'share_text_starter':
+             bot_username = self._get_bot_username() or ''
+             share_text = self.translation_service.get_translation('share_referral', lang, {'bot_username': bot_username})
+             # Remove link placeholder
+             share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
+
+        return referral_link, share_text
     
     def _get_buttons_for_command(self, command: str, lang: str, **kwargs) -> Optional[List[List[Dict[str, Any]]]]:
         """
@@ -456,19 +494,11 @@ class CommandService:
                     {'needed': invites_needed}
                 )
             
-            # Get share text for button URL only (not in message)
-            # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
-            # The link is already in the button URL parameter, Telegram will add preview automatically
-            bot_username = self._get_bot_username() or ''
-            share_text = self.translation_service.get_translation('share_referral', lang, {
-                'bot_username': bot_username
-            })
-            # Remove referralLink placeholder from share_text (URL is in button URL parameter)
-            share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
-            # Also remove any actual referral link that might have been added (safety check)
-            if referral_link in share_text:
-                share_text = share_text.replace(referral_link, '').strip()
-                logger.warning(f"Removed referral link from share_text in /top (locked) for bot_id={self.bot_id}")
+            # Get share content (TGR/Pro or Standard/Starter)
+            referral_link, share_text = self._get_share_content(user, lang)
+            
+            # Ensure no duplicates in share text (just text, no link)
+            share_text = share_text.replace(referral_link, '').strip()
             
             # Get buttons from bot.config or use defaults
             buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link, share_text=share_text, buy_top_price=buy_top_price)
@@ -532,19 +562,12 @@ class CommandService:
                 error_msg = error_msg_map.get(lang, error_msg_map['en'])
             message = error_msg
         
-        referral_link = self.referral_service.generate_referral_link(user_id)
-        # Get share text for button
-        # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
-        # The link is already in the button URL parameter, Telegram will add preview automatically
-        bot_username = self._get_bot_username() or ''
-        share_text = self.translation_service.get_translation('share_referral', lang, {
-            'bot_username': bot_username
-        })
-        share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
-        # Also remove any actual referral link that might have been added (safety check)
+        # Get share content (TGR/Pro or Standard/Starter)
+        referral_link, share_text = self._get_share_content(user, lang)
+        
+        # Ensure no duplicates in share text
         if referral_link in share_text:
             share_text = share_text.replace(referral_link, '').strip()
-            logger.warning(f"Removed referral link from share_text in /top (open) for bot_id={self.bot_id}")
         # Get buttons from bot.config or use defaults
         buttons = self._get_buttons_for_command('top', lang, referral_link=referral_link, share_text=share_text)
         if not buttons:
@@ -627,20 +650,11 @@ class CommandService:
             
             message = f"{intro}\n\n" + "\n\n".join(partner_lines)
         
-        # Generate referral link for share button
-        referral_link = self.referral_service.generate_referral_link(user_id)
-        bot_username = self._get_bot_username() or ''
-        # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
-        # The link is already in the button URL parameter, Telegram will add preview automatically
-        share_text = self.translation_service.get_translation('share_referral', lang, {
-            'bot_username': bot_username
-        })
-        # Remove referralLink placeholder from share_text (URL is in button URL parameter)
-        share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
-        # Also remove any actual referral link that might have been added (safety check)
+        # Get share content (TGR/Pro or Standard/Starter)
+        referral_link, share_text = self._get_share_content(user, lang)
+        
         if referral_link in share_text:
             share_text = share_text.replace(referral_link, '').strip()
-            logger.warning(f"Removed referral link from share_text in /partners for bot_id={self.bot_id}")
         
         # Get buttons from bot.config or use defaults
         buttons = self._get_buttons_for_command('partners', lang, referral_link=referral_link, share_text=share_text)
@@ -672,56 +686,14 @@ class CommandService:
         lang = user_lang or user.language_code or 'en'
         lang = self.translation_service.detect_language(lang)
         
-        referral_link = self.referral_service.generate_referral_link(user_id)
+        # Get share content (TGR/Pro or Standard/Starter)
+        referral_link, share_text = self._get_share_content(user, lang)
         
-        # Get bot username for translation variables
-        bot_username = self._get_bot_username() or ''
+        # Message to user
+        message = f"{share_text}\n{referral_link}"
         
-        # Log warning if username is not found
-        if not bot_username:
-            logger.warning(f"Bot username not found for bot_id={self.bot_id} in /share command. Using empty string.")
-        
-        # Get message text for /share command
-        message_text = self.translation_service.get_translation(
-            'share_referral',
-            lang,
-            {
-                'referralLink': referral_link,
-                'bot_username': bot_username
-            }
-        )
-        
-        # Double-check: if placeholder is still present, log error
-        if '{{bot_username}}' in message_text:
-            logger.error(f"{{bot_username}} placeholder not replaced in share_referral translation! bot_username={bot_username}, bot_id={self.bot_id}")
-        
-        # Replace referralLink placeholder with actual link
-        # NOTE: get_translation() already replaces placeholders, but we do it again here as a safety check
-        # This ensures both {{referralLink}} and [[referralLink]] formats are replaced
-        message_text = message_text.replace('[[referralLink]]', referral_link).replace('{{referralLink}}', referral_link)
-        
-        # CRITICAL: Remove any duplicate links that might have been added
-        # Check if link appears at the start of the message (Telegram might add preview)
-        lines = message_text.split('\n')
-        if lines and lines[0].strip() == referral_link:
-            # Remove duplicate link at the start
-            lines = lines[1:]
-            message_text = '\n'.join(lines)
-            logger.warning(f"Removed duplicate referral link from start of /share message for bot_id={self.bot_id}")
-        
-        # Remove trailing newlines and whitespace
-        message_text = message_text.rstrip()
-        # Message is ready - link is already in text from placeholder replacement
-        message = message_text
-        
-        # For share button text, use text WITHOUT URL to avoid duplicate links
-        # URL is already in the 'url' parameter, Telegram will add preview automatically
-        # This is the text that appears when user clicks "Поділитись лінкою" button
-        share_text_for_button = self.translation_service.get_translation('share_referral', lang, {
-            'bot_username': bot_username
-        })
-        # Remove any placeholder and clean up - don't add URL, Telegram will add preview from 'url' parameter
-        share_text_for_button = share_text_for_button.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
+        # Share button text (clean, no link)
+        share_text_for_button = share_text.replace(referral_link, '').strip()
         
         # Get buttons from bot.config or use defaults
         buttons = self._get_buttons_for_command('share', lang, referral_link=referral_link, share_text=share_text_for_button)
@@ -758,20 +730,11 @@ class CommandService:
         # Get language from earnings_data (now included in response)
         lang = earnings_data.get('lang', user_lang or 'en')
         
-        # Generate referral link for share button
-        referral_link = earnings_data.get('referral_link') or self.referral_service.generate_referral_link(user_id)
-        bot_username = self._get_bot_username() or ''
-        # NOTE: Don't pass referralLink in variables - it will be replaced and we don't want it in share_text
-        # The link is already in the button URL parameter, Telegram will add preview automatically
-        share_text = self.translation_service.get_translation('share_referral', lang, {
-            'bot_username': bot_username
-        })
-        # Remove referralLink placeholder from share_text (URL is in button URL parameter)
-        share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
-        # Also remove any actual referral link that might have been added (safety check)
+        # Get share content (TGR/Pro or Standard/Starter)
+        referral_link, share_text = self._get_share_content(user, lang)
+        
         if referral_link in share_text:
             share_text = share_text.replace(referral_link, '').strip()
-            logger.warning(f"Removed referral link from share_text in /earnings for bot_id={self.bot_id}")
         
         # Get buttons from bot.config or use defaults
         buy_top_price = self._get_buy_top_price(lang)
