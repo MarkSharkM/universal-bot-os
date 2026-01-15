@@ -151,9 +151,19 @@ async function saveTgrLink() {
             const translations = AppState.getAppData()?.translations || {};
             if (typeof Toast !== 'undefined') Toast.success(translations.tgr_link_updated || '✅ Лінку оновлено! Тепер кнопки поширюють твою 7% лінку.');
             if (typeof trackEvent === 'function') trackEvent('tgr_link_save_success');
+
             // Update local state
             AppState.setTgrLink(link);
             AppState.setIsEditingTgrLink(false);
+
+            // ALSO update appData.user.custom_data so Hero.js renders correctly
+            const appData = AppState.getAppData();
+            if (appData && appData.user) {
+                if (!appData.user.custom_data) {
+                    appData.user.custom_data = {};
+                }
+                appData.user.custom_data.tgr_link = link;
+            }
 
             // Re-render home to show active status
             if (typeof Render !== 'undefined' && Render.renderHome) {
