@@ -111,7 +111,8 @@ async function saveTgrLink() {
         if (typeof trackEvent === 'function') trackEvent('tgr_link_save_attempt');
 
         const initData = AppState.getTg()?.initData || '';
-        const response = await fetch(`${API_BASE}/api/v1/mini-apps/mini-app/${botId}`, {
+        const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}${initData ? `?init_data=${encodeURIComponent(initData)}` : ''}`;
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
