@@ -39,16 +39,16 @@ window.Components.Hero = function (isTop, referralCount) {
                                 onclick="navigator.clipboard.writeText('${savedLink}').then(() => { const trans = AppState.getAppData()?.translations || {}; if (typeof Toast !== 'undefined') Toast.success(trans.link_copied || 'Скопійовано!'); })" 
                                 style="cursor:pointer; padding:0 8px;"
                                 title="Copy">🔗</div>
-                           <div onclick="Actions.editTgrLink()" 
+                           <div onmousedown="event.preventDefault(); Actions.editTgrLink()" 
                                 style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.7; font-size:12px; cursor:pointer;"
                                 title="Click to edit">${savedLink}</div>
-                           <button onclick="Actions.editTgrLink()" 
+                           <button onmousedown="event.preventDefault(); Actions.editTgrLink()" 
                                    class="tgr-save-btn" 
                                    style="background:linear-gradient(135deg, rgba(0,230,118,0.2), rgba(0,200,100,0.15)); border-color:rgba(0,230,118,0.4); color:#00E676;">
                                ✅ ${t.saved || 'Збережено'}
                            </button>
                    </div>
-                   <div class="input-helper-text" onclick="Actions.editTgrLink()">${t.change_link || 'Змінити лінку?'}</div>`
+                   <div class="input-helper-text" onmousedown="event.preventDefault(); Actions.editTgrLink()">${t.change_link || 'Змінити лінку?'}</div>`
                 : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
                        <input type="url" 
@@ -73,7 +73,7 @@ window.Components.Hero = function (isTop, referralCount) {
 
                    </div>
                    <div id="tgr-input-helper" class="input-helper-status" style="display:none;"></div>
-                   <div class="input-helper-text" onclick="Actions.showActivate7Instructions()">${t.where_to_get_link || 'Де взяти лінку?'}</div>`
+                   <div class="input-helper-text" onmousedown="event.preventDefault(); Actions.showActivate7Instructions()">${t.where_to_get_link || 'Де взяти лінку?'}</div>`
             }
                 </div>
 
