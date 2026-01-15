@@ -32,33 +32,24 @@ window.Components.Hero = function (isTop, referralCount) {
                     </div>
                 </div>
                 
-                <div class="tgr-link-section" style="max-width:100%; overflow:hidden;">
+                <div class="tgr-link-section">
                      ${savedLink && !AppState.getIsEditingTgrLink()
-                ? `<div style="display:flex; flex-direction:column; gap:6px;">
-                       <div class="tgr-input-group saved-state" style="display:flex; align-items:center; gap:8px; padding:14px 16px;">
+                ? `<div class="tgr-input-group saved-state">
                            <div class="tgr-input-icon" 
                                 onclick="navigator.clipboard.writeText('${savedLink}').then(() => { const trans = AppState.getAppData()?.translations || {}; if (typeof Toast !== 'undefined') Toast.success(trans.link_copied || 'Скопійовано!'); })" 
-                                style="cursor:pointer; flex-shrink:0; font-size:18px; opacity:0.7; transition:all 0.2s;" 
-                                onmouseover="this.style.opacity='1'" 
-                                onmouseout="this.style.opacity='0.7'"
+                                style="cursor:pointer; padding:0 8px;"
                                 title="Copy">🔗</div>
-                           <div class="tgr-link-display" 
-                                onclick="Actions.editTgrLink()" 
-                                style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.6; font-size:13px; font-family:monospace; cursor:pointer; transition:opacity 0.2s;" 
-                                onmouseover="this.style.opacity='0.9'" 
-                                onmouseout="this.style.opacity='0.6'"
+                           <div onclick="Actions.editTgrLink()" 
+                                style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.7; font-size:12px; cursor:pointer;"
                                 title="Click to edit">${savedLink}</div>
-                           <button class="tgr-saved-badge" onclick="Actions.editTgrLink()" style="flex-shrink:0; background:rgba(0,230,118,0.12); color:#00E676; border:1px solid rgba(0,230,118,0.3); border-radius:12px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:4px;" onmouseover="this.style.background='rgba(0,230,118,0.18)'" onmouseout="this.style.background='rgba(0,230,118,0.12)'">
-                               <span style="font-size:12px;">✅</span>
-                               <span>${t.saved || 'Збережено'}</span>
+                           <button onclick="Actions.editTgrLink()" 
+                                   class="tgr-save-btn" 
+                                   style="background:linear-gradient(135deg, rgba(0,230,118,0.2), rgba(0,200,100,0.15)); border-color:rgba(0,230,118,0.4); color:#00E676;">
+                               ✅ ${t.saved || 'Збережено'}
                            </button>
-                       </div>
-                       <div class="input-helper-text" style="cursor:pointer; text-align:center; padding:6px; opacity:0.45; font-size:12px; transition:opacity 0.2s;" 
-                            onclick="Actions.editTgrLink()" 
-                            onmouseover="this.style.opacity='0.7'" 
-                            onmouseout="this.style.opacity='0.45'">${t.change_link || 'Змінити лінку?'}</div>
-                   </div>`
-                : `<div class="tgr-input-group" style="max-width:100%;">
+                   </div>
+                   <div class="input-helper-text" onclick="Actions.editTgrLink()">${t.change_link || 'Змінити лінку?'}</div>`
+                : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
                        <input type="url" 
                               inputmode="url" 
@@ -69,19 +60,18 @@ window.Components.Hero = function (isTop, referralCount) {
                               id="tgr-link-input" 
                               class="tgr-input" 
                               value="${savedLink || ''}"
-                              placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}"
+                              placeholder="${t.paste_link_placeholder || 'Встав свою 7% лінку тут...'}"
                               oninput="Actions.validateTgrInput(this)"
                               onfocus="document.body.classList.add('keyboard-open'); setTimeout(() => this.scrollIntoView({behavior: 'smooth', block: 'center'}), 300)"
                               onblur="document.body.classList.remove('keyboard-open')">
                        <button id="tgr-save-btn" class="tgr-save-btn ${savedLink ? '' : 'disabled'}" ${savedLink ? '' : 'disabled'} onclick="Actions.saveTgrLink(); AppState.setIsEditingTgrLink(false);">
-                           ${t.save || 'Save'}
+                           ${t.save || 'ЗБЕРЕГТИ'}
                        </button>
                    </div>
-                   <div id="tgr-input-helper" class="input-helper-status" style="display:none;"></div>`
+                   <div id="tgr-input-helper" class="input-helper-status" style="display:none;"></div>
+                   <div class="input-helper-text" onclick="Actions.showActivate7Instructions()">${t.where_to_get_link || 'Де взяти лінку?'}</div>`
             }
                 </div>
-
-                ${!savedLink ? `<div class="input-helper-text" style="cursor: pointer; padding: 10px;" onclick="Actions.showActivate7Instructions()">${t.where_to_get_link || 'Де взяти лінку?'}</div>` : ''}
 
 
                  <button class="cta-btn green-glow" onclick="Actions.shareReferralLink()">
