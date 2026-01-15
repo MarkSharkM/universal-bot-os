@@ -296,12 +296,18 @@ async function shareReferralLink() {
     }
 
     const translations = AppState.getAppData()?.translations || {};
-    const textPro = translations.share_text_pro || "🔥 Join me & Earn 7% RevShare!";
-    const textStarter = translations.share_text_starter || "Look! I'm earning on Telegram with this bot 🚀";
+    const botUsername = AppState.getAppData()?.config?.username || 'EarnHubAggregatorBot';
 
-    // If using TGR link, use PRO text, otherwise Starter text
-    const text = tgrLink ? textPro : textStarter;
-    const url = `https://t.me/share/url?url=${encodeURIComponent(linkToShare)}&text=${encodeURIComponent(text)}`;
+    // Use share_referral translation (matches the screenshot - "Долучайся до...")
+    // It already contains proper text without the link placeholder
+    let shareText = translations.share_referral || translations.share_text_starter ||
+        `🚀 Долучайся до ${botUsername} — отримуй зірки за активність!\nОсь твоє реферальне посилання:`;
+
+    // Remove the [[referralLink]] placeholder if present (link will be added via URL)
+    shareText = shareText.replace(/\[\[referralLink\]\]/g, '').replace(/\{\{referralLink\}\}/g, '').trim();
+
+    const url = `https://t.me/share/url?url=${encodeURIComponent(linkToShare)}&text=${encodeURIComponent(shareText)}`;
+
 
     if (typeof trackEvent === 'function') trackEvent('referral_link_share', { type: tgrLink ? 'pro' : 'starter' });
 
