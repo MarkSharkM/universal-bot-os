@@ -401,6 +401,14 @@ async function loadAppDataInternal(showRefreshIndicator = false) {
         if (data.ok === true || data.ok === undefined) {
             // If ok is undefined, assume success (backward compatibility)
             AppState.setAppData(data);
+
+            // CRITICAL: Initialize TGR link from user.custom_data if it exists
+            const tgrLink = data?.user?.custom_data?.tgr_link;
+            if (tgrLink && AppState.setTgrLink) {
+                AppState.setTgrLink(tgrLink);
+                console.log('✅ TGR link loaded from backend:', tgrLink.substring(0, 30) + '...');
+            }
+
             if (AppState.setLastLoadTime) {
                 AppState.setLastLoadTime(Date.now());
             }
