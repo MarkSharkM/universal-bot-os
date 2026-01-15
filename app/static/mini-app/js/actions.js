@@ -79,6 +79,7 @@ async function handleWalletSubmit(event) {
 }
 
 async function saveTgrLink() {
+    if (typeof Toast !== 'undefined') Toast.info('Debug: Start Save');
     console.log('🔵 saveTgrLink: START');
 
     const input = document.getElementById('tgr-link-input');
