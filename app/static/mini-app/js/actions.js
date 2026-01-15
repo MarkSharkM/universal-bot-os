@@ -280,9 +280,10 @@ async function shareReferralLink() {
 
     if (tgrLink) {
         // Share TGR Link (Direct Revenue) - PRIORITY
-        // Extract simple link if user pasted full text
-        const match = tgrLink.match(/(https:\/\/t\.me\/[a-zA-Z0-9_]+(?:\?start=|\\?startapp=)[a-zA-Z0-9_]+)/);
+        // Extract simple link if user pasted full text (include - and other valid URL chars)
+        const match = tgrLink.match(/(https:\/\/t\.me\/[a-zA-Z0-9_]+(?:\?start=|\?startapp=)[a-zA-Z0-9_\-]+)/);
         linkToShare = match ? match[1] : tgrLink;
+
     } else {
         // Share Internal Link (Quest Progress)
         const botUsername = AppState.getAppData()?.config?.username;
