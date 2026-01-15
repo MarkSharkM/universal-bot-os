@@ -563,8 +563,11 @@ function validateTgrInput(input) {
 
     const val = input.value.trim();
 
-    // Basic validation
-    if (val.length > 5 && (val.includes('t.me') || val.includes('_tgr_'))) {
+    // Sync with saveTgrLink validation: require ?start for bot links
+    const hasPartnerLink = val.includes('_tgr_');
+    const hasBotLink = val.includes('t.me') && val.includes('?start');
+
+    if (val.length > 5 && (hasPartnerLink || hasBotLink)) {
         btn.disabled = false;
         btn.classList.remove('disabled');
         if (helper) helper.style.display = 'none';

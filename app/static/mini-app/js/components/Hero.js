@@ -65,7 +65,8 @@ window.Components.Hero = function (isTop, referralCount) {
                               onpaste="setTimeout(() => Actions.validateTgrInput(this), 50)"
                               onchange="Actions.validateTgrInput(this)"
                               onfocus="document.body.classList.add('keyboard-open'); setTimeout(() => this.scrollIntoView({behavior: 'smooth', block: 'center'}), 300)"
-                              onblur="document.body.classList.remove('keyboard-open')">
+                              onblur="document.body.classList.remove('keyboard-open')"
+                              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); Actions.saveTgrLink(); }">
                        <button type="button" id="tgr-save-btn" class="tgr-save-btn ${savedLink ? '' : 'disabled'}" ${savedLink ? '' : 'disabled'} onmousedown="event.preventDefault(); Actions.saveTgrLink();">
                            ${t.save || 'ЗБЕРЕГТИ'}
                        </button>
