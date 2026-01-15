@@ -92,7 +92,7 @@ uk,onboarding_step_1,Активуй 7%
 uk,loading,Завантаження...
 uk,retry_btn,Спробувати ще раз
 uk,share_button,🧡 Поділитись лінкою
-uk,share_text_pro,🔥 Приєднуйся до мене та отримуй 7% RevShare!
+uk,share_text_pro,🚀 Долучайся до EarnHubAggregatorBot — отримуй зірки за активність!
 uk,share_text_starter,Дивись! Я заробляю в Telegram з цим ботом 🚀
 uk,activate_7_title,Як увімкнути 7% (1 раз назавжди):
 uk,activate_7_step_1,1️⃣ Відкрий @{{username}}
@@ -195,7 +195,7 @@ en,onboarding_step_1,Activate 7%
 en,loading,Loading...
 en,retry_btn,Retry
 en,share_button,🧡 Share the link
-en,share_text_pro,🔥 Join me & Earn 7% RevShare!
+en,share_text_pro,🚀 Join EarnHubAggregatorBot — earn Stars for your activity!
 en,share_text_starter,Look! I'm earning on Telegram with this bot 🚀
 en,activate_7_title,How to enable 7% (once forever):
 en,activate_7_step_1,1️⃣ Open @{{username}}
@@ -298,7 +298,7 @@ ru,onboarding_step_1,Активируй 7%
 ru,loading,Загрузка...
 ru,retry_btn,Повторить
 ru,share_button,🧡 Поделиться ссылкой
-ru,share_text_pro,🔥 Присоединяйся ко мне и получай 7% RevShare!
+ru,share_text_pro,🚀 Присоединяйся к EarnHubAggregatorBot — получай звёзды за активность!
 ru,share_text_starter,Смотри! Я зарабатываю в Telegram с этим ботом 🚀
 ru,activate_7_title,Как включить 7% (1 раз навсегда):
 ru,activate_7_step_1,1️⃣ Открой @{{username}}
@@ -401,7 +401,7 @@ de,onboarding_step_1,Aktiviere 7%
 de,loading,Laden...
 de,retry_btn,Wiederholen
 de,share_button,🧡 Link teilen
-de,share_text_pro,🔥 Mach mit & verdiene 7% RevShare!
+de,share_text_pro,🚀 Tritt EarnHubAggregatorBot bei — sammle Stars für deine Aktivität!
 de,share_text_starter,Schau mal! Ich verdiene in Telegram mit diesem Bot 🚀
 de,activate_7_title,So aktivierst du 7% (einmalig für immer):
 de,activate_7_step_1,1️⃣ Öffne @{{username}}
@@ -504,7 +504,7 @@ es,onboarding_step_1,Activa el 7%
 es,loading,Cargando...
 es,retry_btn,Reintentar
 es,share_button,🧡 Compartir enlace
-es,share_text_pro,🔥 ¡Únete a mí y gana un 7% de RevShare!
+es,share_text_pro,🚀 ¡Únete a EarnHubAggregatorBot — gana Stars por tu actividad!
 es,share_text_starter,¡Mira! Estoy ganando en Telegram con este bot 🚀
 es,activate_7_title,Cómo activar el 7% (una vez para siempre):
 es,activate_7_step_1,1️⃣ Abre @{{username}}

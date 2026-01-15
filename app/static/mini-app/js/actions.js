@@ -332,15 +332,20 @@ async function shareReferralLink() {
     }
 
     const translations = AppState.getAppData()?.translations || {};
-    const botUsername = AppState.getAppData()?.config?.username || 'EarnHubAggregatorBot';
 
-    // Use share_referral translation (matches the screenshot - "Долучайся до...")
-    // It already contains proper text without the link placeholder
-    let shareText = translations.share_referral || translations.share_text_starter ||
-        `🚀 Долучайся до ${botUsername} — отримуй зірки за активність!\nОсь твоє реферальне посилання:`;
+    // Use share_text_pro for unified message (same for TGR and standard links)
+    let shareText = translations.share_text_pro ||
+        translations.share_referral ||
+        `🚀 Долучайся до EarnHubAggregatorBot — отримуй зірки за активність!`;
 
-    // Remove the [[referralLink]] placeholder if present (link will be added via URL)
-    shareText = shareText.replace(/\[\[referralLink\]\]/g, '').replace(/\{\{referralLink\}\}/g, '').trim();
+    // Remove any placeholders (link, "Ось твоє реферальне посилання:", etc.)
+    shareText = shareText.replace(/\[\[referralLink\]\]/g, '').replace(/\{\{referralLink\}\}/g, '');
+    shareText = shareText.replace(/Ось твоє реферальне посилання:/ig, ''); // UA
+    shareText = shareText.replace(/Here is your referral link:/ig, '');    // EN
+    shareText = shareText.replace(/Вот твоя реферальная ссылка:/ig, '');   // RU
+    shareText = shareText.replace(/Hier ist dein Empfehlungslink:/ig, ''); // DE
+    shareText = shareText.replace(/Aquí tienes tu enlace de referido:/ig, ''); // ES
+    shareText = shareText.trim();
 
     const url = `https://t.me/share/url?url=${encodeURIComponent(linkToShare)}&text=${encodeURIComponent(shareText)}`;
 

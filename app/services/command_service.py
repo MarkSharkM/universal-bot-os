@@ -203,25 +203,27 @@ class CommandService:
         tgr_link = user.custom_data.get('tgr_link') if user.custom_data else None
 
         if tgr_link:
-            # Use PRO text for TGR link
+            # Use share_text_pro - unified text for all share types (TGR and standard)
             share_text = self.translation_service.get_translation('share_text_pro', lang)
             if not share_text or share_text == 'share_text_pro':
-                 share_text = "🔥 Join me & Earn 7% RevShare!"
-            # Return TGR link and Pro text
+                 share_text = "🚀 Долучайся до EarnHubAggregatorBot — отримуй зірки за активність!" if lang == 'uk' else "🚀 Join EarnHubAggregatorBot — earn Stars for your activity!"
+            # Return TGR link and unified text
             return tgr_link, share_text
 
         # 2. Fallback: Standard Referral Link
         referral_link = self.referral_service.generate_referral_link(user.id)
         
-        # Use STARTER text
-        share_text = self.translation_service.get_translation('share_text_starter', lang)
+        # Use share_text_pro for standard links too (unified message)
+        share_text = self.translation_service.get_translation('share_text_pro', lang)
         
-        # Fallback to old 'share_referral' logic if starter text missing
-        if not share_text or share_text == 'share_text_starter':
+        # Fallback to old 'share_referral' logic if share_text_pro missing
+        if not share_text or share_text == 'share_text_pro':
              bot_username = self._get_bot_username() or ''
              share_text = self.translation_service.get_translation('share_referral', lang, {'bot_username': bot_username})
-             # Remove link placeholder
-             share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '').rstrip()
+             # Remove link placeholder AND "Ось твоє реферальне посилання:" text
+             share_text = share_text.replace('[[referralLink]]', '').replace('{{referralLink}}', '')
+             share_text = share_text.replace('Ось твоє реферальне посилання:', '').replace('Here is your referral link:', '').replace('Вот твоя реферальная ссылка:', '').replace('Hier ist dein Empfehlungslink:', '').replace('Aquí tienes tu enlace de referido:', '')
+             share_text = share_text.strip()
 
         return referral_link, share_text
     
