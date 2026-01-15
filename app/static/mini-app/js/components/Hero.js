@@ -62,11 +62,14 @@ window.Components.Hero = function (isTop, referralCount) {
                               value="${savedLink || ''}"
                               placeholder="${t.paste_link_placeholder || 'Встав свою 7% лінку тут...'}"
                               oninput="Actions.validateTgrInput(this)"
+                              onpaste="setTimeout(() => Actions.validateTgrInput(this), 50)"
+                              onchange="Actions.validateTgrInput(this)"
                               onfocus="document.body.classList.add('keyboard-open'); setTimeout(() => this.scrollIntoView({behavior: 'smooth', block: 'center'}), 300)"
                               onblur="document.body.classList.remove('keyboard-open')">
-                       <button id="tgr-save-btn" class="tgr-save-btn ${savedLink ? '' : 'disabled'}" ${savedLink ? '' : 'disabled'} onclick="Actions.saveTgrLink(); AppState.setIsEditingTgrLink(false);">
+                       <button id="tgr-save-btn" class="tgr-save-btn ${savedLink ? '' : 'disabled'}" ${savedLink ? '' : 'disabled'} onclick="if(!this.disabled){Actions.saveTgrLink(); AppState.setIsEditingTgrLink(false);}else{Toast.info('Спочатку вставте лінку');}">
                            ${t.save || 'ЗБЕРЕГТИ'}
                        </button>
+
                    </div>
                    <div id="tgr-input-helper" class="input-helper-status" style="display:none;"></div>
                    <div class="input-helper-text" onclick="Actions.showActivate7Instructions()">${t.where_to_get_link || 'Де взяти лінку?'}</div>`
