@@ -94,21 +94,23 @@ async function saveTgrLink() {
     const link = input.value.trim();
     console.log('🔵 saveTgrLink: link value =', link?.substring(0, 50));
 
+    // ALLOW EMPTY SAVE (to clear the link)
     if (!link) {
-        console.log('🔴 saveTgrLink: link is EMPTY');
-        if (typeof Toast !== 'undefined') Toast.error('Введіть посилання');
-        return;
+        console.log('🔵 saveTgrLink: link is EMPTY - clearing link');
     }
 
     // Flexible validation: accept partner links (_tgr_) OR bot links (t.me/Bot?start=)
-    const isPartnerLink = link.includes('_tgr_');
-    const isBotLink = link.includes('t.me') && link.includes('?start');
+    // Only validate if link is NOT empty
+    if (link) {
+        const isPartnerLink = link.includes('_tgr_');
+        const isBotLink = link.includes('t.me') && link.includes('?start');
 
-    if (!isPartnerLink && !isBotLink) {
-        console.log('🔴 saveTgrLink: invalid link format');
-        const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Потрібне посилання з _tgr_ або t.me/Bot?start=';
-        if (typeof Toast !== 'undefined') Toast.error(msg);
-        return;
+        if (!isPartnerLink && !isBotLink) {
+            console.log('🔴 saveTgrLink: invalid link format');
+            const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Потрібне посилання з _tgr_ або t.me/Bot?start=';
+            if (typeof Toast !== 'undefined') Toast.error(msg);
+            return;
+        }
     }
 
     const botId = AppState.getBotId();
