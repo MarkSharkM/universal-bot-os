@@ -553,9 +553,14 @@ function editTgrLink() {
 
     if (typeof Render !== 'undefined' && Render.renderHome) {
         Render.renderHome();
-        // Focus the input? NO, per strict rules: "User controls focus"
-        // But we can show a toast
-        if (typeof Toast !== 'undefined') Toast.info('Edit mode: Paste your new link');
+        // Focus input after render
+        setTimeout(() => {
+            const input = document.getElementById('tgr-link-input');
+            if (input) {
+                input.focus();
+                input.click(); // Trigger mobile keyboard
+            }
+        }, 100);
     }
 }
 

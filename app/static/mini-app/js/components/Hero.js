@@ -34,29 +34,29 @@ window.Components.Hero = function (isTop, referralCount) {
                 
                 <div class="tgr-link-section">
                      ${savedLink
-                ? `<div style="display:flex; flex-direction:column; gap:4px;">
-                       <div class="tgr-input-group saved-state" style="display:flex; align-items:center; gap:6px; padding:12px 14px;">
+                ? `<div style="display:flex; flex-direction:column; gap:6px; max-width:100%;">
+                       <div class="tgr-input-group saved-state" style="display:flex; align-items:center; gap:8px; padding:14px 16px; max-width:100%;">
                            <div class="tgr-input-icon" 
                                 onclick="navigator.clipboard.writeText('${savedLink}').then(() => { const trans = AppState.getAppData()?.translations || {}; if (typeof Toast !== 'undefined') Toast.success(trans.link_copied || 'Скопійовано!'); })" 
-                                style="cursor:pointer; flex-shrink:0; font-size:18px; opacity:0.7; transition:opacity 0.2s;" 
+                                style="cursor:pointer; flex-shrink:0; font-size:18px; opacity:0.7; transition:all 0.2s;" 
                                 onmouseover="this.style.opacity='1'" 
                                 onmouseout="this.style.opacity='0.7'"
                                 title="Copy">🔗</div>
                            <div class="tgr-link-display" 
                                 onclick="Actions.editTgrLink()" 
-                                style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.6; font-size:13px; font-family:monospace; cursor:pointer; transition:opacity 0.2s;" 
+                                style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.6; font-size:13px; font-family:monospace; cursor:pointer; transition:opacity 0.2s;" 
                                 onmouseover="this.style.opacity='0.9'" 
                                 onmouseout="this.style.opacity='0.6'"
                                 title="Click to edit">${savedLink}</div>
-                           <div class="tgr-saved-badge" style="flex-shrink:0; display:flex; align-items:center; gap:3px; background:rgba(0,230,118,0.08); border:1px solid rgba(0,230,118,0.25); border-radius:6px; padding:3px 8px;">
-                               <span style="font-size:11px;">✅</span>
-                               <span style="color:#00E676; font-size:11px; font-weight:600; letter-spacing:0.3px;">${t.saved || 'Збережено'}</span>
-                           </div>
+                           <button class="tgr-saved-badge" onclick="Actions.editTgrLink()" style="flex-shrink:0; background:rgba(0,230,118,0.12); color:#00E676; border:1px solid rgba(0,230,118,0.3); border-radius:12px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:4px;" onmouseover="this.style.background='rgba(0,230,118,0.18)'" onmouseout="this.style.background='rgba(0,230,118,0.12)'">
+                               <span style="font-size:12px;">✅</span>
+                               <span>${t.saved || 'Збережено'}</span>
+                           </button>
                        </div>
-                       <div class="input-helper-text" style="cursor:pointer; text-align:center; padding:4px; opacity:0.5; font-size:12px; transition:opacity 0.2s;" 
+                       <div class="input-helper-text" style="cursor:pointer; text-align:center; padding:4px; opacity:0.45; font-size:12px; transition:opacity 0.2s;" 
                             onclick="Actions.editTgrLink()" 
-                            onmouseover="this.style.opacity='0.8'" 
-                            onmouseout="this.style.opacity='0.5'">${t.change_link || 'Змінити лінку?'}</div>
+                            onmouseover="this.style.opacity='0.7'" 
+                            onmouseout="this.style.opacity='0.45'">${t.change_link || 'Змінити лінку?'}</div>
                    </div>`
                 : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
