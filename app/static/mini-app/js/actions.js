@@ -141,8 +141,9 @@ async function saveTgrLink() {
         }
 
     } catch (e) {
-        console.error(e);
-        if (typeof Toast !== 'undefined') Toast.error('Помилка збереження');
+        console.error('❌ TGR link save error:', e);
+        const errMsg = e.message || 'Помилка збереження';
+        if (typeof Toast !== 'undefined') Toast.error(errMsg);
     }
 }
 

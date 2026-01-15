@@ -302,6 +302,11 @@ async def mini_app_webhook(
 
     # Handle save custom data (e.g. tgr_link)
     if action == "save_custom_data":
+        # Must have valid user to save data
+        if not validated_user_id:
+            logger.warning(f"save_custom_data called without valid user for bot_id={bot_id}")
+            return {"ok": False, "error": "User not authenticated. Please reload the app."}
+            
         custom_data_update = data.get("custom_data", {})
         if not custom_data_update:
             return {"ok": False, "error": "No custom_data provided"}
