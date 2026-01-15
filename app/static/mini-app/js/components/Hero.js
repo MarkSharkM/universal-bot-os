@@ -34,18 +34,15 @@ window.Components.Hero = function (isTop, referralCount) {
                 
                 <div class="tgr-link-section">
                      ${savedLink
-                ? `<div class="link-active">
-                       <span class="status-icon">✅</span>
-                       <span class="status-text">${t.link_connected || 'Лінка підключена'}</span>
-                       <button class="edit-link-btn" onclick="Actions.editTgrLink()">${Icons.Edit || '✏️'}</button>
-                   </div>
-                   <div class="link-preview-box" onclick="navigator.clipboard.writeText('${savedLink}').then(() => Toast.success('${t.link_copied || 'Скопійовано!'}'))" style="cursor:pointer; background: rgba(0,230,118,0.05); border: 1px solid rgba(0,230,118,0.2); border-radius: 12px; padding: 12px; margin-top: 8px; word-break: break-all; font-size: 12px; color: #00E676; font-family: 'SF Mono', 'Courier New', monospace;">
-                       <div style="display:flex; align-items:center; gap:8px;">
-                           <span style="opacity:0.7;">🔗</span>
-                           <span style="flex:1;">${savedLink}</span>
-                           <span style="opacity:0.5; font-size:10px;">📋</span>
+                ? `<div class="tgr-input-group saved-state" style="display:flex; align-items:center; gap:8px;">
+                       <div class="tgr-input-icon" onclick="navigator.clipboard.writeText('${savedLink}').then(() => { const trans = AppState.getAppData()?.translations || {}; if (typeof Toast !== 'undefined') Toast.success(trans.link_copied || 'Скопійовано!'); })" style="cursor:pointer; flex-shrink:0;" title="Copy">🔗</div>
+                       <div class="tgr-link-display" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0.7; font-size:14px;">${savedLink}</div>
+                       <div class="tgr-saved-badge" style="flex-shrink:0; display:flex; align-items:center; gap:4px; background:rgba(0,230,118,0.1); border:1px solid rgba(0,230,118,0.3); border-radius:8px; padding:4px 10px;">
+                           <span>✅</span>
+                           <span style="color:#00E676; font-size:12px; font-weight:600;">${t.saved || 'Збережено'}</span>
                        </div>
-                   </div>`
+                   </div>
+                   <div class="input-helper-text" style="cursor:pointer; text-align:center; padding:8px; opacity:0.5; font-size:13px;" onclick="Actions.editTgrLink()">${t.change_link || 'Змінити лінку?'}</div>`
                 : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
                        <input type="url" 

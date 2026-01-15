@@ -336,6 +336,31 @@ async def mini_app_webhook(
             flag_modified(user, 'custom_data')
             db.commit()
             
+            # TRACKING: Log TGR link save for Admin Panel analytics
+            if "tgr_link" in custom_data_update:
+                try:
+                    from app.models.message import Message
+                    import datetime
+                    tgr_link = custom_data_update["tgr_link"]
+                    log_msg = Message(
+                        user_id=str(user.id),
+                        bot_id=bot_id,
+                        role='user',
+                        content='/tgr_link_save',
+                        custom_data={
+                            'event': 'tgr_link_saved',
+                            'tgr_link': tgr_link,
+                            'source': 'mini_app',
+                            'timestamp': datetime.datetime.utcnow().isoformat()
+                        }
+                    )
+                    db.add(log_msg)
+                    db.commit()
+                    logger.info(f"✅ TGR link saved and logged for user {validated_user_id}")
+                except Exception as log_err:
+                    logger.error(f"Error logging TGR link save: {log_err}")
+                    # Don't fail the whole operation if logging fails
+            
             return {"ok": True, "action": "save_custom_data", "saved": True}
         except Exception as e:
             logger.error(f"Error saving custom data: {e}", exc_info=True)
