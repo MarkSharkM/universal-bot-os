@@ -24,7 +24,8 @@ const AppStateInternal = {
     hasSeenOnboarding: false, // Track onboarding completion
     partnersExpanded: false, // Track if partners list is expanded (default: show 5)
     lastLoadTime: 0, // Track last data load time for debouncing
-    tgrLink: null // Track saved TGR link
+    tgrLink: null, // Track saved TGR link
+    isEditingTgrLink: false // Track if user is editing TGR link
 };
 
 // Getters
@@ -67,6 +68,8 @@ function setPartnersExpanded(value) { AppStateInternal.partnersExpanded = value;
 function setLastLoadTime(value) { AppStateInternal.lastLoadTime = value; }
 function setTgrLink(value) { AppStateInternal.tgrLink = value; }
 function getTgrLink() { return AppStateInternal.tgrLink; }
+function setIsEditingTgrLink(value) { AppStateInternal.isEditingTgrLink = value; }
+function getIsEditingTgrLink() { return AppStateInternal.isEditingTgrLink; }
 
 // Navigation history helpers
 function pushNavigationHistory(page) {
@@ -129,6 +132,8 @@ function clearNavigationHistory() {
             setLastLoadTime,
             setTgrLink,
             getTgrLink,
+            setIsEditingTgrLink,
+            getIsEditingTgrLink,
 
             // Navigation helpers
             pushNavigationHistory,
