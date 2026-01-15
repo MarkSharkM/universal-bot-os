@@ -278,13 +278,16 @@ async def mini_app_webhook(
     if not bot.is_active:
         raise HTTPException(status_code=403, detail="Bot is inactive")
     
-    # Validate initData if provided
+    # Validate initData if provided (check URL query first, then body)
     validated_user_id = None
-    if init_data:
-        if not validate_telegram_init_data(init_data, bot.token):
+    init_data_to_validate = init_data or data.get("init_data")  # Also check body
+    
+    if init_data_to_validate:
+        if not validate_telegram_init_data(init_data_to_validate, bot.token):
             logger.warning(f"Invalid initData for bot_id={bot_id}")
             raise HTTPException(status_code=401, detail="Invalid initData signature")
-        validated_user_id = get_user_id_from_init_data(init_data)
+        validated_user_id = get_user_id_from_init_data(init_data_to_validate)
+
     
     # Get action type from data
     action = data.get("action")

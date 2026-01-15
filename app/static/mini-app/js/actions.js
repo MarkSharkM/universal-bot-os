@@ -127,7 +127,8 @@ async function saveTgrLink() {
         const initData = AppState.getTg()?.initData || '';
         console.log('🔵 saveTgrLink: initData length =', initData?.length || 0);
 
-        const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}${initData ? `?init_data=${encodeURIComponent(initData)}` : ''}`;
+        // Use POST body for initData to avoid URL length limits on mobile
+        const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}`;
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -135,9 +136,11 @@ async function saveTgrLink() {
             },
             body: JSON.stringify({
                 action: 'save_custom_data',
-                custom_data: { tgr_link: link }
+                custom_data: { tgr_link: link },
+                init_data: initData  // Pass in body instead of URL
             })
         });
+
 
         const data = await response.json();
 
