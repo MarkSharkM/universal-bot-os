@@ -79,11 +79,22 @@ async function handleWalletSubmit(event) {
 }
 
 async function saveTgrLink() {
+    console.log('🔵 saveTgrLink: START');
+
     const input = document.getElementById('tgr-link-input');
-    if (!input) return;
+    console.log('🔵 saveTgrLink: input element =', input);
+
+    if (!input) {
+        console.error('🔴 saveTgrLink: input element NOT FOUND');
+        if (typeof Toast !== 'undefined') Toast.error('Помилка: не знайдено поле вводу');
+        return;
+    }
 
     const link = input.value.trim();
+    console.log('🔵 saveTgrLink: link value =', link?.substring(0, 50));
+
     if (!link) {
+        console.log('🔴 saveTgrLink: link is EMPTY');
         if (typeof Toast !== 'undefined') Toast.error('Введіть посилання');
         return;
     }
@@ -93,12 +104,15 @@ async function saveTgrLink() {
     const isBotLink = link.includes('t.me') && link.includes('?start');
 
     if (!isPartnerLink && !isBotLink) {
+        console.log('🔴 saveTgrLink: invalid link format');
         const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Потрібне посилання з _tgr_ або t.me/Bot?start=';
         if (typeof Toast !== 'undefined') Toast.error(msg);
         return;
     }
 
     const botId = AppState.getBotId();
+    console.log('🔵 saveTgrLink: botId =', botId);
+
     if (!botId) {
         console.error('❌ Bot ID missing in saveTgrLink');
         if (typeof Toast !== 'undefined') Toast.error('Bot ID not found. Reload app.');
@@ -111,6 +125,8 @@ async function saveTgrLink() {
         if (typeof trackEvent === 'function') trackEvent('tgr_link_save_attempt');
 
         const initData = AppState.getTg()?.initData || '';
+        console.log('🔵 saveTgrLink: initData length =', initData?.length || 0);
+
         const url = `${API_BASE}/api/v1/mini-apps/mini-app/${botId}${initData ? `?init_data=${encodeURIComponent(initData)}` : ''}`;
         const response = await fetch(url, {
             method: 'POST',
