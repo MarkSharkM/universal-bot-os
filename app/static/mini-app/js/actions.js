@@ -541,15 +541,9 @@ function validateTgrInput(input) {
 }
 
 function editTgrLink() {
-    // Clear local state only for UI purposes
-    // We don't delete from backend immediately to avoid accidental loss
-    // We just re-render Hero in "edit mode" (savedLink = null)
-
-    const appData = AppState.getAppData();
-    // Trick: we temporarily stash the real link but clear view
-    // Ideally we would have a separate 'isEditing' state, 
-    // but clearing the TGR link in AppState works for now:
-    AppState.setTgrLink(null);
+    // Don't delete the link! Just switch to edit mode
+    // The link value will remain and be shown in the input
+    AppState.setIsEditingTgrLink(true);
 
     if (typeof Render !== 'undefined' && Render.renderHome) {
         Render.renderHome();

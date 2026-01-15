@@ -32,10 +32,10 @@ window.Components.Hero = function (isTop, referralCount) {
                     </div>
                 </div>
                 
-                <div class="tgr-link-section">
-                     ${savedLink
-                ? `<div style="display:flex; flex-direction:column; gap:6px; max-width:100%;">
-                       <div class="tgr-input-group saved-state" style="display:flex; align-items:center; gap:8px; padding:14px 16px; max-width:100%;">
+                <div class="tgr-link-section" style="max-width:100%; overflow:hidden;">
+                     ${savedLink && !AppState.getIsEditingTgrLink()
+                ? `<div style="display:flex; flex-direction:column; gap:6px;">
+                       <div class="tgr-input-group saved-state" style="display:flex; align-items:center; gap:8px; padding:14px 16px;">
                            <div class="tgr-input-icon" 
                                 onclick="navigator.clipboard.writeText('${savedLink}').then(() => { const trans = AppState.getAppData()?.translations || {}; if (typeof Toast !== 'undefined') Toast.success(trans.link_copied || 'Скопійовано!'); })" 
                                 style="cursor:pointer; flex-shrink:0; font-size:18px; opacity:0.7; transition:all 0.2s;" 
@@ -53,12 +53,12 @@ window.Components.Hero = function (isTop, referralCount) {
                                <span>${t.saved || 'Збережено'}</span>
                            </button>
                        </div>
-                       <div class="input-helper-text" style="cursor:pointer; text-align:center; padding:4px; opacity:0.45; font-size:12px; transition:opacity 0.2s;" 
+                       <div class="input-helper-text" style="cursor:pointer; text-align:center; padding:6px; opacity:0.45; font-size:12px; transition:opacity 0.2s;" 
                             onclick="Actions.editTgrLink()" 
                             onmouseover="this.style.opacity='0.7'" 
                             onmouseout="this.style.opacity='0.45'">${t.change_link || 'Змінити лінку?'}</div>
                    </div>`
-                : `<div class="tgr-input-group">
+                : `<div class="tgr-input-group" style="max-width:100%;">
                        <div class="tgr-input-icon">🔗</div>
                        <input type="url" 
                               inputmode="url" 
@@ -68,11 +68,12 @@ window.Components.Hero = function (isTop, referralCount) {
                               spellcheck="false"
                               id="tgr-link-input" 
                               class="tgr-input" 
+                              value="${savedLink || ''}"
                               placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}"
                               oninput="Actions.validateTgrInput(this)"
                               onfocus="document.body.classList.add('keyboard-open'); setTimeout(() => this.scrollIntoView({behavior: 'smooth', block: 'center'}), 300)"
                               onblur="document.body.classList.remove('keyboard-open')">
-                       <button id="tgr-save-btn" class="tgr-save-btn disabled" disabled onclick="Actions.saveTgrLink()">
+                       <button id="tgr-save-btn" class="tgr-save-btn ${savedLink ? '' : 'disabled'}" ${savedLink ? '' : 'disabled'} onclick="Actions.saveTgrLink(); AppState.setIsEditingTgrLink(false);">
                            ${t.save || 'Save'}
                        </button>
                    </div>
