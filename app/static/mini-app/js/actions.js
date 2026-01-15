@@ -131,11 +131,13 @@ async function saveTgrLink() {
             if (typeof trackEvent === 'function') trackEvent('tgr_link_save_success');
             // Update local state
             AppState.setTgrLink(link);
+            AppState.setIsEditingTgrLink(false);
 
             // Re-render home to show active status
             if (typeof Render !== 'undefined' && Render.renderHome) {
                 Render.renderHome();
             }
+
         } else {
             throw new Error(data.error || 'Failed to save');
         }
