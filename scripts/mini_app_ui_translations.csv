@@ -93,13 +93,15 @@ uk,loading,Завантаження...
 uk,retry_btn,Спробувати ще раз
 uk,share_button,🧡 Поділитись лінкою
 uk,share_text_pro,🚀 Долучайся до EarnHubAggregatorBot — отримуй зірки за активність!
-uk,share_text_starter,Дивись! Я заробляю в Telegram з цим ботом 🚀
+uk,share_text_starter,🚀 Долучайся до EarnHubAggregatorBot — отримуй зірки за активність!
 uk,activate_7_title,Як увімкнути 7% (1 раз назавжди):
 uk,activate_7_step_1,1️⃣ Відкрий @{{username}}
 uk,activate_7_step_2,2️⃣ «Партнерська програма»
 uk,activate_7_step_3,3️⃣ «Під'єднатись»
 uk,activate_7_footer,→ {{percent}}% активуються назавжди
 uk,buy_top_fallback_title,Розблокувати TOP
+uk,saved,Збережено
+uk,change_link,Змінити лінку?
 uk,buy_top_fallback_text,"Для розблокування TOP потрібно:\n• Запросити {{needed}} друзів\n• Або купити доступ за {{price}} ⭐\nДля покупки відкрийте бота та натисніть кнопку \"Розблокувати TOP\""
 
 en,nav_home,Home
@@ -196,13 +198,15 @@ en,loading,Loading...
 en,retry_btn,Retry
 en,share_button,🧡 Share the link
 en,share_text_pro,🚀 Join EarnHubAggregatorBot — earn Stars for your activity!
-en,share_text_starter,Look! I'm earning on Telegram with this bot 🚀
+en,share_text_starter,🚀 Join EarnHubAggregatorBot — earn Stars for your activity!
 en,activate_7_title,How to enable 7% (once forever):
 en,activate_7_step_1,1️⃣ Open @{{username}}
 en,activate_7_step_2,2️⃣ "Partner Program"
 en,activate_7_step_3,3️⃣ "Connect"
 en,activate_7_footer,→ {{percent}}% active forever
 en,buy_top_fallback_title,Unlock TOP
+en,saved,Saved
+en,change_link,Change link?
 en,buy_top_fallback_text,"To unlock TOP you need:\n• Invite {{needed}} friends\n• Or buy access for {{price}} ⭐\nTo buy, open the bot and click \"Unlock TOP\" button"
 
 ru,nav_home,Главная
@@ -299,13 +303,15 @@ ru,loading,Загрузка...
 ru,retry_btn,Повторить
 ru,share_button,🧡 Поделиться ссылкой
 ru,share_text_pro,🚀 Присоединяйся к EarnHubAggregatorBot — получай звёзды за активность!
-ru,share_text_starter,Смотри! Я зарабатываю в Telegram с этим ботом 🚀
+ru,share_text_starter,🚀 Присоединяйся к EarnHubAggregatorBot — получай звёзды за активность!
 ru,activate_7_title,Как включить 7% (1 раз навсегда):
 ru,activate_7_step_1,1️⃣ Открой @{{username}}
 ru,activate_7_step_2,2️⃣ «Партнерская программа»
 ru,activate_7_step_3,3️⃣ «Подключиться»
 ru,activate_7_footer,→ {{percent}}% активируются навсегда
 ru,buy_top_fallback_title,Разблокировать TOP
+ru,saved,Сохранено
+ru,change_link,Изменить ссылку?
 ru,buy_top_fallback_text,"Для разблокировки TOP нужно:\n• Пригласить {{needed}} друзей\n• Или купить доступ за {{price}} ⭐\nДля покупки откройте бота и нажмите кнопку \"Разблокировать TOP\""
 
 de,nav_home,Startseite
@@ -402,13 +408,15 @@ de,loading,Laden...
 de,retry_btn,Wiederholen
 de,share_button,🧡 Link teilen
 de,share_text_pro,🚀 Tritt EarnHubAggregatorBot bei — sammle Stars für deine Aktivität!
-de,share_text_starter,Schau mal! Ich verdiene in Telegram mit diesem Bot 🚀
+de,share_text_starter,🚀 Tritt EarnHubAggregatorBot bei — sammle Stars für deine Aktivität!
 de,activate_7_title,So aktivierst du 7% (einmalig für immer):
 de,activate_7_step_1,1️⃣ Öffne @{{username}}
 de,activate_7_step_2,2️⃣ „Partnerprogramm“
 de,activate_7_step_3,3️⃣ „Verbinden“
 de,activate_7_footer,→ {{percent}}% dauerhaft aktiv
 de,buy_top_fallback_title,TOP freischalten
+de,saved,Gespeichert
+de,change_link,Link ändern?
 de,buy_top_fallback_text,"Um TOP freizuschalten, musst du:\n• {{needed}} Freunde einladen\n• Oder den Zugang für {{price}} ⭐ kaufen\nZum Kaufen öffne den Bot und klicke auf die Schaltfläche \"TOP freischalten\""
 
 es,nav_home,Inicio
@@ -505,11 +513,13 @@ es,loading,Cargando...
 es,retry_btn,Reintentar
 es,share_button,🧡 Compartir enlace
 es,share_text_pro,🚀 ¡Únete a EarnHubAggregatorBot — gana Stars por tu actividad!
-es,share_text_starter,¡Mira! Estoy ganando en Telegram con este bot 🚀
+es,share_text_starter,🚀 ¡Únete a EarnHubAggregatorBot — gana Stars por tu actividad!
 es,activate_7_title,Cómo activar el 7% (una vez para siempre):
 es,activate_7_step_1,1️⃣ Abre @{{username}}
 es,activate_7_step_2,2️⃣ „Programa de socios“
 es,activate_7_step_3,3️⃣ „Conectar“
 es,activate_7_footer,→ {{percent}}% activo para siempre
 es,buy_top_fallback_title,Desbloquear TOP
+es,saved,Guardado
+es,change_link,¿Cambiar enlace?
 es,buy_top_fallback_text,"Для разблокировки TOP потрібно:\n• Invita a {{needed}} amigos\n• O compra el acceso por {{price}} ⭐\nPara comprar, abre el bot y haz clic en el botón \"Desbloquear TOP\""
