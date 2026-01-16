@@ -127,23 +127,12 @@ window.Pages.Top = {
 
                 // SECOND: Render locked overlay on top
                 const invitesNeeded = appData.earnings?.invites_needed || 5;
-                const currentInvites = appData.earnings?.total_invited || 0;
+                const currentInvites = appData.user?.total_invited || 0;  // FIXED: Read from user object
                 const buyPrice = appData.earnings?.buy_top_price || 1;
                 const t = appData.translations || {};
 
                 const goal = appData.earnings?.required_invites || 5;
                 const current = Math.min(currentInvites, goal);
-
-                // DEBUG: Log progress values
-                console.log('[Pages.Top] Progress Debug:', {
-                    'appData.earnings': appData.earnings,
-                    'total_invited': appData.earnings?.total_invited,
-                    'required_invites': appData.earnings?.required_invites,
-                    'invites_needed': appData.earnings?.invites_needed,
-                    'current': current,
-                    'goal': goal
-                });
-
                 const subtitle = (t.top_locked_subtitle || 'Запроси ще {{count}} друзів, щоб відкрити доступ до ексклюзивних пропозицій').replace('{{count}}', invitesNeeded);
                 const progressWidth = Math.round((current / goal) * 100);
 
