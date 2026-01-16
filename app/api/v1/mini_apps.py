@@ -1076,7 +1076,6 @@ async def get_mini_app_data(
                 "can_unlock_top": earnings_data["can_unlock_top"],
                 "invites_needed": earnings_data["invites_needed"],
                 "required_invites": earnings_data["required_invites"],
-                "total_invited": earnings_data["total_invited"],  # ADDED: Frontend expects this here
                 "commission_rate": earnings_data["commission_rate"],
                 "buy_top_price": earnings_data["buy_top_price"],
                 "translations": ui_translations,
