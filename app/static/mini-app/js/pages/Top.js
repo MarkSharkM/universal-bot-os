@@ -42,16 +42,7 @@ window.Pages.Top = {
             // Logic: Show TOP only if unlocked or eligible (5+ invites)
             const isUnlocked = topStatus !== 'locked' || canUnlock;
 
-            // Get navigation element for positioning
-            const topPage = document.getElementById('top-page');
-            const tabs = document.querySelector('.tabs');
-
             if (!isUnlocked) {
-                // Add locked state class to page
-                if (topPage) topPage.classList.add('locked-state');
-
-                // Move tabs to top
-                if (tabs) tabs.classList.add('position-top');
 
                 // Render Locked State with new card-based UI
                 const invitesNeeded = appData.earnings?.invites_needed || 5;
@@ -73,7 +64,7 @@ window.Pages.Top = {
                 container.innerHTML = `
                     <div style="min-height: calc(100vh - 180px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px;">
                         <!-- Glassmorphism Card -->
-                        <div style="background: rgba(30, 40, 60, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 32px 24px 28px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);">
+                        <div style="background: rgba(30, 40, 60, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
                             <!-- Lock Icon in Rounded Box -->
                             <div style="width: 72px; height: 72px; margin: 0 auto 20px; background: rgba(255, 200, 50, 0.15); border: 2px solid rgba(255, 200, 50, 0.3); border-radius: 18px; display: flex; align-items: center; justify-content: center;">
                                 <span style="font-size: 36px; filter: drop-shadow(0 2px 8px rgba(255, 200, 50, 0.4));">🔒</span>
@@ -99,13 +90,13 @@ window.Pages.Top = {
                             
                             <!-- Action Buttons -->
                             <div style="display: flex; gap: 12px;">
-                                <button onclick="Actions.buyTop()" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 14px 12px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; border: 1px solid rgba(100, 150, 200, 0.3); background: linear-gradient(135deg, #1e3a5f, #2d4a6f); color: #fff;">
-                                    <span style="font-size: 18px;">💎</span>
+                                <button onclick="Actions.buyTop()" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: 1px solid rgba(100, 150, 200, 0.3); background: linear-gradient(135deg, #1e3a5f, #2d4a6f); color: #fff; min-width: 140px;">
+                                    <span style="font-size: 20px;">💎</span>
                                     <span>Купити</span>
                                     <span style="font-size: 11px; opacity: 0.7;">(${buyPrice} ⭐)</span>
                                 </button>
-                                <button onclick="Actions.share()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 12px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; border: none; background: linear-gradient(135deg, #00c853, #00e676); color: #000; box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35);">
-                                    <span style="font-size: 18px;">🚀</span>
+                                <button onclick="Actions.share()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; background: linear-gradient(135deg, #00c853, #00e676); color: #000; box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35); min-width: 140px;">
+                                    <span style="font-size: 20px;">🚀</span>
                                     <span>Запросити</span>
                                 </button>
                             </div>
@@ -114,12 +105,6 @@ window.Pages.Top = {
                 `;
                 return;
             }
-
-            // Remove locked state class when unlocked
-            if (topPage) topPage.classList.remove('locked-state');
-
-            // Return tabs to bottom when unlocked
-            if (tabs) tabs.classList.remove('position-top');
 
             if (topPartners.length === 0) {
                 container.innerHTML = `<p class="empty-state">${AppState.getAppData()?.translations?.no_top_bots || 'TOP ботів поки немає'}</p>`;
