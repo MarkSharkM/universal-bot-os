@@ -679,121 +679,182 @@
     color: var(--text-secondary);
 }
 
-/* TOP Locked State - Single Unified Card */
-.top-locked-container {
-    min-height: calc(100vh - 200px);
+/* TOP Locked State - Matching Reference Mockups */
+.top-locked-overlay {
+    min-height: calc(100vh - 140px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px 16px 100px 16px;
+    padding: 20px 16px;
+    background: linear-gradient(180deg, rgba(10, 20, 40, 0.8) 0%, rgba(5, 15, 35, 0.95) 100%);
 }
 
-/* Main Status Card - Single unified card */
-.top-status-card {
-    background: var(--bg-card);
-    border: 1px solid var(--glass-border);
+/* Glassmorphism Card */
+.top-locked-card {
+    background: rgba(30, 40, 60, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
-    padding: 32px 24px 24px 24px;
+    padding: 32px 24px 28px;
     width: 100%;
-    max-width: 400px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--shadow-card);
+    max-width: 360px;
     text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.top-status-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 120px;
-    background: linear-gradient(180deg, rgba(255, 215, 0, 0.05), transparent);
-    pointer-events: none;
+/* Lock Icon in Rounded Box */
+.top-lock-box {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: rgba(255, 200, 50, 0.15);
+    border: 2px solid rgba(255, 200, 50, 0.3);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Lock Icon inside card at top */
-.lock-icon-wrapper {
-    font-size: 56px;
-    margin-bottom: 16px;
-    filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.3));
+.lock-emoji {
+    font-size: 40px;
+    filter: drop-shadow(0 2px 8px rgba(255, 200, 50, 0.4));
 }
 
-.top-status-card h3 {
-    font-size: 20px;
+/* Title & Subtitle */
+.top-locked-title {
+    font-size: 22px;
     font-weight: 700;
     color: #fff;
-    margin: 0 0 8px 0;
+    margin: 0 0 10px;
+    line-height: 1.3;
 }
 
-.top-status-card p {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin: 0 0 24px 0;
-    line-height: 1.4;
+.top-locked-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 28px;
+    line-height: 1.5;
 }
 
 /* Progress Section */
-.top-progress-section {
-    margin-bottom: 24px;
+.top-progress-wrapper {
+    margin-bottom: 28px;
 }
 
-.progress-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-.progress-stats {
+.top-progress-header {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
-    color: var(--text-tertiary);
-    margin-top: 8px;
-}
-
-.text-gold {
-    color: #FFD700;
+    align-items: center;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 10px;
     font-weight: 600;
 }
 
-/* Action Buttons */
-.top-locked-actions {
+.top-progress-count {
+    color: #fff;
+    font-weight: 700;
+}
+
+.top-progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.top-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00c853, #69f0ae);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.top-progress-footer {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 8px;
+}
+
+.top-goal-text {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Action Buttons - Side by Side */
+.top-locked-buttons {
+    display: flex;
     gap: 12px;
 }
 
-.top-buy-btn-new,
-.top-invite-btn-new {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
+.top-btn-buy,
+.top-btn-invite {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 12px;
+    border-radius: 14px;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
     border: none;
-    transition: transform 0.1s, opacity 0.2s;
+    transition: transform 0.15s, box-shadow 0.15s;
 }
 
-.top-buy-btn-new {
-    background: linear-gradient(135deg, #007aff, #0051d5);
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+.top-btn-buy {
+    flex-direction: column;
+    background: linear-gradient(135deg, #1e3a5f, #2d4a6f);
+    border: 1px solid rgba(100, 150, 200, 0.3);
+    color: #fff;
 }
 
-.top-invite-btn-new {
-    background: var(--grad-green);
+.top-btn-buy .btn-icon {
+    font-size: 18px;
+}
+
+.top-btn-buy .btn-text-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.top-btn-buy .btn-label {
+    font-size: 14px;
+}
+
+.top-btn-buy .btn-price {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.top-btn-invite {
+    background: linear-gradient(135deg, #00c853, #00e676);
     color: #000;
-    box-shadow: var(--shadow-glow-green);
+    box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35);
 }
 
-.top-buy-btn-new:active,
-.top-invite-btn-new:active {
-    transform: scale(0.98);
+.top-btn-invite .btn-icon {
+    font-size: 18px;
+}
+
+.top-btn-invite .btn-label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.top-btn-buy:active,
+.top-btn-invite:active {
+    transform: scale(0.97);
+}
+
+.top-btn-invite:active {
+    box-shadow: 0 2px 8px rgba(0, 200, 83, 0.4);
 }
 
 /* OLD STYLES - Keep for backward compatibility if needed */

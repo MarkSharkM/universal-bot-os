@@ -67,41 +67,47 @@ window.Pages.Top = {
                     return `<div class="seg ${isActive ? 'filled' : ''}"></div>`;
                 }).join('');
 
-                const invitedLabel = (t.invited_count || '{{count}} запрошено').replace('{{count}}', current);
-                const goalLabel = (t.goal_text || 'Ціль: {{goal}}').replace('{{goal}}', goal);
-                const subtitle = (t.top_locked_subtitle || 'Запроси ще {{count}} друзів, щоб відкрити доступ до ексклюзивних пропозицій').replace('{{count}}', invitesNeeded);
-                const btnBuyLabel = (t.btn_unlock_top || '💎 Купити ({{price}}⭐)').replace('{{price}}', buyPrice).replace('{{buy_top_price}}', buyPrice);
-                const btnInviteLabel = t.invite_and_earn || '🚀 Запросити';
+                const progressWidth = Math.round((current / goal) * 100);
 
                 container.innerHTML = `
-                    <div class="top-locked-container">
-                        <!-- Single Unified Card -->
-                        <div class="top-status-card">
-                            <!-- Lock Icon inside card -->
-                            <div class="lock-icon-wrapper">🔒</div>
+                    <div class="top-locked-overlay">
+                        <!-- Glassmorphism Card -->
+                        <div class="top-locked-card">
+                            <!-- Lock Icon in Rounded Box -->
+                            <div class="top-lock-box">
+                                <span class="lock-emoji">🔒</span>
+                            </div>
                             
-                            <h3>${t.top_locked_title || 'TOP заблоковано'}</h3>
-                            <p>${subtitle}</p>
+                            <h2 class="top-locked-title">🔒 Розблокуй TOP Статус</h2>
+                            <p class="top-locked-subtitle">${subtitle}</p>
                             
                             <!-- Progress Section -->
-                            <div class="top-progress-section">
-                                <div class="progress-label">${t.my_progress || 'Мій прогрес'}: ${current}/${goal}</div>
-                                <div class="progress-segments">
-                                    ${progressSegments}
+                            <div class="top-progress-wrapper">
+                                <div class="top-progress-header">
+                                    <span>${t.my_progress || 'Мій прогрес'}:</span>
+                                    <span class="top-progress-count">${current} / ${goal}</span>
                                 </div>
-                                <div class="progress-stats">
-                                    <span>${invitedLabel}</span>
-                                    <span class="text-gold">${goalLabel}</span>
+                                <div class="top-progress-bar">
+                                    <div class="top-progress-fill" style="width: ${progressWidth}%"></div>
+                                </div>
+                                <div class="top-progress-footer">
+                                    <span>Запрошено: ${current}</span>
+                                    <span class="top-goal-text">• Ціль: ${goal}</span>
                                 </div>
                             </div>
                             
                             <!-- Action Buttons -->
-                            <div class="top-locked-actions">
-                                <button class="top-buy-btn-new" onclick="Actions.buyTop()">
-                                    ${btnBuyLabel}
+                            <div class="top-locked-buttons">
+                                <button class="top-btn-buy" onclick="Actions.buyTop()">
+                                    <span class="btn-icon">💎</span>
+                                    <div class="btn-text-wrap">
+                                        <span class="btn-label">Купити</span>
+                                        <span class="btn-price">(${buyPrice} ⭐)</span>
+                                    </div>
                                 </button>
-                                <button class="top-invite-btn-new" onclick="Actions.share()">
-                                    ${btnInviteLabel}
+                                <button class="top-btn-invite" onclick="Actions.share()">
+                                    <span class="btn-icon">🚀</span>
+                                    <span class="btn-label">Запросити</span>
                                 </button>
                             </div>
                         </div>
