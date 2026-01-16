@@ -67,6 +67,7 @@ window.Pages.Top = {
                     return `<div class="seg ${isActive ? 'filled' : ''}"></div>`;
                 }).join('');
 
+                const subtitle = (t.top_locked_subtitle || 'Запроси ще {{count}} друзів, щоб відкрити доступ до ексклюзивних пропозицій').replace('{{count}}', invitesNeeded);
                 const progressWidth = Math.round((current / goal) * 100);
 
                 container.innerHTML = `
