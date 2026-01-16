@@ -721,6 +721,11 @@ class CommandService:
         """Handle /earnings command"""
         logger.info(f"_handle_earnings: user_id={user_id}, lang={user_lang}")
         
+        # Get user object (needed for _get_share_content)
+        user = self.user_service.get_user_by_id(user_id)
+        if not user:
+            raise ValueError(f"User {user_id} not found")
+        
         try:
             logger.info(f"_handle_earnings: calling build_earnings_message")
             earnings_data = self.earnings_service.build_earnings_message(user_id, user_lang)
