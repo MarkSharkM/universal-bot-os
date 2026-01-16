@@ -71,44 +71,42 @@ window.Pages.Top = {
                 const progressWidth = Math.round((current / goal) * 100);
 
                 container.innerHTML = `
-                    <div class="top-locked-overlay">
+                    <div style="min-height: calc(100vh - 180px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px;">
                         <!-- Glassmorphism Card -->
-                        <div class="top-locked-card">
+                        <div style="background: rgba(30, 40, 60, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 32px 24px 28px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);">
                             <!-- Lock Icon in Rounded Box -->
-                            <div class="top-lock-box">
-                                <span class="lock-emoji">🔒</span>
+                            <div style="width: 72px; height: 72px; margin: 0 auto 20px; background: rgba(255, 200, 50, 0.15); border: 2px solid rgba(255, 200, 50, 0.3); border-radius: 18px; display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 36px; filter: drop-shadow(0 2px 8px rgba(255, 200, 50, 0.4));">🔒</span>
                             </div>
                             
-                            <h2 class="top-locked-title">🔒 Розблокуй TOP Статус</h2>
-                            <p class="top-locked-subtitle">${subtitle}</p>
+                            <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 10px; line-height: 1.3;">🔒 Розблокуй TOP Статус</h2>
+                            <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 0 0 24px; line-height: 1.5;">${subtitle}</p>
                             
                             <!-- Progress Section -->
-                            <div class="top-progress-wrapper">
-                                <div class="top-progress-header">
+                            <div style="margin-bottom: 24px; text-align: left;">
+                                <div style="display: flex; justify-content: space-between; font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; font-weight: 600;">
                                     <span>${t.my_progress || 'Мій прогрес'}:</span>
-                                    <span class="top-progress-count">${current} / ${goal}</span>
+                                    <span style="color: #fff; font-weight: 700;">${current} / ${goal}</span>
                                 </div>
-                                <div class="top-progress-bar">
-                                    <div class="top-progress-fill" style="width: ${progressWidth}%"></div>
+                                <div style="height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
+                                    <div style="height: 100%; width: ${progressWidth}%; background: linear-gradient(90deg, #00c853, #69f0ae); border-radius: 4px; transition: width 0.3s ease;"></div>
                                 </div>
-                                <div class="top-progress-footer">
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.5); margin-top: 8px;">
                                     <span>Запрошено: ${current}</span>
-                                    <span class="top-goal-text">• Ціль: ${goal}</span>
+                                    <span>• Ціль: ${goal}</span>
                                 </div>
                             </div>
                             
                             <!-- Action Buttons -->
-                            <div class="top-locked-buttons">
-                                <button class="top-btn-buy" onclick="Actions.buyTop()">
-                                    <span class="btn-icon">💎</span>
-                                    <div class="btn-text-wrap">
-                                        <span class="btn-label">Купити</span>
-                                        <span class="btn-price">(${buyPrice} ⭐)</span>
-                                    </div>
+                            <div style="display: flex; gap: 12px;">
+                                <button onclick="Actions.buyTop()" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 14px 12px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; border: 1px solid rgba(100, 150, 200, 0.3); background: linear-gradient(135deg, #1e3a5f, #2d4a6f); color: #fff;">
+                                    <span style="font-size: 18px;">💎</span>
+                                    <span>Купити</span>
+                                    <span style="font-size: 11px; opacity: 0.7;">(${buyPrice} ⭐)</span>
                                 </button>
-                                <button class="top-btn-invite" onclick="Actions.share()">
-                                    <span class="btn-icon">🚀</span>
-                                    <span class="btn-label">Запросити</span>
+                                <button onclick="Actions.share()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 12px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; border: none; background: linear-gradient(135deg, #00c853, #00e676); color: #000; box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35);">
+                                    <span style="font-size: 18px;">🚀</span>
+                                    <span>Запросити</span>
                                 </button>
                             </div>
                         </div>
