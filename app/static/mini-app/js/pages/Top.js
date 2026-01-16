@@ -75,14 +75,12 @@ window.Pages.Top = {
 
                 container.innerHTML = `
                     <div class="top-locked-container">
-                        <!-- Lock Icon Card -->
-                        <div class="top-lock-icon-card">
-                            <div class="lock-icon-wrapper">🔒</div>
-                        </div>
-                        
-                        <!-- Main Status Card -->
+                        <!-- Single Unified Card -->
                         <div class="top-status-card">
-                            <h3>${t.top_locked_title || '🔒 Розблокуй TOP Статус'}</h3>
+                            <!-- Lock Icon inside card -->
+                            <div class="lock-icon-wrapper">🔒</div>
+                            
+                            <h3>${t.top_locked_title || 'TOP заблоковано'}</h3>
                             <p>${subtitle}</p>
                             
                             <!-- Progress Section -->

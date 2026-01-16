@@ -679,44 +679,28 @@
     color: var(--text-secondary);
 }
 
-/* TOP Locked State - New Card-Based UI */
+/* TOP Locked State - Single Unified Card */
 .top-locked-container {
     min-height: calc(100vh - 200px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px 4px 100px 4px;
-    gap: 20px;
+    padding: 20px 16px 100px 16px;
 }
 
-/* Lock Icon Card (Similar to Hero stat box) */
-.top-lock-icon-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.lock-icon-wrapper {
-    font-size: 64px;
-    filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.3));
-}
-
-/* Main Status Card (Similar to v5-hero-card) */
+/* Main Status Card - Single unified card */
 .top-status-card {
     background: var(--bg-card);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
-    padding: 24px;
+    padding: 32px 24px 24px 24px;
     width: 100%;
     max-width: 400px;
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-card);
+    text-align: center;
 }
 
 .top-status-card::before {
@@ -725,9 +709,16 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 100px;
+    height: 120px;
     background: linear-gradient(180deg, rgba(255, 215, 0, 0.05), transparent);
     pointer-events: none;
+}
+
+/* Lock Icon inside card at top */
+.lock-icon-wrapper {
+    font-size: 56px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.3));
 }
 
 .top-status-card h3 {
@@ -735,14 +726,12 @@
     font-weight: 700;
     color: #fff;
     margin: 0 0 8px 0;
-    text-align: center;
 }
 
 .top-status-card p {
     font-size: 13px;
     color: var(--text-secondary);
     margin: 0 0 24px 0;
-    text-align: center;
     line-height: 1.4;
 }
 
