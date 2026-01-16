@@ -43,66 +43,143 @@ window.Pages.Top = {
             const isUnlocked = topStatus !== 'locked' || canUnlock;
 
             if (!isUnlocked) {
+                // FIRST: Render TOP partners list in background (with reduced opacity)
+                if (topPartners.length > 0) {
+                    // Render header
+                    const header = document.createElement('div');
+                    header.className = 'top-header';
+                    const t = appData.translations || {};
+                    header.innerHTML = `
+                        <h2>🏆 ${t.top_profits_title || 'ТОП партнери'}</h2>
+                        <p class="top-subtitle">${t.top_profits_subtitle || 'Найвигідніші пропозиції тижня'}</p>
+                    `;
+                    header.style.opacity = '0.3'; // Dim the header
+                    container.appendChild(header);
 
-                // Render Locked State with new card-based UI
+                    // Render partners list with reduced opacity
+                    const listContainer = document.createElement('div');
+                    listContainer.className = 'top-list-container';
+                    listContainer.style.opacity = '0.3'; // Dim the list
+                    listContainer.style.filter = 'blur(2px)'; // Slight blur
+
+                    topPartners.forEach((partner, index) => {
+                        const partnerId = partner.id || `top-${index}`;
+                        const partnerIdStr = typeof partnerId === 'string' ? partnerId : String(partnerId);
+
+                        const item = document.createElement('div');
+                        let podiumClass = '';
+                        if (index === 0) podiumClass = 'podium-gold';
+                        else if (index === 1) podiumClass = 'podium-silver';
+                        else if (index === 2) podiumClass = 'podium-bronze';
+
+                        item.className = `top-item-card ${podiumClass}`;
+                        item.setAttribute('data-rank', index + 1);
+
+                        let rankBadge = `<span class="rank-number">#${index + 1}</span>`;
+                        if (index === 0) rankBadge = `<span class="rank-icon">🥇</span>`;
+                        if (index === 1) rankBadge = `<span class="rank-icon">🥈</span>`;
+                        if (index === 2) rankBadge = `<span class="rank-icon">🥉</span>`;
+
+                        let tgFallbackUrl = null;
+                        const linkForFallback = partner.referral_link || partner.link;
+                        if (linkForFallback && linkForFallback.includes('t.me/')) {
+                            const parts = linkForFallback.split('t.me/');
+                            if (parts[1]) {
+                                const username = parts[1].split(/[/?#]/)[0];
+                                if (username) {
+                                    tgFallbackUrl = `https://t.me/i/userpic/320/${username}.jpg`;
+                                }
+                            }
+                        }
+
+                        const partnerName = partner.name || 'Bot';
+                        const partnerImage = partner.icon || partner.image || partner.image_url || tgFallbackUrl || '/static/mini-app/icon.png';
+                        const commission = partner.commission || 0;
+                        const score = partner.roi_score || 0;
+                        const scoreDisplay = score > 0 ? `🔥 ${score}/10` : `🔥 High`;
+                        const link = partner.referral_link || partner.link;
+                        const commissionLabel = (t.estimated_share || '{{percent}}% share').replace('{{percent}}', commission);
+
+                        item.innerHTML = `
+                            <div class="top-row-left">
+                                <div class="top-rank-wrapper">${rankBadge}</div>
+                                <img src="${partnerImage}" alt="${escapeHtml(partnerName)}" class="top-icon-new" onerror="handleImageError(this, '${escapeHtml(partnerName)}', '${tgFallbackUrl || ''}')">
+                            </div>
+                            <div class="top-row-middle">
+                                <div class="top-name-new">${escapeHtml(partnerName)}</div>
+                                <div class="top-metrics">
+                                    <span class="metric-score">${scoreDisplay}</span>
+                                    ${commission > 0 ? `<span class="metric-separator">•</span><span class="metric-commission">${commissionLabel}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="top-row-right">
+                                <button class="top-open-btn-pill" disabled style="opacity: 0.5;">
+                                    ${t.open_btn || 'Відкрити ↗'}
+                                </button>
+                            </div>
+                        `;
+
+                        listContainer.appendChild(item);
+                    });
+
+                    container.appendChild(listContainer);
+                }
+
+                // SECOND: Render locked overlay on top
                 const invitesNeeded = appData.earnings?.invites_needed || 5;
                 const currentInvites = appData.earnings?.total_invited || 0;
                 const buyPrice = appData.earnings?.buy_top_price || 1;
                 const t = appData.translations || {};
 
-                // Create progress segments
                 const goal = appData.earnings?.required_invites || 5;
                 const current = Math.min(currentInvites, goal);
-                const progressSegments = Array.from({ length: goal }).map((_, i) => {
-                    const isActive = i < current;
-                    return `<div class="seg ${isActive ? 'filled' : ''}"></div>`;
-                }).join('');
-
                 const subtitle = (t.top_locked_subtitle || 'Запроси ще {{count}} друзів, щоб відкрити доступ до ексклюзивних пропозицій').replace('{{count}}', invitesNeeded);
                 const progressWidth = Math.round((current / goal) * 100);
 
-                container.innerHTML = `
-                    <div style="min-height: calc(100vh - 180px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px;">
-                        <!-- Glassmorphism Card -->
-                        <div style="background: rgba(30, 40, 60, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
-                            <!-- Lock Icon in Rounded Box -->
-                            <div style="width: 72px; height: 72px; margin: 0 auto 20px; background: rgba(255, 200, 50, 0.15); border: 2px solid rgba(255, 200, 50, 0.3); border-radius: 18px; display: flex; align-items: center; justify-content: center;">
-                                <span style="font-size: 36px; filter: drop-shadow(0 2px 8px rgba(255, 200, 50, 0.4));">🔒</span>
+                // Create overlay element
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position: fixed; top: 60px; left: 0; right: 0; bottom: 80px; display: flex; align-items: center; justify-content: center; padding: 20px 16px; z-index: 50; pointer-events: none;';
+                overlay.innerHTML = `
+                    <div style="background: rgba(30, 40, 60, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); pointer-events: auto;">
+                        <!-- Lock Icon in Rounded Box -->
+                        <div style="width: 72px; height: 72px; margin: 0 auto 20px; background: rgba(255, 200, 50, 0.15); border: 2px solid rgba(255, 200, 50, 0.3); border-radius: 18px; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 36px; filter: drop-shadow(0 2px 8px rgba(255, 200, 50, 0.4));">🔒</span>
+                        </div>
+                        
+                        <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 10px; line-height: 1.3;">🔒 Розблокуй TOP Статус</h2>
+                        <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 0 0 24px; line-height: 1.5;">${subtitle}</p>
+                        
+                        <!-- Progress Section -->
+                        <div style="margin-bottom: 24px; text-align: left;">
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; font-weight: 600;">
+                                <span>${t.my_progress || 'Мій прогрес'}:</span>
+                                <span style="color: #fff; font-weight: 700;">${current} / ${goal}</span>
                             </div>
-                            
-                            <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 10px; line-height: 1.3;">🔒 Розблокуй TOP Статус</h2>
-                            <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 0 0 24px; line-height: 1.5;">${subtitle}</p>
-                            
-                            <!-- Progress Section -->
-                            <div style="margin-bottom: 24px; text-align: left;">
-                                <div style="display: flex; justify-content: space-between; font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; font-weight: 600;">
-                                    <span>${t.my_progress || 'Мій прогрес'}:</span>
-                                    <span style="color: #fff; font-weight: 700;">${current} / ${goal}</span>
-                                </div>
-                                <div style="height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
-                                    <div style="height: 100%; width: ${progressWidth}%; background: linear-gradient(90deg, #00c853, #69f0ae); border-radius: 4px; transition: width 0.3s ease;"></div>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.5); margin-top: 8px;">
-                                    <span>Запрошено: ${current}</span>
-                                    <span>• Ціль: ${goal}</span>
-                                </div>
+                            <div style="height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
+                                <div style="height: 100%; width: ${progressWidth}%; background: linear-gradient(90deg, #00c853, #69f0ae); border-radius: 4px; transition: width 0.3s ease;"></div>
                             </div>
-                            
-                            <!-- Action Buttons -->
-                            <div style="display: flex; gap: 12px;">
-                                <button onclick="Actions.buyTop()" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: 1px solid rgba(100, 150, 200, 0.3); background: linear-gradient(135deg, #1e3a5f, #2d4a6f); color: #fff; min-width: 140px;">
-                                    <span style="font-size: 20px;">💎</span>
-                                    <span>Купити</span>
-                                    <span style="font-size: 11px; opacity: 0.7;">(${buyPrice} ⭐)</span>
-                                </button>
-                                <button onclick="Actions.share()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; background: linear-gradient(135deg, #00c853, #00e676); color: #000; box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35); min-width: 140px;">
-                                    <span style="font-size: 20px;">🚀</span>
-                                    <span>Запросити</span>
-                                </button>
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.5); margin-top: 8px;">
+                                <span>Запрошено: ${current}</span>
+                                <span>• Ціль: ${goal}</span>
                             </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 12px;">
+                            <button onclick="Actions.buyTop()" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: 1px solid rgba(100, 150, 200, 0.3); background: linear-gradient(135deg, #1e3a5f, #2d4a6f); color: #fff; min-width: 140px;">
+                                <span style="font-size: 20px;">💎</span>
+                                <span>Купити</span>
+                                <span style="font-size: 11px; opacity: 0.7;">(${buyPrice} ⭐)</span>
+                            </button>
+                            <button onclick="Actions.share()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; background: linear-gradient(135deg, #00c853, #00e676); color: #000; box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35); min-width: 140px;">
+                                <span style="font-size: 20px;">🚀</span>
+                                <span>Запросити</span>
+                            </button>
                         </div>
                     </div>
                 `;
+
+                container.appendChild(overlay);
                 return;
             }
 
