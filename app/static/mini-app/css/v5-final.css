@@ -679,38 +679,143 @@
     color: var(--text-secondary);
 }
 
-/* TOP Locked State */
-.top-locked-state {
+/* TOP Locked State - New Card-Based UI */
+.top-locked-container {
+    min-height: calc(100vh - 200px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 32px 16px;
+    padding: 20px 4px 100px 4px;
+    gap: 20px;
+}
+
+/* Lock Icon Card (Similar to Hero stat box) */
+.top-lock-icon-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lock-icon-wrapper {
+    font-size: 64px;
+    filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.3));
+}
+
+/* Main Status Card (Similar to v5-hero-card) */
+.top-status-card {
     background: var(--bg-card);
-    /* Fallback */
-    background: var(--card-bg, #1c1c1e);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+.top-status-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(180deg, rgba(255, 215, 0, 0.05), transparent);
+    pointer-events: none;
+}
+
+.top-status-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+    text-align: center;
+}
+
+.top-status-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 24px 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* Progress Section */
+.top-progress-section {
+    margin-bottom: 24px;
+}
+
+.progress-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 8px;
+}
+
+.text-gold {
+    color: #FFD700;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.top-locked-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.top-buy-btn-new,
+.top-invite-btn-new {
+    width: 100%;
+    padding: 14px;
     border-radius: 12px;
-    margin: 8px 4px;
-    /* Matches 4px side margins */
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.top-buy-btn-new {
+    background: linear-gradient(135deg, #007aff, #0051d5);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.top-invite-btn-new {
+    background: var(--grad-green);
+    color: #000;
+    box-shadow: var(--shadow-glow-green);
+}
+
+.top-buy-btn-new:active,
+.top-invite-btn-new:active {
+    transform: scale(0.98);
+}
+
+/* OLD STYLES - Keep for backward compatibility if needed */
+.top-locked-state {
+    display: none;
+    /* Hidden, replaced by new UI */
 }
 
 .locked-icon {
     font-size: 48px;
     margin-bottom: 16px;
-}
-
-.top-locked-state h3 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    color: var(--text-primary);
-}
-
-.top-locked-state p {
-    margin: 0 0 24px 0;
-    font-size: 14px;
-    color: var(--text-secondary);
-    max-width: 280px;
 }
 
 .locked-actions {

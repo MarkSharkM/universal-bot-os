@@ -118,6 +118,18 @@ body.keyboard-open .tabs {
     display: none !important;
 }
 
+/* Navigation positioning variants - for locked TOP tab */
+.tabs.position-top {
+    position: fixed;
+    top: 60px;
+    bottom: auto;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10);
+}
+
+[data-theme="dark"] .tabs.position-top {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
 .tab {
     flex: 1;
     display: flex;

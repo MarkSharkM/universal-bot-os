@@ -42,33 +42,81 @@ window.Pages.Top = {
             // Logic: Show TOP only if unlocked or eligible (5+ invites)
             const isUnlocked = topStatus !== 'locked' || canUnlock;
 
+            // Get navigation element for positioning
+            const topPage = document.getElementById('top-page');
+            const tabs = document.querySelector('.tabs');
+
             if (!isUnlocked) {
-                // Render Locked State
+                // Add locked state class to page
+                if (topPage) topPage.classList.add('locked-state');
+
+                // Move tabs to top
+                if (tabs) tabs.classList.add('position-top');
+
+                // Render Locked State with new card-based UI
                 const invitesNeeded = appData.earnings?.invites_needed || 5;
+                const currentInvites = appData.earnings?.total_invited || 0;
                 const buyPrice = appData.earnings?.buy_top_price || 1;
                 const t = appData.translations || {};
 
-                const subtitle = (t.top_locked_subtitle || `Invite ${invitesNeeded} more friends to unlock TOP partners or buy access.`).replace('{{count}}', invitesNeeded);
-                const btnLabel = (t.btn_unlock_top || `Unlock for ${buyPrice} Stars`).replace('{{price}}', buyPrice).replace('{{buy_top_price}}', buyPrice);
+                // Create progress segments
+                const goal = appData.earnings?.required_invites || 5;
+                const current = Math.min(currentInvites, goal);
+                const progressSegments = Array.from({ length: goal }).map((_, i) => {
+                    const isActive = i < current;
+                    return `<div class="seg ${isActive ? 'filled' : ''}"></div>`;
+                }).join('');
+
+                const invitedLabel = (t.invited_count || '{{count}} запрошено').replace('{{count}}', current);
+                const goalLabel = (t.goal_text || 'Ціль: {{goal}}').replace('{{goal}}', goal);
+                const subtitle = (t.top_locked_subtitle || 'Запроси ще {{count}} друзів, щоб відкрити доступ до ексклюзивних пропозицій').replace('{{count}}', invitesNeeded);
+                const btnBuyLabel = (t.btn_unlock_top || '💎 Купити ({{price}}⭐)').replace('{{price}}', buyPrice).replace('{{buy_top_price}}', buyPrice);
+                const btnInviteLabel = t.invite_and_earn || '🚀 Запросити';
 
                 container.innerHTML = `
-                    <div class="top-locked-state">
-                        <div class="locked-icon">🔒</div>
-                        <h3>${t.top_locked_title || 'TOP Locked'}</h3>
-                        <p>${subtitle}</p>
+                    <div class="top-locked-container">
+                        <!-- Lock Icon Card -->
+                        <div class="top-lock-icon-card">
+                            <div class="lock-icon-wrapper">🔒</div>
+                        </div>
                         
-                        <div class="locked-actions">
-                            <button class="top-buy-btn" onclick="Actions.buyTop()">
-                                ${btnLabel}
-                            </button>
-                            <button class="top-share-btn" onclick="Actions.share()">
-                                ${t.share_button || 'Invite Friends'}
-                            </button>
+                        <!-- Main Status Card -->
+                        <div class="top-status-card">
+                            <h3>${t.top_locked_title || '🔒 Розблокуй TOP Статус'}</h3>
+                            <p>${subtitle}</p>
+                            
+                            <!-- Progress Section -->
+                            <div class="top-progress-section">
+                                <div class="progress-label">${t.my_progress || 'Мій прогрес'}: ${current}/${goal}</div>
+                                <div class="progress-segments">
+                                    ${progressSegments}
+                                </div>
+                                <div class="progress-stats">
+                                    <span>${invitedLabel}</span>
+                                    <span class="text-gold">${goalLabel}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="top-locked-actions">
+                                <button class="top-buy-btn-new" onclick="Actions.buyTop()">
+                                    ${btnBuyLabel}
+                                </button>
+                                <button class="top-invite-btn-new" onclick="Actions.share()">
+                                    ${btnInviteLabel}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
                 return;
             }
+
+            // Remove locked state class when unlocked
+            if (topPage) topPage.classList.remove('locked-state');
+
+            // Return tabs to bottom when unlocked
+            if (tabs) tabs.classList.remove('position-top');
 
             if (topPartners.length === 0) {
                 container.innerHTML = `<p class="empty-state">${AppState.getAppData()?.translations?.no_top_bots || 'TOP ботів поки немає'}</p>`;
