@@ -86,18 +86,61 @@ async function loadMessages(offset = 0, reset = false) {
                     : w;
             }
 
-            // 3. MINI APP EVENT HANDLING (Response/Time)
-            const isMiniAppEvent = (msg.source && msg.source.includes('mini_app')) || (rawCommand.startsWith('/'));
+            // 3. SOURCE BADGE (Mini App vs Telegram)
+            let sourceBadge = '-';
+            if (msg.source) {
+                if (msg.source.includes('mini_app')) {
+                    sourceBadge = '<span style="background: #f3e8ff; color: #6b21a8; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">📱 Mini App</span>';
+                } else if (msg.source.includes('telegram')) {
+                    sourceBadge = '<span style="background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">💬 Telegram</span>';
+                } else {
+                    sourceBadge = `<span style="color: #6b7280; font-size: 8px;">${msg.source}</span>`;
+                }
+            }
 
+            // 4. RESPONSE STATUS BADGE
+            const isMiniAppEvent = (msg.source && msg.source.includes('mini_app')) || (rawCommand.startsWith('/'));
             let responseDisplay = '-';
-            let timeDisplay = '-';
 
             if (!msg.response_content && isMiniAppEvent) {
-                responseDisplay = '<span style="color: #9ca3af; font-style: italic; font-size: 8px;">(Event Log)</span>';
-                timeDisplay = '<span style="color: #9ca3af;">-</span>';
+                // Event log (no response expected)
+                responseDisplay = '<span style="background: #f3f4f6; color: #6b7280; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 500;">📝 Event Log</span>';
+            } else if (msg.response_content) {
+                // Check for error indicators in response
+                const hasError = msg.response_content.toLowerCase().includes('error') ||
+                    msg.response_content.toLowerCase().includes('failed') ||
+                    msg.response_content.toLowerCase().includes('exception');
+
+                if (hasError) {
+                    responseDisplay = '<span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">❌ Error</span>';
+                } else {
+                    responseDisplay = '<span style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">✅ Success</span>';
+                }
             } else {
-                responseDisplay = msg.response_content ? (msg.response_content.substring(0, 15) + '...') : '-';
-                timeDisplay = msg.response_time_seconds ? `${msg.response_time_seconds}s` : '-';
+                // No response yet
+                responseDisplay = '<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 500;">⏳ Pending</span>';
+            }
+
+            // 5. RESPONSE TIME COLOR CODING
+            let timeDisplay = '-';
+            if (msg.response_time_seconds) {
+                const time = msg.response_time_seconds;
+                let timeStyle = '';
+
+                if (time < 2) {
+                    // Fast (< 2s) - Green
+                    timeStyle = 'background: #d1fae5; color: #065f46;';
+                } else if (time < 5) {
+                    // Medium (2-5s) - Yellow
+                    timeStyle = 'background: #fef3c7; color: #92400e;';
+                } else {
+                    // Slow (> 5s) - Red
+                    timeStyle = 'background: #fee2e2; color: #991b1b;';
+                }
+
+                timeDisplay = `<span style="${timeStyle} padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">${time}s</span>`;
+            } else if (!msg.response_content && isMiniAppEvent) {
+                timeDisplay = '<span style="color: #9ca3af; font-size: 8px;">-</span>';
             }
 
             // --- UI POLISH END ---
@@ -133,7 +176,7 @@ async function loadMessages(offset = 0, reset = false) {
                         ${msg.custom_data ? `<div style="margin-top: 4px; border-top: 1px solid #eee; padding-top: 2px; color: #9ca3af;">${JSON.stringify(msg.custom_data, null, 2)}</div>` : ''}
                     </div>
                 </td>
-                <td style="font-size: 9px;">${msg.source || '-'}</td>
+                <td style="font-size: 9px;">${sourceBadge}</td>
                 <td style="font-size: 9px;">${responseDisplay}</td>
                 <td style="font-size: 9px;">${timeDisplay}</td>
                 <td style="font-size: 9px;">
