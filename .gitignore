@@ -58,3 +58,6 @@ _archive/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# AI Documentation (local only, contains tokens)
+AI_DOCS/
