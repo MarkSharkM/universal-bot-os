@@ -98,8 +98,9 @@ async function loadMessages(offset = 0, reset = false) {
                 }
             }
 
-            // 4. RESPONSE STATUS BADGE
+            // 4. RESPONSE STATUS BADGE (with expandable content)
             const isMiniAppEvent = (msg.source && msg.source.includes('mini_app')) || (rawCommand.startsWith('/'));
+            const responseExpandId = `resp-${msg.id}`;
             let responseDisplay = '-';
 
             if (!msg.response_content && isMiniAppEvent) {
@@ -112,9 +113,15 @@ async function loadMessages(offset = 0, reset = false) {
                     msg.response_content.toLowerCase().includes('exception');
 
                 if (hasError) {
-                    responseDisplay = '<span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">❌ Error</span>';
+                    responseDisplay = `<div onclick="toggleExpand('${responseExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">❌ Error</span>
+                        <span style="font-size: 8px; color: #9ca3af;">▼</span>
+                    </div>`;
                 } else {
-                    responseDisplay = '<span style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">✅ Success</span>';
+                    responseDisplay = `<div onclick="toggleExpand('${responseExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <span style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">✅ Success</span>
+                        <span style="font-size: 8px; color: #9ca3af;">▼</span>
+                    </div>`;
                 }
             } else {
                 // No response yet
@@ -177,7 +184,13 @@ async function loadMessages(offset = 0, reset = false) {
                     </div>
                 </td>
                 <td style="font-size: 9px;">${sourceBadge}</td>
-                <td style="font-size: 9px;">${responseDisplay}</td>
+                <td style="font-size: 9px; max-width: 120px;">
+                    ${responseDisplay}
+                    ${msg.response_content ? `<div id="${responseExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.05); max-height: 200px; overflow-y: auto;">
+                        <div style="font-weight:bold; margin-bottom:2px;">Full Response:</div>
+                        <div style="color:#4b5563;">${msg.response_content}</div>
+                    </div>` : ''}
+                </td>
                 <td style="font-size: 9px;">${timeDisplay}</td>
                 <td style="font-size: 9px;">
                     <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Edit</button>
