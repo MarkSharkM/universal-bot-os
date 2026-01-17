@@ -7,12 +7,12 @@ const MESSAGES_PER_PAGE = 50;
 let partnersCache = new Map();
 
 async function loadDatabaseData() {
-    await loadPartners(); // Load partners first
+    await loadPartnersForCache(); // Load partners first
     loadUsersForMessagesFilter();
     loadMessages(0, true);
 }
 
-async function loadPartners() {
+async function loadPartnersForCache() {
     if (!currentBotId) return;
     try {
         const res = await fetch(`${API_BASE}/bots/${currentBotId}/partners?active_only=false&limit=500`);
@@ -21,9 +21,9 @@ async function loadPartners() {
         partners.forEach(p => {
             partnersCache.set(p.id, p.data?.bot_name || 'Unknown Partner');
         });
-        console.log(`Loaded ${partnersCache.size} partners into cache`);
+        console.log(`[Database] Loaded ${partnersCache.size} partners into cache`);
     } catch (e) {
-        console.error('Failed to load partners:', e);
+        console.error('[Database] Failed to load partners:', e);
     }
 }
 
