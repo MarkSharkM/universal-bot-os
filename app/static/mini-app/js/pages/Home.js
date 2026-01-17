@@ -21,7 +21,10 @@ window.Pages.Home = {
 
         // Logic Data
         const referralCount = AppState.getReferralCount();
-        const isTop = (referralCount >= 5);
+        // Check BOTH referral count AND top_status from backend
+        // User has TOP if: 5+ referrals OR purchased TOP (top_status === 'open')
+        const topStatus = appData?.user?.custom_data?.top_status || 'locked';
+        const isTop = (referralCount >= 5) || (topStatus === 'open');
 
         // 1. Header
         // Use initDataUnsafe user if available for immediate/correct display name
