@@ -140,7 +140,7 @@ window.Pages.Top = {
                 const overlay = document.createElement('div');
                 overlay.style.cssText = 'position: fixed; top: 60px; left: 0; right: 0; bottom: 80px; display: flex; align-items: center; justify-content: center; padding: 20px 16px; z-index: 50; pointer-events: none;';
                 overlay.innerHTML = `
-                    <div style="background: rgba(30, 40, 60, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); pointer-events: auto;">
+                    <div style="background: linear-gradient(135deg, rgba(20, 30, 45, 0.95), rgba(30, 40, 55, 0.95)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); pointer-events: auto;">
                         <!-- Lock Icon in Rounded Box -->
                         <div style="width: 72px; height: 72px; margin: 0 auto 20px; background: rgba(255, 200, 50, 0.15); border: 2px solid rgba(255, 200, 50, 0.3); border-radius: 18px; display: flex; align-items: center; justify-content: center;">
                             <span style="font-size: 36px; filter: drop-shadow(0 2px 8px rgba(255, 200, 50, 0.4));">🔒</span>
