@@ -480,8 +480,10 @@ async function handleBuyTop(price) {
                         }
 
                         // Re-render Primary Action Card (shows on home page)
-                        if (typeof Render !== 'undefined' && Render.renderPrimaryActionCard) {
-                            Render.renderPrimaryActionCard();
+                        // Always re-render home page (has Hero with TOP status)
+                        if (typeof Pages !== 'undefined' && Pages.Home && Pages.Home.render) {
+                            Pages.Home.render();
+                            console.log('✅ Home page re-rendered with updated TOP status');
                         }
 
                         console.log('✅ UI updated after payment');
