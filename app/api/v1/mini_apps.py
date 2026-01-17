@@ -954,6 +954,11 @@ async def get_mini_app_data(
             "top_profits_subtitle": translation_service.get_translation('top_profits_subtitle', user_lang),
             "open_btn": translation_service.get_translation('open_btn', user_lang),
             "estimated_share": translation_service.get_translation('estimated_share', user_lang),
+            "invited_label": translation_service.get_translation('invited_label', user_lang),
+            "goal_label": translation_service.get_translation('goal_label', user_lang),
+            "my_progress": translation_service.get_translation('my_progress', user_lang),
+            "buy_top_btn": translation_service.get_translation('buy_top_btn', user_lang),
+            "share_btn": translation_service.get_translation('share_btn', user_lang),
             
             # Footer
             "about_earnhub": translation_service.get_translation('about_earnhub', user_lang),

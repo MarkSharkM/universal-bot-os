@@ -146,7 +146,7 @@ window.Pages.Top = {
                             <span style="font-size: 36px; filter: drop-shadow(0 2px 8px rgba(255, 200, 50, 0.4));">🔒</span>
                         </div>
                         
-                        <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 10px; line-height: 1.3;">🔒 Розблокуй TOP Статус</h2>
+                        <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 10px; line-height: 1.3;">${t.top_locked_title || '🔒 Розблокуй TOP Статус'}</h2>
                         <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 0 0 24px; line-height: 1.5;">${subtitle}</p>
                         
                         <!-- Progress Section -->
@@ -159,8 +159,8 @@ window.Pages.Top = {
                                 <div style="height: 100%; width: ${progressWidth}%; background: linear-gradient(90deg, #00c853, #69f0ae); border-radius: 4px; transition: width 0.3s ease;"></div>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.5); margin-top: 8px;">
-                                <span>Запрошено: ${current}</span>
-                                <span>• Ціль: ${goal}</span>
+                                <span>${t.invited_label || 'Запрошено'}: ${current}</span>
+                                <span>• ${t.goal_label || 'Ціль'}: ${goal}</span>
                             </div>
                         </div>
                         
