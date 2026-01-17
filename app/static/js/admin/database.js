@@ -148,13 +148,14 @@ async function loadMessages(offset = 0, reset = false) {
             const isMiniAppEvent = (msg.source && msg.source.includes('mini_app')) || (rawCommand.startsWith('/'));
             const responseExpandId = `resp-${msg.id}`;
             let responseDisplay = '-';
+            let hasError = false; // Track if this row has an error
 
             if (!msg.response_content && isMiniAppEvent) {
                 // Event log (no response expected)
                 responseDisplay = '<span style="background: #f3f4f6; color: #6b7280; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 500;">📝 Event Log</span>';
             } else if (msg.response_content) {
                 // Check for error indicators in response
-                const hasError = msg.response_content.toLowerCase().includes('error') ||
+                hasError = msg.response_content.toLowerCase().includes('error') ||
                     msg.response_content.toLowerCase().includes('failed') ||
                     msg.response_content.toLowerCase().includes('exception');
 
@@ -194,6 +195,12 @@ async function loadMessages(offset = 0, reset = false) {
                 timeDisplay = `<span style="${timeStyle} padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">${time}s</span>`;
             } else if (!msg.response_content && isMiniAppEvent) {
                 timeDisplay = '<span style="color: #9ca3af; font-size: 8px;">-</span>';
+            }
+
+            // 6. ERROR ROW HIGHLIGHTING
+            if (hasError) {
+                row.style.backgroundColor = '#fef2f2'; // Light red background for error rows
+                row.style.borderLeft = '3px solid #ef4444'; // Red left border
             }
 
             // --- UI POLISH END ---
@@ -433,9 +440,67 @@ async function test5Invites() {
                 top_status: result.final_state.top_status
             });
         } else {
-            alert('Simulation failed: ' + result.message);
+            showMessage('database-message', 'Test failed: ' + result.message);
         }
     } catch (e) {
-        alert('Error');
+        showMessage('database-message', 'Error: ' + e.message);
     }
+}
+
+// CSV Export Function
+function exportMessagesToCSV() {
+    const tbody = document.getElementById('database-messages-tbody');
+    const rows = tbody.querySelectorAll('tr');
+
+    if (rows.length === 0) {
+        alert('No messages to export');
+        return;
+    }
+
+    // CSV Headers
+    const headers = [
+        'Timestamp', 'User ID', 'External ID', 'Username', 'Device', 'Language',
+        'Wallet', 'Invited', 'TOP Status', 'Balance', 'Active', 'Created', 'Last Activity',
+        'Command', 'Source', 'Response Status', 'Response Time', 'Partner'
+    ];
+
+    let csvContent = headers.join(',') + '\n';
+
+    // Extract data from visible rows
+    rows.forEach(row => {
+        if (row.cells.length < 17) return; // Skip invalid rows
+
+        const cells = Array.from(row.cells).map((cell, idx) => {
+            let text = cell.textContent.trim();
+
+            // Clean up badges and special characters
+            text = text.replace(/[📱💬✅❌⏳📝🟢🟡🔴🤖]/g, ''); // Remove emojis
+            text = text.replace(/▼/g, ''); // Remove expand arrows
+            text = text.replace(/Mini App|Telegram|Success|Error|Pending|Event Log/g, (match) => match);
+
+            // Escape quotes and commas
+            if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+                text = '"' + text.replace(/"/g, '""') + '"';
+            }
+
+            return text;
+        });
+
+        csvContent += cells.slice(0, 17).join(',') + '\n';
+    });
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `messages_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showMessage('database-message', `Exported ${rows.length} messages to CSV`, 'success');
 }
