@@ -3,9 +3,55 @@
 let messagesOffset = 0;
 const MESSAGES_PER_PAGE = 50;
 
+// Cache for partner names
+let partnersCache = new Map();
+
 async function loadDatabaseData() {
+    await loadPartners(); // Load partners first
     loadUsersForMessagesFilter();
     loadMessages(0, true);
+}
+
+async function loadPartners() {
+    if (!currentBotId) return;
+    try {
+        const res = await fetch(`${API_BASE}/bots/${currentBotId}/partners?active_only=false&limit=500`);
+        const partners = await res.json();
+        partnersCache.clear();
+        partners.forEach(p => {
+            partnersCache.set(p.id, p.data?.bot_name || 'Unknown Partner');
+        });
+        console.log(`Loaded ${partnersCache.size} partners into cache`);
+    } catch (e) {
+        console.error('Failed to load partners:', e);
+    }
+}
+
+function parseAction(customData) {
+    if (!customData) return null;
+
+    // Partner click
+    if (customData.partner_id) {
+        const partnerName = partnersCache.get(customData.partner_id) || customData.partner_id.substring(0, 8);
+        return `🔗 Partner: ${partnerName}`;
+    }
+
+    // Share event
+    if (customData.share_type) {
+        return `📤 Share: ${customData.share_type}`;
+    }
+
+    // Wallet saved
+    if (customData.wallet_address) {
+        return `💰 Wallet Saved`;
+    }
+
+    // Buy TOP
+    if (customData.action === 'buy_top') {
+        return `💎 Buy TOP`;
+    }
+
+    return null;
 }
 
 async function loadMessages(offset = 0, reset = false) {
@@ -173,13 +219,22 @@ async function loadMessages(offset = 0, reset = false) {
                 <td style="font-size: 9px; max-width: 180px;">
                      <div onclick="toggleExpand('${commandExpandId}')" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
                         ${commandBadge}
-                        ${msg.custom_data?.partner_id ? `<span style="background: #e0f2fe; color: #0284c7; padding: 1px 3px; border-radius: 3px; font-size: 8px;">P: ${msg.custom_data.partner_id.substring(0, 5)}...</span>` : ''}
+                        ${msg.custom_data?.partner_id ? (() => {
+                    const partnerName = partnersCache.get(msg.custom_data.partner_id);
+                    if (partnerName) {
+                        return `<span style="background: #e0f2fe; color: #0284c7; padding: 1px 3px; border-radius: 3px; font-size: 8px;">🤖 ${partnerName.substring(0, 15)}${partnerName.length > 15 ? '...' : ''}</span>`;
+                    }
+                    return `<span style="background: #e0f2fe; color: #0284c7; padding: 1px 3px; border-radius: 3px; font-size: 8px;">P: ${msg.custom_data.partner_id.substring(0, 5)}...</span>`;
+                })() : ''}
                         <span style="font-size: 8px; color: #9ca3af;">▼</span>
                     </div>
                     <div id="${commandExpandId}" style="display: none; margin-top: 4px; padding: 6px; background: #f9fafb; border-radius: 4px; font-size: 9px; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                         <div style="font-weight:bold; margin-bottom:2px;">Full Command:</div>
                         <div style="color:#4b5563;">${msg.command_content || '-'}</div>
-                        ${msg.custom_data?.partner_id ? `<div style="margin-top: 4px; color: #0284c7;"><strong>Partner ID:</strong> ${msg.custom_data.partner_id}</div>` : ''}
+                        ${msg.custom_data?.partner_id ? (() => {
+                    const partnerName = partnersCache.get(msg.custom_data.partner_id);
+                    return `<div style="margin-top: 4px; color: #0284c7;"><strong>Partner:</strong> ${partnerName || msg.custom_data.partner_id}</div>`;
+                })() : ''}
                         ${msg.custom_data ? `<div style="margin-top: 4px; border-top: 1px solid #eee; padding-top: 2px; color: #9ca3af;">${JSON.stringify(msg.custom_data, null, 2)}</div>` : ''}
                     </div>
                 </td>
