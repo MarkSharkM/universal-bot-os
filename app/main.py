@@ -29,7 +29,6 @@ if settings.SENTRY_DSN:
     import sentry_sdk
     from sentry_sdk.integrations.fastapi import FastApiIntegration
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.integrations.mcp import MCPIntegration
     
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
@@ -39,14 +38,13 @@ if settings.SENTRY_DSN:
         integrations=[
             FastApiIntegration(),
             SqlalchemyIntegration(),
-            MCPIntegration(),  # MCP server monitoring for AI tools
         ],
         # Send PII data (useful for debugging but consider privacy)
         send_default_pii=True,
         # Release tracking (optional - set via env var or git commit)
         # release=f"universal-bot-os@{os.getenv('GIT_COMMIT', 'unknown')}",
     )
-    logger.info("✅ Sentry error tracking initialized with MCP monitoring")
+    logger.info("✅ Sentry error tracking initialized")
 else:
     logger.warning("⚠️  Sentry DSN not configured - error tracking disabled")
 
