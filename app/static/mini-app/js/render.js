@@ -217,7 +217,7 @@ window.Render = {
         const initData = AppState.getTg()?.initData || null;
         const tg = AppState.getTg();
 
-        // Extract limited user data primarily for debugging/analytics
+        // Extract user data for debugging/analytics
         const userData = {};
         if (tg?.initDataUnsafe?.user) {
             const user = tg.initDataUnsafe.user;
@@ -225,8 +225,24 @@ window.Render = {
             if (user.language_code) userData.language_code = user.language_code;
         }
 
+        // Extract platform/device info from Telegram WebApp API
+        // tg.platform: "android" | "ios" | "web" | "tdesktop" | "macos" | "weba" | "webk" | "unknown"
+        // tg.version: WebApp version (e.g., "7.4")
+        const platformInfo = {};
+        if (tg) {
+            if (tg.platform) platformInfo.platform = tg.platform; // ios, android, web, tdesktop, macos
+            if (tg.version) platformInfo.tg_webapp_version = tg.version;
+            if (tg.colorScheme) platformInfo.color_scheme = tg.colorScheme; // light/dark
+        }
+
+        // Browser/device info fallback
+        const ua = navigator.userAgent || '';
+        platformInfo.is_mobile = /Mobile|Android|iPhone|iPad/i.test(ua);
+        platformInfo.user_agent_short = ua.length > 100 ? ua.substring(0, 100) + '...' : ua;
+
         const enrichedData = {
             ...userData,
+            ...platformInfo,
             ...data,
             source: 'mini_app_v5'
         };

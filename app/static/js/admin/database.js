@@ -209,6 +209,26 @@ async function loadMessages(offset = 0, reset = false) {
                 row.style.borderLeft = '3px solid #ef4444'; // Red left border
             }
 
+            // 7. DEVICE/PLATFORM DISPLAY (from custom_data.platform for Mini App events)
+            let deviceDisplay = msg.device || '-';
+            const msgCustomData = msg.custom_data || {};
+            if (msgCustomData.platform) {
+                const platform = msgCustomData.platform.toLowerCase();
+                let platformBadge = '';
+                if (platform === 'ios') {
+                    platformBadge = '<span style="background: #000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">🍎 iOS</span>';
+                } else if (platform === 'android') {
+                    platformBadge = '<span style="background: #3ddc84; color: white; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">🤖 Android</span>';
+                } else if (platform === 'web' || platform === 'weba' || platform === 'webk') {
+                    platformBadge = '<span style="background: #6366f1; color: white; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">🌐 Web</span>';
+                } else if (platform === 'tdesktop' || platform === 'macos') {
+                    platformBadge = '<span style="background: #475569; color: white; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 600;">💻 Desktop</span>';
+                } else {
+                    platformBadge = `<span style="color: #6b7280; font-size: 8px;">${platform}</span>`;
+                }
+                deviceDisplay = platformBadge;
+            }
+
             // --- UI POLISH END ---
 
             row.innerHTML = `
@@ -216,7 +236,7 @@ async function loadMessages(offset = 0, reset = false) {
                 <td style="font-size: 9px;">${msg.user_id.substring(0, 6)}...</td>
                 <td style="font-size: 9px;">${msg.external_id || '-'}</td>
                 <td style="font-size: 9px;">${msg.username || '-'}</td>
-                <td style="font-size: 9px;">${msg.device || '-'}</td>
+                <td style="font-size: 9px;">${deviceDisplay}</td>
                 <td style="font-size: 9px;">${msg.language || '-'}</td>
                 <td class="cell-wallet" style="font-size: 9px;">${walletDisplay}</td>
                 <td class="cell-invited" style="font-size: 9px; text-align: center;">${msg.total_invited || 0}</td>
