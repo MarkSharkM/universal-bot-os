@@ -45,7 +45,6 @@ function showTab(tabName) {
     // Activate tab button
     const tabBtn = document.querySelector(`.tab[onclick="showTab('${tabName}')"]`);
     if (tabBtn) tabBtn.classList.add('active');
-    else if (event && event.target) event.target.classList.add('active');
 
     // Activate tab content
     document.getElementById(tabName).classList.add('active');
