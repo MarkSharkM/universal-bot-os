@@ -3007,11 +3007,21 @@ async def get_mini_app_analytics(
     from datetime import datetime, timedelta
     from sqlalchemy import func, desc
     from app.models.message import Message
+    from app.models.business_data import BusinessData
     
     # Time range
     start_date = datetime.utcnow() - timedelta(days=days)
     
     try:
+        # Build partner ID to name cache
+        partners = db.query(BusinessData).filter(
+            BusinessData.bot_id == bot_id,
+            BusinessData.type == 'partner'
+        ).all()
+        partner_id_to_name = {}
+        for p in partners:
+            partner_id_to_name[str(p.id)] = p.data.get('bot_name', 'Unknown Partner') if p.data else 'Unknown Partner'
+        
         # Query Mini App messages (source contains 'mini_app')
         mini_app_messages = db.query(Message).filter(
             Message.bot_id == bot_id,
@@ -3036,23 +3046,27 @@ async def get_mini_app_analytics(
             content = msg.content or ''
             custom_data = msg.custom_data or {}
             
-            # Count page views
-            if 'view_home' in content:
-                page_views['view_home'] += 1
-                page_views['total'] += 1
-            elif 'view_home_v5' in content:
+            # Count page views (check both event names and command names)
+            if 'view_home_v5' in content:
                 page_views['view_home_v5'] += 1
                 page_views['total'] += 1
-            elif 'view_partners' in content:
+            elif 'view_home' in content or content == '/start':
+                page_views['view_home'] += 1
+                page_views['total'] += 1
+            elif 'view_partners' in content or content == '/partners':
                 page_views['view_partners'] += 1
                 page_views['total'] += 1
-            elif 'view_top' in content:
+            elif 'view_top' in content or content == '/top':
                 page_views['view_top'] += 1
                 page_views['total'] += 1
             
             # Count partner clicks
             if 'partner_click' in content:
-                partner_name = custom_data.get('partner_name', custom_data.get('partner_id', 'Unknown'))
+                # Try to get partner name, fallback to resolving ID
+                partner_name = custom_data.get('partner_name')
+                if not partner_name:
+                    partner_id = custom_data.get('partner_id', '')
+                    partner_name = partner_id_to_name.get(partner_id, f'Partner {partner_id[:8]}...' if len(partner_id) > 8 else partner_id)
                 if partner_name:
                     partner_clicks[partner_name] = partner_clicks.get(partner_name, 0) + 1
             
