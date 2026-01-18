@@ -24,29 +24,39 @@ from app.models import bot, user, message, translation, business_data
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# Debug: Check Sentry configuration
+import os
+logger.info("🔍 Checking Sentry configuration...")
+logger.info(f"🔍 ENV SENTRY_DSN: {os.getenv('SENTRY_DSN', 'NOT SET')[:50] if os.getenv('SENTRY_DSN') else 'NOT SET'}...")
+logger.info(f"🔍 settings.SENTRY_DSN: {settings.SENTRY_DSN[:50] if settings.SENTRY_DSN else 'NOT SET'}...")
+logger.info(f"🔍 settings.SENTRY_DSN type: {type(settings.SENTRY_DSN)}")
+
 # Initialize Sentry for error tracking and performance monitoring
 if settings.SENTRY_DSN:
-    import sentry_sdk
-    from sentry_sdk.integrations.fastapi import FastApiIntegration
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    
-    sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
-        environment=settings.ENVIRONMENT,
-        traces_sample_rate=1.0,  # 100% of transactions for comprehensive monitoring
-        profiles_sample_rate=0.1,  # 10% profiling
-        integrations=[
-            FastApiIntegration(),
-            SqlalchemyIntegration(),
-        ],
-        # Send PII data (useful for debugging but consider privacy)
-        send_default_pii=True,
-        # Release tracking (optional - set via env var or git commit)
-        # release=f"universal-bot-os@{os.getenv('GIT_COMMIT', 'unknown')}",
-    )
-    logger.info("✅ Sentry error tracking initialized")
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+        
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            environment=settings.ENVIRONMENT,
+            traces_sample_rate=1.0,  # 100% of transactions for comprehensive monitoring
+            profiles_sample_rate=0.1,  # 10% profiling
+            integrations=[
+                FastApiIntegration(),
+                SqlalchemyIntegration(),
+            ],
+            # Send PII data (useful for debugging but consider privacy)
+            send_default_pii=True,
+            # Release tracking (optional - set via env var or git commit)
+            # release=f"universal-bot-os@{os.getenv('GIT_COMMIT', 'unknown')}",
+        )
+        logger.info("✅ Sentry error tracking initialized successfully")
+    except Exception as e:
+        logger.error(f"❌ Sentry initialization failed: {e}", exc_info=True)
 else:
-    logger.warning("⚠️  Sentry DSN not configured - error tracking disabled")
+    logger.warning("⚠️ SENTRY_DSN not configured - error tracking disabled")
 
 app = FastAPI(
     title="Universal Bot OS",
