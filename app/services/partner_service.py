@@ -10,6 +10,7 @@ import logging
 
 from app.models.business_data import BusinessData
 from app.models.bot import Bot
+from app.core.redis import cache
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,10 @@ class PartnerService:
         Get TOP partners (requires unlock).
         Replaces /top Google Sheets query + Format_TopBots_Message.
         
+        PERFORMANCE: Uses Redis caching to reduce DB load.
+        Cache key: partners:top:{bot_id}:{limit}:{lang}
+        TTL: 600s (10 minutes)
+        
         Args:
             limit: Maximum number of partners to return (overridden by bot.config if set)
             user_lang: User's language for descriptions
@@ -67,6 +72,12 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
+        # Try cache first
+        cache_key = f"partners:top:{self.bot_id}:{limit}:{user_lang}"
+        cached_partners = cache.get(cache_key)
+        if cached_partners:
+            logger.debug(f"Cache HIT: {cache_key}")
+            return cached_partners
         # Check if partners are enabled
         if not self._is_partners_enabled():
             logger.info(f"get_top_partners: Partners disabled for bot {self.bot_id}")
@@ -214,7 +225,13 @@ class PartnerService:
         # Sort by ROI Score (descending)
         partner_list.sort(key=lambda x: x['roi_score'], reverse=True)
         
-        return partner_list[:limit]
+        result = partner_list[:limit]
+        
+        # Store in cache (10 minutes TTL - partners don't change often)
+        cache.set(cache_key, result, ttl=600)
+        logger.debug(f"Cache SET: {cache_key} ({len(result)} partners)")
+        
+        return result
     
     async def get_partners(
         self,
@@ -225,6 +242,10 @@ class PartnerService:
         Get regular partners (not TOP).
         Replaces /partners Google Sheets query.
         
+        PERFORMANCE: Uses Redis caching to reduce DB load.
+        Cache key: partners:regular:{bot_id}:{limit}:{lang}
+        TTL: 600s (10 minutes)
+        
         Args:
             limit: Maximum number of partners (overridden by bot.config if set)
             user_lang: User's language for descriptions
@@ -232,6 +253,12 @@ class PartnerService:
         Returns:
             List of partner dictionaries
         """
+        # Try cache first
+        cache_key = f"partners:regular:{self.bot_id}:{limit}:{user_lang}"
+        cached_partners = cache.get(cache_key)
+        if cached_partners:
+            logger.debug(f"Cache HIT: {cache_key}")
+            return cached_partners
         # Check if partners are enabled
         if not self._is_partners_enabled():
             logger.info(f"get_partners: Partners disabled for bot {self.bot_id}")
@@ -371,7 +398,13 @@ class PartnerService:
                 'image': icon_url,  # Same as icon for backward compatibility
             })
         
-        return partner_list[:limit]
+        result = partner_list[:limit]
+        
+        # Store in cache (10 minutes TTL)
+        cache.set(cache_key, result, ttl=600)
+        logger.debug(f"Cache SET: {cache_key} ({len(result)} partners)")
+        
+        return result
     
     def _get_localized_description(
         self,
@@ -634,3 +667,21 @@ class PartnerService:
         
         return partner
 
+    
+    def invalidate_cache(self):
+        """
+        Invalidate all partner caches for this bot.
+        Call this when partners are created/updated/deleted.
+        
+        Returns:
+            Number of cache keys deleted
+        """
+        # Delete all partner caches for this bot
+        top_count = cache.delete_pattern(f"partners:top:{self.bot_id}:*")
+        regular_count = cache.delete_pattern(f"partners:regular:{self.bot_id}:*")
+        
+        total = top_count + regular_count
+        if total > 0:
+            logger.info(f"Invalidated {total} partner cache keys for bot {self.bot_id}")
+        
+        return total
