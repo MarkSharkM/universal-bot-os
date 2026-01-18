@@ -61,3 +61,8 @@ htmlcov/
 
 # AI Documentation (local only, contains tokens)
 AI_DOCS/
+
+# Database backups
+backups/
+*.sql
+*.sql.gz
