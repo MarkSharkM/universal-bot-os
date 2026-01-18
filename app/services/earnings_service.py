@@ -152,7 +152,12 @@ class EarningsService:
             # Generate referral link
             logger.info(f"build_earnings_message: generating referral link")
             referral_tag = self.referral_service.generate_referral_tag(user_id)
-            referral_link = self.referral_service.generate_referral_link(user_id)
+            standard_referral_link = self.referral_service.generate_referral_link(user_id)
+            
+            # Check for TGR link (saved by user in Mini App) - use it if available
+            tgr_link = user.custom_data.get('tgr_link') if user.custom_data else None
+            referral_link = tgr_link if tgr_link else standard_referral_link
+            logger.info(f"build_earnings_message: using {'tgr_link' if tgr_link else 'standard'} referral_link")
             
             # Check TOP unlock eligibility (this also gets total_invited internally)
             logger.info(f"build_earnings_message: checking top unlock eligibility")
