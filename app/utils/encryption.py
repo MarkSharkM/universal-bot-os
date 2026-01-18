@@ -7,7 +7,7 @@ import logging
 from typing import Optional
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 
 from app.core.config import settings
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def _get_encryption_key() -> bytes:
     """
     Get or generate encryption key from SECRET_KEY.
-    Uses PBKDF2 to derive a 32-byte key from SECRET_KEY.
+    Uses PBKDF2HMAC to derive a 32-byte key from SECRET_KEY.
     
     Returns:
         32-byte encryption key suitable for Fernet
@@ -30,8 +30,8 @@ def _get_encryption_key() -> bytes:
     # In production with multiple keys, store salt in env var
     salt = b'universal_bot_os_encryption_salt_v1'
     
-    # Derive 32-byte key using PBKDF2
-    kdf = PBKDF2(
+    # Derive 32-byte key using PBKDF2HMAC
+    kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
         salt=salt,
