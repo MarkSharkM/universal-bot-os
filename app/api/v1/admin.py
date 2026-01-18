@@ -2558,9 +2558,14 @@ async def list_bot_messages(
         top_status = custom_data.get('top_status', 'locked')
         balance = float(user.balance) if user.balance else 0.0
         
-        # Get source from message custom_data
+        # Get source and platform from message custom_data (for Mini App events)
         msg_custom_data = user_msg.custom_data or {}
         source = msg_custom_data.get('source', '')
+        
+        # Check for platform in message custom_data (Mini App sends this from Telegram WebApp API)
+        msg_platform = msg_custom_data.get('platform', '')
+        if msg_platform and not device:
+            device = msg_platform  # Use platform from message if user device not set
         
         result.append({
             "id": str(user_msg.id),
