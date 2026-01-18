@@ -176,8 +176,14 @@ async function loadMessages(offset = 0, reset = false) {
             }
 
             // 5. RESPONSE TIME COLOR CODING
+            // For Mini App events, response_time is meaningless (they're not request-response pairs)
+            const isMiniAppSource = msg.source && msg.source.includes('mini_app');
             let timeDisplay = '-';
-            if (msg.response_time_seconds) {
+
+            if (isMiniAppSource) {
+                // Mini App events: no response time calculation makes sense
+                timeDisplay = '<span style="color: #9ca3af; font-size: 8px;">—</span>';
+            } else if (msg.response_time_seconds) {
                 const time = msg.response_time_seconds;
                 let timeStyle = '';
 

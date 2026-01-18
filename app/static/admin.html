@@ -615,6 +615,60 @@
                     <p id="stats-partners-active" style="font-size: 2em; font-weight: bold; color: #ef4444;">-</p>
                 </div>
             </div>
+
+            <!-- Mini App Analytics Section -->
+            <h2 style="margin-top: 40px;">📱 Mini App Analytics (30 days)</h2>
+            <div id="mini-app-stats-content"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div class="card" style="text-align: center;">
+                    <h3>📊 Total Events</h3>
+                    <p id="stats-ma-events" style="font-size: 2em; font-weight: bold; color: #6366f1;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>👥 Unique Sessions</h3>
+                    <p id="stats-ma-sessions" style="font-size: 2em; font-weight: bold; color: #8b5cf6;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>💰 Wallet Connections</h3>
+                    <p id="stats-ma-wallets" style="font-size: 2em; font-weight: bold; color: #22c55e;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>📤 Share Events</h3>
+                    <p id="stats-ma-shares" style="font-size: 2em; font-weight: bold; color: #0ea5e9;">-</p>
+                </div>
+            </div>
+
+            <!-- Funnel Section -->
+            <div class="card" style="margin-top: 20px;">
+                <h3>📊 Mini App Funnel</h3>
+                <div id="stats-funnel"
+                    style="display: flex; align-items: center; justify-content: space-around; padding: 20px; gap: 10px;">
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 2em; font-weight: bold; color: #6366f1;" id="funnel-home">0</div>
+                        <div style="color: #6b7280; font-size: 12px;">🏠 Home Views</div>
+                    </div>
+                    <div style="color: #9ca3af; font-size: 24px;">→</div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 2em; font-weight: bold; color: #8b5cf6;" id="funnel-partners">0</div>
+                        <div style="color: #6b7280; font-size: 12px;">👥 Partners Views</div>
+                        <div style="color: #10b981; font-size: 11px;" id="funnel-rate1">0%</div>
+                    </div>
+                    <div style="color: #9ca3af; font-size: 24px;">→</div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 2em; font-weight: bold; color: #ec4899;" id="funnel-clicks">0</div>
+                        <div style="color: #6b7280; font-size: 12px;">🔗 Partner Clicks</div>
+                        <div style="color: #10b981; font-size: 11px;" id="funnel-rate2">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Partners Section -->
+            <div class="card" style="margin-top: 20px;">
+                <h3>🏆 Top Partners by Clicks (Mini App)</h3>
+                <div id="stats-top-partners" style="margin-top: 15px;">
+                    <div style="color: #6b7280; font-style: italic;">Loading...</div>
+                </div>
+            </div>
         </div>
 
         <!-- Monitoring Tab -->

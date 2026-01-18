@@ -60,8 +60,60 @@ async function loadStats() {
         document.getElementById('stats-users-active').textContent = stats.users.active;
         document.getElementById('stats-partners-total').textContent = stats.partners.total;
         document.getElementById('stats-partners-active').textContent = stats.partners.active;
+
+        // Also load Mini App analytics
+        loadMiniAppAnalytics();
     } catch (e) {
         console.error('Error loading stats', e);
+    }
+}
+
+// Mini App Analytics Logic
+async function loadMiniAppAnalytics() {
+    const botId = currentBotId;
+    if (!botId) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/bots/${botId}/mini-app-analytics?days=30`);
+        const data = await res.json();
+
+        // Update counters
+        document.getElementById('stats-ma-events').textContent = data.total_events || 0;
+        document.getElementById('stats-ma-sessions').textContent = data.total_sessions || 0;
+        document.getElementById('stats-ma-wallets').textContent = data.wallet_connections || 0;
+        document.getElementById('stats-ma-shares').textContent = data.share_events || 0;
+
+        // Update funnel
+        if (data.funnel) {
+            document.getElementById('funnel-home').textContent = data.funnel.home_views || 0;
+            document.getElementById('funnel-partners').textContent = data.funnel.partners_views || 0;
+            document.getElementById('funnel-clicks').textContent = data.funnel.partner_clicks || 0;
+            document.getElementById('funnel-rate1').textContent = `${data.funnel.home_to_partners_rate || 0}%`;
+            document.getElementById('funnel-rate2').textContent = `${data.funnel.partners_to_click_rate || 0}%`;
+        }
+
+        // Update top partners
+        const topPartnersEl = document.getElementById('stats-top-partners');
+        if (topPartnersEl && data.top_partners) {
+            if (data.top_partners.length === 0) {
+                topPartnersEl.innerHTML = '<div style="color: #6b7280; font-style: italic;">No partner clicks yet</div>';
+            } else {
+                topPartnersEl.innerHTML = data.top_partners.map((p, i) => `
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                        <span>${i + 1}. ${p.name}</span>
+                        <span style="font-weight: 600; color: #8b5cf6;">${p.clicks} clicks</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+    } catch (e) {
+        console.error('Error loading mini app analytics', e);
+        // Set default values on error
+        document.getElementById('stats-ma-events').textContent = '-';
+        document.getElementById('stats-ma-sessions').textContent = '-';
+        document.getElementById('stats-ma-wallets').textContent = '-';
+        document.getElementById('stats-ma-shares').textContent = '-';
     }
 }
 

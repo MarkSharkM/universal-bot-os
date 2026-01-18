@@ -2983,5 +2983,114 @@ async def fix_icons_now(
 
 
 
-
+@router.get("/bots/{bot_id}/mini-app-analytics")
+async def get_mini_app_analytics(
+    bot_id: UUID,
+    days: int = Query(30, ge=1, le=90, description="Number of days to analyze"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get aggregated Mini App analytics for a bot.
+    
+    Returns:
+        - Page views by page (view_home, view_partners, view_top)
+        - Partner clicks by partner name
+        - Funnel data (conversion from home → partners → click)
+        - Wallet connections count
+        - Session events count
+    """
+    from datetime import datetime, timedelta
+    from sqlalchemy import func, desc
+    from app.models.message import Message
+    
+    # Time range
+    start_date = datetime.utcnow() - timedelta(days=days)
+    
+    try:
+        # Query Mini App messages (source contains 'mini_app')
+        mini_app_messages = db.query(Message).filter(
+            Message.bot_id == bot_id,
+            Message.role == 'user',
+            Message.timestamp >= start_date,
+            Message.content.ilike('%mini_app%') | Message.custom_data.op('->>')('source').ilike('%mini_app%')
+        ).all()
+        
+        # Initialize counters
+        page_views = {
+            'view_home': 0,
+            'view_home_v5': 0,
+            'view_partners': 0,
+            'view_top': 0,
+            'total': 0
+        }
+        partner_clicks = {}
+        wallet_events = 0
+        share_events = 0
+        
+        for msg in mini_app_messages:
+            content = msg.content or ''
+            custom_data = msg.custom_data or {}
+            
+            # Count page views
+            if 'view_home' in content:
+                page_views['view_home'] += 1
+                page_views['total'] += 1
+            elif 'view_home_v5' in content:
+                page_views['view_home_v5'] += 1
+                page_views['total'] += 1
+            elif 'view_partners' in content:
+                page_views['view_partners'] += 1
+                page_views['total'] += 1
+            elif 'view_top' in content:
+                page_views['view_top'] += 1
+                page_views['total'] += 1
+            
+            # Count partner clicks
+            if 'partner_click' in content:
+                partner_name = custom_data.get('partner_name', custom_data.get('partner_id', 'Unknown'))
+                if partner_name:
+                    partner_clicks[partner_name] = partner_clicks.get(partner_name, 0) + 1
+            
+            # Count wallet connections
+            if 'wallet_connected' in content:
+                wallet_events += 1
+            
+            # Count share events
+            if 'referral_link_share' in content:
+                share_events += 1
+        
+        # Sort partner clicks by count
+        top_partners = sorted(
+            [{'name': k, 'clicks': v} for k, v in partner_clicks.items()],
+            key=lambda x: x['clicks'],
+            reverse=True
+        )[:10]  # Top 10
+        
+        # Calculate funnel
+        home_views = page_views['view_home'] + page_views['view_home_v5']
+        partners_views = page_views['view_partners']
+        partner_click_count = sum(partner_clicks.values())
+        
+        funnel = {
+            'home_views': home_views,
+            'partners_views': partners_views,
+            'partner_clicks': partner_click_count,
+            'home_to_partners_rate': round(partners_views / max(home_views, 1) * 100, 1),
+            'partners_to_click_rate': round(partner_click_count / max(partners_views, 1) * 100, 1)
+        }
+        
+        return {
+            'period_days': days,
+            'total_sessions': len(set(m.user_id for m in mini_app_messages)),
+            'total_events': len(mini_app_messages),
+            'page_views': page_views,
+            'top_partners': top_partners,
+            'funnel': funnel,
+            'wallet_connections': wallet_events,
+            'share_events': share_events
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching mini app analytics: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
