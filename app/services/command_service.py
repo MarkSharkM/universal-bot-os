@@ -737,6 +737,9 @@ class CommandService:
         # Get language from earnings_data (now included in response)
         lang = earnings_data.get('lang', user_lang or 'en')
         
+        # Refresh user to get latest custom_data (e.g. tgr_link updated from Mini App)
+        self.db.refresh(user)
+        
         # Get share content (TGR/Pro or Standard/Starter)
         referral_link, share_text = self._get_share_content(user, lang)
         
