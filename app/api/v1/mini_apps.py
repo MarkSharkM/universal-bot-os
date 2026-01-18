@@ -485,8 +485,8 @@ async def mini_app_webhook(
                     custom_data={
                         "source": "mini_app",
                         "event": event,
-                        "platform": "telegram_miniapp",
-                        **event_data  # Merge details like partner_id
+                        # NOTE: event_data is spread LAST to preserve real platform from Telegram WebApp API
+                        **event_data  # Contains platform, partner_id, partner_name, etc.
                     },
                     timestamp=datetime.datetime.utcnow()
                 )
