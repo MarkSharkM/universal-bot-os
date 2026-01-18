@@ -229,7 +229,7 @@ window.Pages.Top = {
                 if (e.target.tagName === 'BUTTON') return;
 
                 if (window.Haptic) Haptic.light();
-                if (window.trackEvent) trackEvent('top_partner_click_direct', { partner_id: partnerIdStr, rank: index + 1 });
+                if (window.trackEvent) trackEvent('top_partner_click_direct', { partner_id: partnerIdStr, partner_name: partnerName, rank: index + 1 });
 
                 const link = partner.referral_link || partner.link; // Fallback
 

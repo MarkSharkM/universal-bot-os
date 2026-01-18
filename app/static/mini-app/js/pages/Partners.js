@@ -140,7 +140,7 @@ window.Pages.Partners = {
                 if (e.target.tagName === 'BUTTON') return;
 
                 if (window.Haptic) Haptic.light();
-                if (window.trackEvent) trackEvent('partner_click_direct', { partner_id: partnerIdStr });
+                if (window.trackEvent) trackEvent('partner_click_direct', { partner_id: partnerIdStr, partner_name: partnerName });
 
                 const link = partner.referral_link || partner.link;
                 if (window.Actions && window.Actions.openPartner) {
