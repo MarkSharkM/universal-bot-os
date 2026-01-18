@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from uuid import UUID
+from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.models.bot import Bot
@@ -18,13 +19,95 @@ from app.models.analytics_event import AnalyticsEvent
 from app.schemas.bot import BotCreate, BotUpdate, BotResponse
 from app.services.ai_service import AIService
 from app.services.translation_service import TranslationService
+from app.core.security import (
+    create_access_token,
+    verify_admin_credentials,
+    get_current_admin
+)
+from app.utils.encryption import encrypt_token, decrypt_token
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
-# TODO: Add authentication middleware
-# For now, admin endpoints are open (add auth in production)
+# Pydantic models for authentication
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
+class VerifyResponse(BaseModel):
+    valid: bool
+    user: Optional[str] = None
+
+
+# ==================== AUTHENTICATION ENDPOINTS ====================
+
+@router.post("/auth/login", response_model=LoginResponse)
+@limiter.limit("5/minute")  # Prevent brute force attacks
+async def admin_login(request: Request, credentials: LoginRequest):
+    """
+    Admin login endpoint.
+    Returns JWT token for authentication.
+    
+    Args:
+        credentials: Username and password
+    
+    Returns:
+        JWT access token
+    
+    Raises:
+        HTTPException: If credentials are invalid
+    """
+    if not verify_admin_credentials(credentials.username, credentials.password):
+        logger.warning(f"Failed login attempt for username: {credentials.username}")
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+        )
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": "admin"})
+    
+    logger.info(f"Admin user '{credentials.username}' logged in successfully")
+    
+    from app.core.config import settings
+    return LoginResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Convert to seconds
+    )
+
+
+@router.get("/auth/verify", response_model=VerifyResponse)
+async def verify_token(admin: dict = Depends(get_current_admin)):
+    """
+    Verify JWT token.
+    Protected endpoint that requires valid admin token.
+    
+    Args:
+        admin: Admin info from token (injected by dependency)
+    
+    Returns:
+        Verification status
+    """
+    return VerifyResponse(
+        valid=True,
+        user=admin.get("sub")
+    )
+
+
+# ==================== BOT ENDPOINTS ====================
+# Protected endpoints - require admin authentication
 
 
 @router.get("/bots", response_model=List[BotResponse])
@@ -62,7 +145,8 @@ async def list_bots(
 @router.get("/bots/{bot_id}", response_model=BotResponse)
 async def get_bot(
     bot_id: UUID,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: dict = Depends(get_current_admin)  # Auth required
 ):
     """
     Get bot by ID.
@@ -83,11 +167,13 @@ async def get_bot(
 @router.post("/bots", response_model=BotResponse)
 async def create_bot(
     bot_data: BotCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: dict = Depends(get_current_admin)  # Auth required
 ):
     """
     Create new bot.
     Automatically syncs username from Telegram API for Telegram bots.
+    Bot tokens are encrypted before storage.
     
     Args:
         bot_data: Bot creation data
@@ -96,10 +182,13 @@ async def create_bot(
     Returns:
         Created bot
     """
+    # Encrypt token before storing
+    encrypted_token = encrypt_token(bot_data.token) if bot_data.token else None
+    
     bot = Bot(
         name=bot_data.name,
         platform_type=bot_data.platform_type,
-        token=bot_data.token,  # TODO: Encrypt token
+        token=encrypted_token,  # Store encrypted token
         default_lang=bot_data.default_lang,
         config=bot_data.config or {},
         is_active=True
@@ -141,7 +230,8 @@ async def create_bot(
 async def update_bot(
     bot_id: UUID,
     bot_data: BotUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: dict = Depends(get_current_admin)  # Auth required
 ):
     """
     Update bot.
@@ -181,7 +271,8 @@ async def update_bot(
 async def delete_bot(
     bot_id: UUID,
     hard_delete: bool = Query(False, description="If true, permanently delete. Otherwise soft delete."),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: dict = Depends(get_current_admin)  # Auth required
 ):
     """
     Delete bot (soft delete by default, or hard delete if specified).

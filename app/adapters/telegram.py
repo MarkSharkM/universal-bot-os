@@ -9,6 +9,7 @@ import logging
 from app.adapters.base import BaseAdapter
 from app.core.database import SessionLocal
 from app.models import Bot
+from app.utils.encryption import decrypt_token, is_encrypted
 
 
 class TelegramAdapter(BaseAdapter):
@@ -50,8 +51,10 @@ class TelegramAdapter(BaseAdapter):
             if not bot:
                 raise ValueError(f"Bot {bot_id} not found")
             
-            # TODO: Decrypt bot.token
+            # Decrypt token if encrypted
             token = bot.token
+            if token and is_encrypted(token):
+                token = decrypt_token(token)
             
             # Decode escaped newlines for proper Telegram formatting
             # When text comes from DB via JSON, \n becomes \\n (escaped)

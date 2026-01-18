@@ -12,10 +12,10 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.core.logging_config import setup_logging
 from app.core.health import get_health_status
-# Rate limiting (optional - uncomment if needed)
-# from slowapi import Limiter, _rate_limit_exceeded_handler
-# from slowapi.util import get_remote_address
-# from slowapi.errors import RateLimitExceeded
+# Rate limiting - ENABLED for production
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Імпортувати всі моделі для створення таблиць
 from app.models import bot, user, message, translation, business_data
@@ -24,17 +24,42 @@ from app.models import bot, user, message, translation, business_data
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# Initialize Sentry for error tracking and performance monitoring
+if settings.SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        traces_sample_rate=0.1,  # 10% of transactions for performance monitoring
+        profiles_sample_rate=0.1,  # 10% profiling
+        integrations=[
+            FastApiIntegration(),
+            SqlalchemyIntegration(),
+        ],
+        # Send PII data (useful for debugging but consider privacy)
+        send_default_pii=True,
+        # Release tracking (optional - set via env var or git commit)
+        # release=f"universal-bot-os@{os.getenv('GIT_COMMIT', 'unknown')}",
+    )
+    logger.info("✅ Sentry error tracking initialized")
+else:
+    logger.warning("⚠️  Sentry DSN not configured - error tracking disabled")
+
 app = FastAPI(
     title="Universal Bot OS",
     description="Multi-tenant bot platform for managing 100+ bots",
     version="0.1.0",
 )
 
-# Rate limiting (optional - can be enabled for specific endpoints if needed)
+# Rate limiting configuration
 # For Mini Apps: not needed (initData validation + CORS provide sufficient protection)
-# limiter = Limiter(key_func=get_remote_address)
-# app.state.limiter = limiter
-# app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+logger.info("✅ Rate limiting enabled")
 
 # CORS middleware
 app.add_middleware(

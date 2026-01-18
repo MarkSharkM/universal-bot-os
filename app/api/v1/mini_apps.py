@@ -25,9 +25,12 @@ from app.utils.telegram_webapp import (
     get_start_param_from_init_data,
     parse_init_data
 )
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("/mini-app/bot-id", response_model=Dict[str, Any])

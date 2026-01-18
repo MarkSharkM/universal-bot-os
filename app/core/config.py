@@ -31,7 +31,8 @@ class Settings(BaseSettings):
     
     # Security
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES") # Modified
+    ALGORITHM: str = Field(default="HS256", env="JWT_ALGORITHM")  # JWT algorithm
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60, env="ACCESS_TOKEN_EXPIRE_MINUTES")  # Token expiry
     
     # OpenAI
     OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY") # Modified
@@ -42,6 +43,9 @@ class Settings(BaseSettings):
     # Admin User
     ADMIN_USERNAME: str = Field(default="admin", env="ADMIN_USERNAME") # Added
     ADMIN_PASSWORD: str = Field(default="admin", env="ADMIN_PASSWORD") # Added
+    
+    # Monitoring & Error Tracking
+    SENTRY_DSN: Optional[str] = Field(default=None, env="SENTRY_DSN")  # Error tracking
     
     # Railway
     PORT: int = Field(default=8000, env="PORT")
