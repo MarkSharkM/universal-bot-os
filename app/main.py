@@ -308,6 +308,10 @@ app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
 from app.api.v1 import admin
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 
+# Sentry test endpoint (for verification)
+from app.api.v1 import sentry_test
+app.include_router(sentry_test.router, tags=["sentry"])
+
 # Mount static files (must be after routers to avoid conflicts)
 import pathlib
 static_dir = pathlib.Path(__file__).parent / "static"
