@@ -236,7 +236,10 @@ async function loadMessages(offset = 0, reset = false) {
             // --- UI POLISH END ---
 
             row.innerHTML = `
-                <td style="font-size: 9px; white-space: nowrap;">${new Date(msg.created_at).toLocaleString('uk-UA')}</td>
+                <td style="font-size: 8px; line-height: 1.3;">
+                    ${new Date(msg.created_at).toLocaleDateString('uk-UA')}<br>
+                    <span style="color: #6b7280;">${new Date(msg.created_at).toLocaleTimeString('uk-UA')}</span>
+                </td>
                 <td style="font-size: 9px;">${msg.user_id.substring(0, 6)}...</td>
                 <td style="font-size: 9px;">${msg.external_id || '-'}</td>
                 <td style="font-size: 9px;">${msg.username || '-'}</td>
@@ -284,9 +287,9 @@ async function loadMessages(offset = 0, reset = false) {
                     </div>` : ''}
                 </td>
                 <td style="font-size: 9px;">${timeDisplay}</td>
-                <td style="font-size: 9px;">
-                    <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Edit</button>
-                    <button onclick="deleteUser('${msg.user_id}', '${msg.external_id}')" style="background: #dc2626; color: white; padding: 2px 6px; border: none; border-radius: 3px; cursor: pointer;">Hard Del</button>
+                <td style="font-size: 9px; white-space: nowrap;">
+                    <button onclick="showEditUserForm('${msg.user_id}')" style="background: #059669; color: white; padding: 1px 4px; border: none; border-radius: 2px; cursor: pointer; font-size: 7px;">Edit</button>
+                    <button onclick="deleteUser('${msg.user_id}', '${msg.external_id}')" style="background: #dc2626; color: white; padding: 1px 4px; border: none; border-radius: 2px; cursor: pointer; font-size: 7px;">Del</button>
                 </td>
             `;
             tbody.appendChild(row);
