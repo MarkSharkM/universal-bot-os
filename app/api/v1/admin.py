@@ -3016,7 +3016,7 @@ async def get_mini_app_analytics(
         # Build partner ID to name cache
         partners = db.query(BusinessData).filter(
             BusinessData.bot_id == bot_id,
-            BusinessData.type == 'partner'
+            BusinessData.data_type == 'partner'
         ).all()
         partner_id_to_name = {}
         for p in partners:
