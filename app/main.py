@@ -53,6 +53,10 @@ if settings.SENTRY_DSN:
             # release=f"universal-bot-os@{os.getenv('GIT_COMMIT', 'unknown')}",
         )
         logger.info("✅ Sentry error tracking initialized successfully")
+        
+        # Send test message to verify Sentry is working
+        sentry_sdk.capture_message("🧪 Test event from Railway startup - Sentry integration check", level="info")
+        logger.info("📤 Sent test message to Sentry - check dashboard in 1-2 minutes")
     except Exception as e:
         logger.error(f"❌ Sentry initialization failed: {e}", exc_info=True)
 else:
