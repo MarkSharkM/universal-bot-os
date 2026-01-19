@@ -69,7 +69,7 @@ function showTab(tabName) {
     }
     if (tabName === 'monitoring') {
         if (currentBotId) {
-            loadMonitoring();
+            loadProductMonitoring();
         }
     }
 }
@@ -141,7 +141,7 @@ function onGlobalBotChange() {
         if (tabId === 'partners' && currentBotId) loadPartners();
         if (tabId === 'ai' && currentBotId) loadAIConfig();
         if (tabId === 'stats' && currentBotId) loadStats();
-        if (tabId === 'monitoring' && currentBotId) loadMonitoring();
+        if (tabId === 'monitoring' && currentBotId) loadProductMonitoring();
     }
 }
 
