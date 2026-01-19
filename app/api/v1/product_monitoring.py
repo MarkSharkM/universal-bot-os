@@ -78,14 +78,9 @@ async def get_product_monitoring(
                 continue
             command_counts[cmd] = command_counts.get(cmd, 0) + 1
         
-        # Response time avg (non-mini-app)
-        response_times = db.query(func.avg(Message.response_time_seconds)).filter(
-            Message.bot_id == bot_id,
-            Message.role == 'user',
-            Message.timestamp >= start_date,
-            Message.response_time_seconds.isnot(None),
-            Message.response_time_seconds > 0
-        ).scalar() or 0
+        # Response time - we don't track this in Message model currently
+        # (Would need to add column or calculate from custom_data)
+        response_times = 0
         
         # Language distribution
         lang_dist = db.query(
