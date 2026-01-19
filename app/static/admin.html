@@ -333,340 +333,337 @@
                     <button onclick="hideDeletedPartners()" style="background: #666; margin-top: 20px;">Close</button>
                 </div>
             </div>
+        </div>
 
-            <!-- Monitoring Tab (Product Focused) -->
-            <div id="monitoring" class="tab-content">
-                <div id="monitoring-content">
-                    <div style="padding: 40px; text-align: center; color: #9ca3af;">
-                        <p>Select a bot to view product monitoring data</p>
-                    </div>
-                </div>
-            </div>
+        <!-- Database Tab -->
+        <div id="database" class="tab-content">
+            <h2>🗄️ Database Viewer</h2>
+            <div id="database-message"></div>
 
-            <!-- Database Tab -->
-            <div id="database" class="tab-content">
-                <h2>🗄️ Database Viewer</h2>
-                <div id="database-message"></div>
+            <!-- Selected Bot Info removed (in global header) -->
 
-                <!-- Selected Bot Info removed (in global header) -->
-
-                <!-- Users & Messages Combined Tab Content -->
-                <div id="database-users-tab" class="database-tab-content active">
-                    <!-- Edit User Form -->
-                    <div id="edit-user-form"
-                        style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #2563eb;">
-                        <h3>Edit User</h3>
-                        <input type="hidden" id="edit-user-id">
-                        <div class="form-group">
-                            <label>TOP Status</label>
-                            <select id="edit-user-top-status">
-                                <option value="locked">Locked</option>
-                                <option value="open">Open</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>TOP Unlock Method</label>
-                            <select id="edit-user-top-unlock-method">
-                                <option value="">Not set</option>
-                                <option value="payment">Payment (1⭐)</option>
-                                <option value="invites">Invites (5 friends)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Total Invited</label>
-                            <input type="number" id="edit-user-total-invited" min="0" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Wallet Address</label>
-                            <input type="text" id="edit-user-wallet-address" placeholder="TON wallet address">
-                        </div>
-                        <div class="form-group">
-                            <label>Balance</label>
-                            <input type="number" id="edit-user-balance" min="0" step="0.01">
-                        </div>
-                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-                            <h4 style="margin: 0 0 10px 0; color: #ef4444;">⚠️ Testing Tools</h4>
-                            <button onclick="resetInvites()"
-                                style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 10px;">Reset
-                                Invites to 0</button>
-                            <button onclick="test5Invites()"
-                                style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Test
-                                5 Invites</button>
-                            <small style="display: block; margin-top: 8px; color: #6b7280;">Use these tools to test
-                                invite
-                                functionality</small>
-                        </div>
-                        <button onclick="updateUser()"
-                            style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 15px;">Save
-                            Changes</button>
-                        <button onclick="hideEditUserForm()"
-                            style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">Cancel</button>
-                    </div>
-
-                    <div
-                        style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px;">
-                        <div
-                            style="padding: 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                            <label style="font-weight: 600; color: #374151; font-size: 12px;">Sort by:</label>
-                            <select id="messages-sort-by" onchange="loadMessages(0, true)"
-                                style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer;">
-                                <option value="timestamp" selected>Timestamp (recent first)</option>
-                                <option value="response_time">Response Time (slowest first)</option>
-                            </select>
-                            <label style="font-weight: 600; color: #374151; margin-left: 20px; font-size: 12px;">Filter
-                                by
-                                command:</label>
-                            <select id="messages-command-filter" onchange="loadMessages(0, true)"
-                                style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer; min-width: 150px;">
-                                <option value="">All commands</option>
-                                <option value="/start">/start</option>
-                                <option value="/top">/top</option>
-                                <option value="/partners">/partners</option>
-                                <option value="/wallet">/wallet</option>
-                                <option value="/earnings">/earnings</option>
-                                <option value="/share">/share</option>
-                                <option value="/info">/info</option>
-                            </select>
-                            <label style="font-weight: 600; color: #374151; margin-left: 20px; font-size: 12px;">Filter
-                                by
-                                user:</label>
-                            <select id="messages-user-filter" onchange="loadMessages(0, true)"
-                                style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer; min-width: 200px;">
-                                <option value="">All users</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div
-                        style="background: white; border-radius: 8px; overflow-x: auto; overflow-y: visible; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <div style="min-width: 900px;">
-                            <table
-                                style="width: 100%; border-collapse: collapse; font-size: 10px; min-width: 900px; table-layout: fixed;">
-                                <colgroup>
-                                    <col style="width: 50px;"> <!-- DateTime -->
-                                    <col style="width: 60px;"> <!-- UserID -->
-                                    <col style="width: 60px;"> <!-- ExtID -->
-                                    <col style="width: 80px;"> <!-- Username -->
-                                    <col style="width: 40px;"> <!-- Device -->
-                                    <col style="width: 25px;"> <!-- Lang -->
-                                    <col style="width: 70px;"> <!-- Wallet -->
-                                    <col style="width: 30px;"> <!-- Invited -->
-                                    <col style="width: 40px;"> <!-- TOP -->
-                                    <col style="width: 40px;"> <!-- Balance -->
-                                    <col style="width: 30px;"> <!-- Active -->
-                                    <col style="width: 45px;"> <!-- Created -->
-                                    <col style="width: 45px;"> <!-- Last Activity -->
-                                    <col style="width: 80px;"> <!-- Command -->
-                                    <col style="width: 50px;"> <!-- Source -->
-                                    <col style="width: 80px;"> <!-- Response -->
-                                    <col style="width: 40px;"> <!-- Response Time -->
-                                    <col style="width: 60px;"> <!-- Actions -->
-                                </colgroup>
-                                <thead style="background: #f9fafb;">
-                                    <tr>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Date/Time</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            User ID</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Ext. ID</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Username</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Device</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Lang</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Wallet</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Invited</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            TOP</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Balance</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Active</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Created</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Last Act.</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Command</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Source</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Response</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
-                                            Time</th>
-                                        <th
-                                            style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; position: sticky; right: 0; background: #f9fafb; z-index: 10;">
-                                            Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="database-messages-tbody">
-                                    <tr>
-                                        <td colspan="17" style="padding: 20px; text-align: center; color: #6b7280;">
-                                            Select a
-                                            bot to view messages</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="database-messages-more"
-                            style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
-                            <button onclick="loadMoreMessages()"
-                                style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show
-                                More (10 more)</button>
-                            <button onclick="loadAllMessages()"
-                                style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load
-                                All</button>
-                            <button onclick="exportMessagesToCSV()"
-                                style="background: #7c3aed; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">📊
-                                Export CSV</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AI Config Tab -->
-            <div id="ai" class="tab-content">
-                <h2>AI Configuration</h2>
-                <div id="ai-message"></div>
-
-                <!-- Bot selector removed (use global header) -->
-
-                <div id="ai-config-form" style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+            <!-- Users & Messages Combined Tab Content -->
+            <div id="database-users-tab" class="database-tab-content active">
+                <!-- Edit User Form -->
+                <div id="edit-user-form"
+                    style="display: none; background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #2563eb;">
+                    <h3>Edit User</h3>
+                    <input type="hidden" id="edit-user-id">
                     <div class="form-group">
-                        <label>Provider</label>
-                        <select id="ai-provider">
-                            <option value="openai">OpenAI</option>
-                            <option value="anthropic">Anthropic</option>
+                        <label>TOP Status</label>
+                        <select id="edit-user-top-status">
+                            <option value="locked">Locked</option>
+                            <option value="open">Open</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Model</label>
-                        <input type="text" id="ai-model" placeholder="gpt-4o-mini">
+                        <label>TOP Unlock Method</label>
+                        <select id="edit-user-top-unlock-method">
+                            <option value="">Not set</option>
+                            <option value="payment">Payment (1⭐)</option>
+                            <option value="invites">Invites (5 friends)</option>
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label>API Key</label>
-                        <input type="password" id="ai-api-key" placeholder="sk-...">
+                        <label>Total Invited</label>
+                        <input type="number" id="edit-user-total-invited" min="0" step="1">
                     </div>
                     <div class="form-group">
-                        <label>Temperature</label>
-                        <input type="number" id="ai-temperature" step="0.1" min="0" max="2" value="0.7">
+                        <label>Wallet Address</label>
+                        <input type="text" id="edit-user-wallet-address" placeholder="TON wallet address">
                     </div>
                     <div class="form-group">
-                        <label>System Prompt</label>
-                        <textarea id="ai-prompt" rows="5"></textarea>
+                        <label>Balance</label>
+                        <input type="number" id="edit-user-balance" min="0" step="0.01">
                     </div>
-                    <button onclick="saveAIConfig()">Save Configuration</button>
-                </div>
-            </div>
-
-            <!-- Statistics Tab -->
-            <div id="stats" class="tab-content">
-                <h2>Bot Statistics</h2>
-                <div id="stats-message"></div>
-
-                <div id="stats-content"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                    <div class="card" style="text-align: center;">
-                        <h3>Total Users</h3>
-                        <p id="stats-users-total" style="font-size: 2em; font-weight: bold; color: #4f46e5;">-</p>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                        <h4 style="margin: 0 0 10px 0; color: #ef4444;">⚠️ Testing Tools</h4>
+                        <button onclick="resetInvites()"
+                            style="background: #f59e0b; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 10px;">Reset
+                            Invites to 0</button>
+                        <button onclick="test5Invites()"
+                            style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Test
+                            5 Invites</button>
+                        <small style="display: block; margin-top: 8px; color: #6b7280;">Use these tools to test invite
+                            functionality</small>
                     </div>
-                    <div class="card" style="text-align: center;">
-                        <h3>Active Users</h3>
-                        <p id="stats-users-active" style="font-size: 2em; font-weight: bold; color: #10b981;">-</p>
-                    </div>
-                    <div class="card" style="text-align: center;">
-                        <h3>Total Partners</h3>
-                        <p id="stats-partners-total" style="font-size: 2em; font-weight: bold; color: #f59e0b;">-</p>
-                    </div>
-                    <div class="card" style="text-align: center;">
-                        <h3>Active Partners</h3>
-                        <p id="stats-partners-active" style="font-size: 2em; font-weight: bold; color: #ef4444;">-</p>
-                    </div>
+                    <button onclick="updateUser()"
+                        style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 15px;">Save
+                        Changes</button>
+                    <button onclick="hideEditUserForm()"
+                        style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">Cancel</button>
                 </div>
 
-                <!-- Mini App Analytics Section -->
-                <h2 style="margin-top: 40px;">📱 Mini App Analytics (30 days)</h2>
-                <div id="mini-app-stats-content"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
-                    <div class="card" style="text-align: center;">
-                        <h3>📊 Total Events</h3>
-                        <p id="stats-ma-events" style="font-size: 2em; font-weight: bold; color: #6366f1;">-</p>
-                    </div>
-                    <div class="card" style="text-align: center;">
-                        <h3>👥 Unique Sessions</h3>
-                        <p id="stats-ma-sessions" style="font-size: 2em; font-weight: bold; color: #8b5cf6;">-</p>
-                    </div>
-                    <div class="card" style="text-align: center;">
-                        <h3>💰 Wallet Connections</h3>
-                        <p id="stats-ma-wallets" style="font-size: 2em; font-weight: bold; color: #22c55e;">-</p>
-                    </div>
-                    <div class="card" style="text-align: center;">
-                        <h3>📤 Share Events</h3>
-                        <p id="stats-ma-shares" style="font-size: 2em; font-weight: bold; color: #0ea5e9;">-</p>
-                    </div>
-                </div>
-
-                <!-- Funnel Section -->
-                <div class="card" style="margin-top: 20px;">
-                    <h3>📊 Mini App Funnel</h3>
-                    <div id="stats-funnel"
-                        style="display: flex; align-items: center; justify-content: space-around; padding: 20px; gap: 10px;">
-                        <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 2em; font-weight: bold; color: #6366f1;" id="funnel-home">0</div>
-                            <div style="color: #6b7280; font-size: 12px;">🏠 Home Views</div>
-                        </div>
-                        <div style="color: #9ca3af; font-size: 24px;">→</div>
-                        <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 2em; font-weight: bold; color: #8b5cf6;" id="funnel-partners">0</div>
-                            <div style="color: #6b7280; font-size: 12px;">👥 Partners Views</div>
-                            <div style="color: #10b981; font-size: 11px;" id="funnel-rate1">0%</div>
-                        </div>
-                        <div style="color: #9ca3af; font-size: 24px;">→</div>
-                        <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 2em; font-weight: bold; color: #ec4899;" id="funnel-clicks">0</div>
-                            <div style="color: #6b7280; font-size: 12px;">🔗 Partner Clicks</div>
-                            <div style="color: #10b981; font-size: 11px;" id="funnel-rate2">0%</div>
-                        </div>
+                <div
+                    style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px;">
+                    <div
+                        style="padding: 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <label style="font-weight: 600; color: #374151; font-size: 12px;">Sort by:</label>
+                        <select id="messages-sort-by" onchange="loadMessages(0, true)"
+                            style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer;">
+                            <option value="timestamp" selected>Timestamp (recent first)</option>
+                            <option value="response_time">Response Time (slowest first)</option>
+                        </select>
+                        <label style="font-weight: 600; color: #374151; margin-left: 20px; font-size: 12px;">Filter by
+                            command:</label>
+                        <select id="messages-command-filter" onchange="loadMessages(0, true)"
+                            style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer; min-width: 150px;">
+                            <option value="">All commands</option>
+                            <option value="/start">/start</option>
+                            <option value="/top">/top</option>
+                            <option value="/partners">/partners</option>
+                            <option value="/wallet">/wallet</option>
+                            <option value="/earnings">/earnings</option>
+                            <option value="/share">/share</option>
+                            <option value="/info">/info</option>
+                        </select>
+                        <label style="font-weight: 600; color: #374151; margin-left: 20px; font-size: 12px;">Filter by
+                            user:</label>
+                        <select id="messages-user-filter" onchange="loadMessages(0, true)"
+                            style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white; cursor: pointer; min-width: 200px;">
+                            <option value="">All users</option>
+                        </select>
                     </div>
                 </div>
-
-                <!-- Top Partners Section -->
-                <div class="card" style="margin-top: 20px;">
-                    <h3>🏆 Top Partners by Clicks (Mini App)</h3>
-                    <div id="stats-top-partners" style="margin-top: 15px;">
-                        <div style="color: #6b7280; font-style: italic;">Loading...</div>
+                <div
+                    style="background: white; border-radius: 8px; overflow-x: auto; overflow-y: visible; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div style="min-width: 900px;">
+                        <table
+                            style="width: 100%; border-collapse: collapse; font-size: 10px; min-width: 900px; table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 50px;"> <!-- DateTime -->
+                                <col style="width: 60px;"> <!-- UserID -->
+                                <col style="width: 60px;"> <!-- ExtID -->
+                                <col style="width: 80px;"> <!-- Username -->
+                                <col style="width: 40px;"> <!-- Device -->
+                                <col style="width: 25px;"> <!-- Lang -->
+                                <col style="width: 70px;"> <!-- Wallet -->
+                                <col style="width: 30px;"> <!-- Invited -->
+                                <col style="width: 40px;"> <!-- TOP -->
+                                <col style="width: 40px;"> <!-- Balance -->
+                                <col style="width: 30px;"> <!-- Active -->
+                                <col style="width: 45px;"> <!-- Created -->
+                                <col style="width: 45px;"> <!-- Last Activity -->
+                                <col style="width: 80px;"> <!-- Command -->
+                                <col style="width: 50px;"> <!-- Source -->
+                                <col style="width: 80px;"> <!-- Response -->
+                                <col style="width: 40px;"> <!-- Response Time -->
+                                <col style="width: 60px;"> <!-- Actions -->
+                            </colgroup>
+                            <thead style="background: #f9fafb;">
+                                <tr>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Date/Time</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        User ID</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Ext. ID</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Username</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Device</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Lang</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Wallet</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Invited</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        TOP</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Balance</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Active</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Created</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Last Act.</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Command</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Source</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Response</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600;">
+                                        Time</th>
+                                    <th
+                                        style="padding: 2px 4px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 9px; white-space: nowrap; font-weight: 600; position: sticky; right: 0; background: #f9fafb; z-index: 10;">
+                                        Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="database-messages-tbody">
+                                <tr>
+                                    <td colspan="17" style="padding: 20px; text-align: center; color: #6b7280;">Select a
+                                        bot to view messages</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="database-messages-more"
+                        style="padding: 10px; text-align: center; background: #f9fafb; border-top: 1px solid #e5e7eb; display: none;">
+                        <button onclick="loadMoreMessages()"
+                            style="background: #2563eb; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Show
+                            More (10 more)</button>
+                        <button onclick="loadAllMessages()"
+                            style="background: #059669; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Load
+                            All</button>
+                        <button onclick="exportMessagesToCSV()"
+                            style="background: #7c3aed; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">📊
+                            Export CSV</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Load Admin JS Modules -->
-        <script src="/static/js/admin/core.js"></script>
-        <script src="/static/js/admin/bots.js"></script>
-        <script src="/static/js/admin/partners.js"></script>
-        <script src="/static/js/admin/database.js"></script>
-        <script src="/static/js/admin/extra.js"></script>
-        <script src="/static/js/admin/monitoring.js"></script>
+        <!-- AI Config Tab -->
+        <div id="ai" class="tab-content">
+            <h2>AI Configuration</h2>
+            <div id="ai-message"></div>
+
+            <!-- Bot selector removed (use global header) -->
+
+            <div id="ai-config-form" style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Provider</label>
+                    <select id="ai-provider">
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Model</label>
+                    <input type="text" id="ai-model" placeholder="gpt-4o-mini">
+                </div>
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="password" id="ai-api-key" placeholder="sk-...">
+                </div>
+                <div class="form-group">
+                    <label>Temperature</label>
+                    <input type="number" id="ai-temperature" step="0.1" min="0" max="2" value="0.7">
+                </div>
+                <div class="form-group">
+                    <label>System Prompt</label>
+                    <textarea id="ai-prompt" rows="5"></textarea>
+                </div>
+                <button onclick="saveAIConfig()">Save Configuration</button>
+            </div>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div id="stats" class="tab-content">
+            <h2>Bot Statistics</h2>
+            <div id="stats-message"></div>
+
+            <div id="stats-content"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="card" style="text-align: center;">
+                    <h3>Total Users</h3>
+                    <p id="stats-users-total" style="font-size: 2em; font-weight: bold; color: #4f46e5;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>Active Users</h3>
+                    <p id="stats-users-active" style="font-size: 2em; font-weight: bold; color: #10b981;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>Total Partners</h3>
+                    <p id="stats-partners-total" style="font-size: 2em; font-weight: bold; color: #f59e0b;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>Active Partners</h3>
+                    <p id="stats-partners-active" style="font-size: 2em; font-weight: bold; color: #ef4444;">-</p>
+                </div>
+            </div>
+
+            <!-- Mini App Analytics Section -->
+            <h2 style="margin-top: 40px;">📱 Mini App Analytics (30 days)</h2>
+            <div id="mini-app-stats-content"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div class="card" style="text-align: center;">
+                    <h3>📊 Total Events</h3>
+                    <p id="stats-ma-events" style="font-size: 2em; font-weight: bold; color: #6366f1;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>👥 Unique Sessions</h3>
+                    <p id="stats-ma-sessions" style="font-size: 2em; font-weight: bold; color: #8b5cf6;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>💰 Wallet Connections</h3>
+                    <p id="stats-ma-wallets" style="font-size: 2em; font-weight: bold; color: #22c55e;">-</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>📤 Share Events</h3>
+                    <p id="stats-ma-shares" style="font-size: 2em; font-weight: bold; color: #0ea5e9;">-</p>
+                </div>
+            </div>
+
+            <!-- Funnel Section -->
+            <div class="card" style="margin-top: 20px;">
+                <h3>📊 Mini App Funnel</h3>
+                <div id="stats-funnel"
+                    style="display: flex; align-items: center; justify-content: space-around; padding: 20px; gap: 10px;">
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 2em; font-weight: bold; color: #6366f1;" id="funnel-home">0</div>
+                        <div style="color: #6b7280; font-size: 12px;">🏠 Home Views</div>
+                    </div>
+                    <div style="color: #9ca3af; font-size: 24px;">→</div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 2em; font-weight: bold; color: #8b5cf6;" id="funnel-partners">0</div>
+                        <div style="color: #6b7280; font-size: 12px;">👥 Partners Views</div>
+                        <div style="color: #10b981; font-size: 11px;" id="funnel-rate1">0%</div>
+                    </div>
+                    <div style="color: #9ca3af; font-size: 24px;">→</div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 2em; font-weight: bold; color: #ec4899;" id="funnel-clicks">0</div>
+                        <div style="color: #6b7280; font-size: 12px;">🔗 Partner Clicks</div>
+                        <div style="color: #10b981; font-size: 11px;" id="funnel-rate2">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Partners Section -->
+            <div class="card" style="margin-top: 20px;">
+                <h3>🏆 Top Partners by Clicks (Mini App)</h3>
+                <div id="stats-top-partners" style="margin-top: 15px;">
+                    <div style="color: #6b7280; font-style: italic;">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Tab (Product Focused) -->
+        <div id="monitoring" class="tab-content">
+            <div id="monitoring-content">
+                <div style="padding: 40px; text-align: center; color: #9ca3af;">
+                    <p>Select a bot to view product monitoring data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Admin JS Modules -->
+    <script src="/static/js/admin/core.js"></script>
+    <script src="/static/js/admin/bots.js"></script>
+    <script src="/static/js/admin/partners.js"></script>
+    <script src="/static/js/admin/database.js"></script>
+    <script src="/static/js/admin/extra.js"></script>
+    <script src="/static/js/admin/monitoring.js"></script>
 </body>
 
 </html>
