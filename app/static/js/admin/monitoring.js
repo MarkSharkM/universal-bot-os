@@ -100,13 +100,17 @@ function renderProductMonitoring(data) {
             <!-- Daily Activity Chart -->
             <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb;">
                 <h3 style="margin: 0 0 15px 0; font-size: 14px;">📊 Daily Activity: Bot vs Mini App</h3>
-                <canvas id="dailyComparisonChart" height="200"></canvas>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="dailyComparisonChart"></canvas>
+                </div>
             </div>
             
             <!-- Platform Breakdown -->
             <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb;">
                 <h3 style="margin: 0 0 15px 0; font-size: 14px;">📱 Platform Breakdown</h3>
-                <canvas id="platformChart" height="200"></canvas>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="platformChart"></canvas>
+                </div>
             </div>
         </div>
         
