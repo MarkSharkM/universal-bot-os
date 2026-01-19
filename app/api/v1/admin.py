@@ -694,14 +694,19 @@ async def get_bot_stats(
     if not bot:
         raise HTTPException(status_code=404, detail="Bot not found")
     
-    # Count users
-    users_count = db.query(User).filter(User.bot_id == bot_id).count()
-    
-    # Count active users
-    active_users_count = db.query(User).filter(
+    # Count unique users by distinct external_id (Telegram user ID)
+    from sqlalchemy import func, distinct
+    users_count = db.query(func.count(distinct(User.external_id))).filter(
         User.bot_id == bot_id,
+        User.external_id.isnot(None)
+    ).scalar() or 0
+    
+    # Count active unique users
+    active_users_count = db.query(func.count(distinct(User.external_id))).filter(
+        User.bot_id == bot_id,
+        User.external_id.isnot(None),
         User.is_active == True
-    ).count()
+    ).scalar() or 0
     
     # Count partners
     partners_count = db.query(BusinessData).filter(
