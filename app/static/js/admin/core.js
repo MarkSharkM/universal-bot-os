@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Date Range Logic
-function setDateRange(tabName, days) {
+function setDateRange(tabName, days, btnElement) {
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - days);
@@ -184,9 +184,29 @@ function setDateRange(tabName, days) {
     document.getElementById(`${tabName}-date-start`).value = startStr;
     document.getElementById(`${tabName}-date-end`).value = endStr;
 
-    // Highlight active button
-    const container = document.querySelector(`#${tabName} .tab-content`); // Does not work as expected
-    // Simplified: Just trigger logic
+    // Reset styles for all buttons in this tab's stats container
+    const container = document.querySelector(`#${tabName} .date-filter-container`);
+    if (container) {
+        const buttons = container.querySelectorAll('button');
+        buttons.forEach(btn => {
+            if (btn.textContent.includes('Days')) { // Filter only preset buttons
+                btn.className = 'date-btn'; // Reset class
+                // Reset inline styles if used
+                btn.style.background = '#f3f4f6';
+                btn.style.color = '#374151';
+                btn.style.border = '1px solid #d1d5db';
+                btn.style.fontWeight = 'normal';
+            }
+        });
+    }
+
+    // specific button highlight
+    if (btnElement) {
+        btnElement.style.background = '#e0f2fe';
+        btnElement.style.color = '#0284c7';
+        btnElement.style.border = '1px solid #bae6fd';
+        btnElement.style.fontWeight = '500';
+    }
 
     applyCustomDateRange(tabName);
 }

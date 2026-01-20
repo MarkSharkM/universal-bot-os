@@ -576,14 +576,14 @@
             <div
                 style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                 <h4 style="margin: 0; color: #374151;">📅 Time Range:</h4>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="setDateRange('stats', 7)"
+                <div style="display: flex; gap: 10px;" class="date-filter-container">
+                    <button onclick="setDateRange('stats', 7, this)"
                         style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">7
                         Days</button>
-                    <button onclick="setDateRange('stats', 30)"
+                    <button onclick="setDateRange('stats', 30, this)"
                         style="padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 500;">30
                         Days</button>
-                    <button onclick="setDateRange('stats', 90)"
+                    <button onclick="setDateRange('stats', 90, this)"
                         style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">90
                         Days</button>
                 </div>
@@ -680,14 +680,14 @@
             <div
                 style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                 <h4 style="margin: 0; color: #374151;">📅 Time Range:</h4>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="setDateRange('monitoring', 7)"
+                <div style="display: flex; gap: 10px;" class="date-filter-container">
+                    <button onclick="setDateRange('monitoring', 7, this)"
                         style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">7
                         Days</button>
-                    <button onclick="setDateRange('monitoring', 30)"
+                    <button onclick="setDateRange('monitoring', 30, this)"
                         style="padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 500;">30
                         Days</button>
-                    <button onclick="setDateRange('monitoring', 90)"
+                    <button onclick="setDateRange('monitoring', 90, this)"
                         style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">90
                         Days</button>
                 </div>
