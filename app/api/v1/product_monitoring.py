@@ -24,13 +24,26 @@ router = APIRouter(prefix="/monitoring", tags=["Product Monitoring"])
 async def get_product_monitoring(
     bot_id: str,
     days: int = 30,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """
     Product monitoring dashboard data.
     Split by Telegram Bot vs Mini App.
     """
-    start_date = datetime.utcnow() - timedelta(days=days)
+    if start_date and end_date:
+        try:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+            # Recalculate days for daily comparison loop
+            days = (end_dt - start_dt).days
+        except ValueError:
+            start_dt = datetime.utcnow() - timedelta(days=days)
+            end_dt = datetime.utcnow() + timedelta(days=1)
+    else:
+        start_dt = datetime.utcnow() - timedelta(days=days)
+        end_dt = datetime.utcnow() + timedelta(days=1)
     
     try:
         # ============================================
@@ -66,7 +79,8 @@ async def get_product_monitoring(
         bot_messages = db.query(Message).filter(
             Message.bot_id == bot_id,
             Message.role == 'user',
-            Message.timestamp >= start_date,
+            Message.timestamp >= start_dt,
+            Message.timestamp < end_dt,
             Message.content.ilike('/%')  # Commands start with /
         ).all()
         
@@ -100,7 +114,8 @@ async def get_product_monitoring(
         mini_app_sessions = db.query(func.count(distinct(Message.user_id))).filter(
             Message.bot_id == bot_id,
             Message.role == 'user',
-            Message.timestamp >= start_date,
+            Message.timestamp >= start_dt,
+            Message.timestamp < end_dt,
             Message.custom_data.op('->>')('source').ilike('%mini_app%')
         ).scalar() or 0
         
@@ -124,7 +139,8 @@ async def get_product_monitoring(
         mini_app_messages = db.query(Message).filter(
             Message.bot_id == bot_id,
             Message.role == 'user',
-            Message.timestamp >= start_date,
+            Message.timestamp >= start_dt,
+            Message.timestamp < end_dt,
             Message.custom_data.op('->>')('source').ilike('%mini_app%')
         ).all()
         
@@ -144,11 +160,15 @@ async def get_product_monitoring(
                 platform_counts['other'] += 1
         
         # ============================================
-        # DAILY ACTIVITY COMPARISON (30 days)
+        # DAILY ACTIVITY COMPARISON (overselected range)
         # ============================================
         daily_data = []
-        for i in range(days):
-            day = datetime.utcnow().date() - timedelta(days=days - 1 - i)
+        # Loop from start_dt to end_dt
+        current_day = start_dt.date()
+        date_range_days = (end_dt.date() - current_day).days
+        
+        for i in range(date_range_days):
+            day = current_day + timedelta(days=i)
             day_start = datetime.combine(day, datetime.min.time())
             day_end = day_start + timedelta(days=1)
             

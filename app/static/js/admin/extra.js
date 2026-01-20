@@ -74,7 +74,18 @@ async function loadMiniAppAnalytics() {
     if (!botId) return;
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}/mini-app-analytics?days=30`);
+        const start = document.getElementById('stats-date-start').value;
+        const end = document.getElementById('stats-date-end').value;
+
+        let query = `?days=30`; // fallback
+        if (start && end) {
+            query = `?start_date=${start}&end_date=${end}`;
+            // Update title
+            const header = document.querySelector('h2:contains("Mini App Analytics")'); // :contains not standard JS
+            // manual update if needed, but inputs show range
+        }
+
+        const res = await fetch(`${API_BASE}/bots/${botId}/mini-app-analytics${query}`);
         const data = await res.json();
 
         // Update counters

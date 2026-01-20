@@ -19,7 +19,15 @@ async function loadProductMonitoring() {
     }
 
     try {
-        const res = await fetch(`${MONITORING_API}/product/${currentBotId}?days=30`);
+        const start = document.getElementById('monitoring-date-start').value;
+        const end = document.getElementById('monitoring-date-end').value;
+
+        let query = `?days=30`;
+        if (start && end) {
+            query = `?start_date=${start}&end_date=${end}`;
+        }
+
+        const res = await fetch(`${MONITORING_API}/product/${currentBotId}${query}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();

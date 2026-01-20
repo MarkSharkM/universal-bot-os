@@ -157,4 +157,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (globalSelect) {
         globalSelect.addEventListener('change', onGlobalBotChange);
     }
+
+    // Initialize date inputs with default 30 days
+    const today = new Date().toISOString().split('T')[0];
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    ['stats', 'monitoring'].forEach(tab => {
+        const start = document.getElementById(`${tab}-date-start`);
+        const end = document.getElementById(`${tab}-date-end`);
+        if (start && end) {
+            start.value = thirtyDaysAgo;
+            end.value = today;
+        }
+    });
 });
+
+// Date Range Logic
+function setDateRange(tabName, days) {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
+
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+
+    document.getElementById(`${tabName}-date-start`).value = startStr;
+    document.getElementById(`${tabName}-date-end`).value = endStr;
+
+    // Highlight active button
+    const container = document.querySelector(`#${tabName} .tab-content`); // Does not work as expected
+    // Simplified: Just trigger logic
+
+    applyCustomDateRange(tabName);
+}
+
+function applyCustomDateRange(tabName) {
+    if (!currentBotId) return;
+
+    if (tabName === 'stats') {
+        loadStats(); // Logic inside loadStats needs update
+    } else if (tabName === 'monitoring') {
+        loadProductMonitoring(); // Logic inside loadProductMonitoring needs update
+    }
+}

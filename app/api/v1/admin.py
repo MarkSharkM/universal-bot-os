@@ -2997,6 +2997,8 @@ async def fix_icons_now(
 async def get_mini_app_analytics(
     bot_id: UUID,
     days: int = Query(30, ge=1, le=90, description="Number of days to analyze"),
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     db: Session = Depends(get_db)
 ):
     """
@@ -3015,7 +3017,18 @@ async def get_mini_app_analytics(
     from app.models.business_data import BusinessData
     
     # Time range
-    start_date = datetime.utcnow() - timedelta(days=days)
+    if start_date and end_date:
+        try:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1) # Include end date fully
+        except ValueError:
+            # Fallback to days if invalid format
+            start_dt = datetime.utcnow() - timedelta(days=days)
+            end_dt = datetime.utcnow() + timedelta(days=1)
+    else:
+        start_dt = datetime.utcnow() - timedelta(days=days)
+        # Fix: Ensure we don't look into future if days is used, but for query optimization just use start_date logic
+        end_dt = datetime.utcnow() + timedelta(days=1)
     
     try:
         # Build partner ID to name cache
@@ -3031,7 +3044,8 @@ async def get_mini_app_analytics(
         mini_app_messages = db.query(Message).filter(
             Message.bot_id == bot_id,
             Message.role == 'user',
-            Message.timestamp >= start_date,
+            Message.timestamp >= start_dt,
+            Message.timestamp < end_dt,
             Message.content.ilike('%mini_app%') | Message.custom_data.op('->>')('source').ilike('%mini_app%')
         ).all()
         

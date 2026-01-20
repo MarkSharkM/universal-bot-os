@@ -572,6 +572,33 @@
             <h2>Bot Statistics</h2>
             <div id="stats-message"></div>
 
+            <!-- Date Filter for Stats -->
+            <div
+                style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <h4 style="margin: 0; color: #374151;">📅 Time Range:</h4>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="setDateRange('stats', 7)"
+                        style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">7
+                        Days</button>
+                    <button onclick="setDateRange('stats', 30)"
+                        style="padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 500;">30
+                        Days</button>
+                    <button onclick="setDateRange('stats', 90)"
+                        style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">90
+                        Days</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+                    <input type="date" id="stats-date-start"
+                        style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <span>to</span>
+                    <input type="date" id="stats-date-end"
+                        style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <button onclick="applyCustomDateRange('stats')"
+                        style="padding: 6px 12px; font-size: 13px; background: #4f46e5; color: white;">Apply
+                        Custom</button>
+                </div>
+            </div>
+
             <div id="stats-content"
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                 <div class="card" style="text-align: center;">
@@ -649,6 +676,33 @@
 
         <!-- Monitoring Tab (Product Focused) -->
         <div id="monitoring" class="tab-content">
+            <!-- Date Filter for Monitoring -->
+            <div
+                style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <h4 style="margin: 0; color: #374151;">📅 Time Range:</h4>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="setDateRange('monitoring', 7)"
+                        style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">7
+                        Days</button>
+                    <button onclick="setDateRange('monitoring', 30)"
+                        style="padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-weight: 500;">30
+                        Days</button>
+                    <button onclick="setDateRange('monitoring', 90)"
+                        style="padding: 6px 12px; font-size: 13px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">90
+                        Days</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+                    <input type="date" id="monitoring-date-start"
+                        style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <span>to</span>
+                    <input type="date" id="monitoring-date-end"
+                        style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <button onclick="applyCustomDateRange('monitoring')"
+                        style="padding: 6px 12px; font-size: 13px; background: #4f46e5; color: white;">Apply
+                        Custom</button>
+                </div>
+            </div>
+
             <div id="monitoring-content">
                 <div style="padding: 40px; text-align: center; color: #9ca3af;">
                     <p>Select a bot to view product monitoring data</p>
