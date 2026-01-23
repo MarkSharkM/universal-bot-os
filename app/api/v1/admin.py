@@ -2557,7 +2557,12 @@ async def list_bot_messages(
         device_os = user.language_code if user.language_code in ['iOS', 'Android'] else ''
         device_version = custom_data.get('device_version', '')
         device = f"{device_os} {device_version}".strip() if device_os else custom_data.get('device', '')
-        language = user.language_code if user.language_code not in ['iOS', 'Android'] else (custom_data.get('language', 'uk'))
+        
+        # Priority: 1. Event/Message historical language, 2. User current language
+        msg_custom_data = user_msg.custom_data or {}
+        language = msg_custom_data.get('language_code') or msg_custom_data.get('language')
+        if not language:
+             language = user.language_code if user.language_code not in ['iOS', 'Android'] else (custom_data.get('language', 'uk'))
         wallet_address = custom_data.get('wallet_address', '')
         total_invited = custom_data.get('total_invited', 0)
         top_status = custom_data.get('top_status', 'locked')
