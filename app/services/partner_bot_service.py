@@ -112,55 +112,112 @@ class PartnerBotService:
             parse_mode="Markdown"
         )
 
-    async def process_photo(self, user: User, photo_data: Dict[str, Any]):
+    async def process_photo(self, user: User, photo_data: Dict[str, Any], media_group_id: str = None):
         """
-        Process received photo:
-        1. Download
-        2. Analyze with AI
-        3. Show preview
+        Process received photo with media_group support:
+        1. If media_group_id exists - store photo and wait for group
+        2. Otherwise - process immediately
+        3. After timeout - process all photos in group together
         """
         file_id = photo_data.get('file_id')
         if not file_id:
             await self.adapter.send_message(self.bot_id, user.external_id, "❌ Помилка: Немає file_id.")
             return
 
-        # 1. Get File URL
-        await self.adapter.send_message(self.bot_id, user.external_id, "⏳ *Аналізую зображення...*", parse_mode="Markdown")
-        
-        image_url = await self.adapter.get_file_path(self.bot_id, file_id)
-        if not image_url:
-            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Не вдалося завантажити фото.")
+        # Handle media group (album)
+        if media_group_id:
+            await self._handle_media_group(user, photo_data, media_group_id)
             return
-
-        # 2. AI Analysis
-        # Setup AI Service with custom system prompt for this interaction
-        from app.services.translation_service import TranslationService
-        ai_service = AIService(self.db, self.bot_id, TranslationService(self.db, self.bot_id))
         
-        # Override system prompt temporarily in config or just pass it via build_system_prompt logic?
-        # Since AIService pulls from config, we can temporarily inject our prompt into the payload construction
-        # But AIService.generate_response calls build_system_prompt.
-        # Let's just create a temporary config overrides dict or pass custom prompt if we modified AIService...
-        # Wait, I didn't add `custom_prompt` arg to `generate_response`.
-        # I can cheat: Configure the bot in DB to have this system prompt! 
-        # (This was part of registration script).
-        # OR better: The user prompt is specific to this task.
+        # Single photo - process immediately
+        await self._process_single_or_grouped_photos(user, [photo_data])
+    
+    async def _handle_media_group(self, user: User, photo_data: Dict[str, Any], media_group_id: str):
+        """Store photos from media group and process after timeout"""
+        from app.core.redis import get_redis
+        import json
+        import asyncio
         
-        # Let's assume the bot config HAS this prompt. If not, we should update the bot config.
-        # Actually, let's update bot config on the fly if needed, or better, 
-        # update AIService to accept `system_prompt_override`.
-        # For now, I will assume the bot in DB has the correct prompt or I rely on the prompt being sent in the user message? NO.
-        # I'll rely on the registered bot having the prompt. 
-        # BUT, to be safe, I'll pass it as part of the "user message" instructions:
+        redis = get_redis()
+        if not redis:
+            # Fallback if Redis not available - process single photo
+            await self._process_single_or_grouped_photos(user, [photo_data])
+            return
         
-        full_prompt = f"{PARTNER_ANALYSIS_PROMPT}\n\nAnalyze this image:"
+        # Store photo in Redis with TTL
+        group_key = f"media_group:{self.bot_id}:{user.id}:{media_group_id}"
         
+        # Get existing photos
+        existing_data = redis.get(group_key)
+        if existing_data:
+            photos = json.loads(existing_data)
+        else:
+            photos = []
+            # Send initial message only once
+            await self.adapter.send_message(
+                self.bot_id,
+                user.external_id,
+                "📸 *Отримую фото...*",
+                parse_mode="Markdown"
+            )
+        
+        # Add new photo
+        photos.append(photo_data)
+        
+        # Save back to Redis with 5 second TTL
+        redis.setex(group_key, 5, json.dumps(photos))
+        
+        # Schedule processing after 2 second delay
+        await asyncio.sleep(2)
+        
+        # Check if we're still the last photo (no new photos arrived)
+        current_data = redis.get(group_key)
+        if current_data:
+            current_photos = json.loads(current_data)
+            if len(current_photos) == len(photos):
+                # We're the last photo - process all
+                redis.delete(group_key)
+                await self.adapter.send_message(
+                    self.bot_id,
+                    user.external_id,
+                    f"⏳ *Аналізую {len(current_photos)} фото...*",
+                    parse_mode="Markdown"
+                )
+                await self._process_single_or_grouped_photos(user, current_photos)
+    
+    async def _process_single_or_grouped_photos(self, user: User, photos: list):
+        """
+        Process one or more photos:
+        1. Download all photos
+        2. Send all to AI for analysis
+        3. Show single preview
+        """
         try:
+            # 1. Download all photos
+            image_urls = []
+            for photo_data in photos:
+                file_id = photo_data.get('file_id')
+                if file_id:
+                    image_url = await self.adapter.get_file_path(self.bot_id, file_id)
+                    if image_url:
+                        image_urls.append(image_url)
+            
+            if not image_urls:
+                await self.adapter.send_message(self.bot_id, user.external_id, "❌ Не вдалося завантажити фото.")
+                return
+
+            # 2. AI Analysis with all images
+            from app.services.translation_service import TranslationService
+            ai_service = AIService(self.db, self.bot_id, TranslationService(self.db, self.bot_id))
+            
+            full_prompt = f"{PARTNER_ANALYSIS_PROMPT}\n\nAnalyze these {len(image_urls)} image(s):"
+            
+            # For multiple images, send first image as main, others in context
             response_text = await ai_service.generate_response(
                 user.id,
-                full_prompt, # Put instructions in user message to ensure they are used
+                full_prompt,
                 user_lang="uk",
-                image_url=image_url
+                image_url=image_urls[0] if len(image_urls) == 1 else image_urls  # Pass list if multiple
             )
             
             # 3. Parse JSON
@@ -183,7 +240,8 @@ class PartnerBotService:
                     "status": "pending",
                     "payload": data,
                     "user_id": str(user.id),
-                    "file_unique_id": photo_data.get('file_unique_id')
+                    "photo_count": len(photos),
+                    "file_unique_ids": [p.get('file_unique_id') for p in photos]
                 }
             )
             self.db.add(proposal)

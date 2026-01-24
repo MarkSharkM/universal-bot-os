@@ -676,8 +676,9 @@ async def _handle_photo_async(
         if is_partner_bot:
             partner_bot_service = PartnerBotService(db, bot_id)
             photo_data = event_data.get('metadata', {}).get('photo')
+            media_group_id = event_data.get('metadata', {}).get('media_group_id')
             if photo_data:
-                await partner_bot_service.process_photo(user, photo_data)
+                await partner_bot_service.process_photo(user, photo_data, media_group_id)
         else:
             # Regular bot logic for photos? (Maybe ignore or generic reply)
             pass

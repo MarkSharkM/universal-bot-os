@@ -665,6 +665,9 @@ class TelegramAdapter(BaseAdapter):
             if photo:
                 # Get largest photo (last in list)
                 photo_data = photo[-1]
+            
+            # Extract media_group_id for albums
+            media_group_id = message.get("media_group_id")
                 
             # Extract start parameter if present (for deep linking)
             start_param = None
@@ -692,6 +695,7 @@ class TelegramAdapter(BaseAdapter):
                     "first_name": message.get("from", {}).get("first_name"),
                     "start_parameter": start_param,
                     "photo": photo_data, # Include photo info in metadata
+                    "media_group_id": media_group_id, # For photo albums
                 }
             }
         elif "callback_query" in payload:
