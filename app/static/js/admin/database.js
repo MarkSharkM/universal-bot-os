@@ -15,13 +15,14 @@ async function loadDatabaseData() {
 async function loadPartnersForCache() {
     if (!currentBotId) return;
     try {
-        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/partners?active_only=false&limit=500`);
+        // OPTIMIZED: Load only active partners (fewer records, better performance)
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/partners?active_only=true&limit=100`);
         const partners = await res.json();
         partnersCache.clear();
         partners.forEach(p => {
             partnersCache.set(p.id, p.data?.bot_name || 'Unknown Partner');
         });
-        console.log(`[Database] Loaded ${partnersCache.size} partners into cache`);
+        console.log(`[Database] Loaded ${partnersCache.size} active partners into cache (optimized: active_only=true, limit=100)`);
     } catch (e) {
         console.error('[Database] Failed to load partners:', e);
     }
@@ -426,11 +427,23 @@ async function deleteUser(userId, externalId) {
     try {
         const res = await authFetch(`${API_BASE}/bots/${currentBotId}/users/${userId}`, { method: 'DELETE' });
         if (res.ok) {
-            alert('Deleted!');
-            loadMessages(0, true);
+            showMessage('database-message', 'User deleted successfully!');
+            
+            // OPTIMIZED: Remove only this user's rows from DOM (no DB reload)
+            document.querySelectorAll(`tr[data-user-id="${userId}"]`).forEach(row => {
+                row.remove();
+            });
+            
+            // Update cache
+            if (window.usersDataMap) {
+                window.usersDataMap.delete(userId);
+                window.usersData = Array.from(window.usersDataMap.values());
+            }
+            
+            console.log(`[Database] Deleted user ${userId} - removed rows from DOM, no DB reload needed`);
         }
     } catch (e) {
-        alert('Error deleting');
+        showMessage('database-message', 'Error deleting user: ' + e.message, 'error');
     }
 }
 
