@@ -133,15 +133,18 @@ class AIService:
         self,
         user_id: UUID,
         user_message: str,
-        user_lang: Optional[str] = None
+        user_lang: Optional[str] = None,
+        image_url: Optional[str] = None
     ) -> str:
         """
         Generate AI response with context and language awareness.
+        Supports Vision (image analysis) if image_url is provided.
         
         Args:
             user_id: User UUID
             user_message: User's message
             user_lang: User's language code
+            image_url: Optional URL to image for analysis
         
         Returns:
             AI-generated response
@@ -166,14 +169,24 @@ class AIService:
             ai_config.get('system_prompt')
         )
         
-        # Get message history
-        history = self.get_message_history(user_id)
+        # Get message history (skip for Vision requests to keep context clean/cheap?)
+        # For now, include history unless it's a vision request which is usually standalone
+        history = self.get_message_history(user_id) if not image_url else []
+        
+        # Build new user message content
+        if image_url:
+            user_content = [
+                {"type": "text", "text": user_message},
+                {"type": "image_url", "image_url": {"url": image_url}}
+            ]
+        else:
+            user_content = user_message
         
         # Build messages for API
         messages = [
             {'role': 'system', 'content': system_prompt}
         ] + history + [
-            {'role': 'user', 'content': user_message}
+            {'role': 'user', 'content': user_content}
         ]
         
         # Call AI provider
@@ -185,14 +198,19 @@ class AIService:
             raise ValueError(f"Unsupported AI provider: {provider}")
         
         # Save messages to history
-        self._save_message(user_id, 'user', user_message)
+        # For vision, save a text representation
+        db_content = user_message
+        if image_url:
+            db_content += f" [Image: {image_url}]"
+            
+        self._save_message(user_id, 'user', db_content)
         self._save_message(user_id, 'assistant', response)
         
         return response
     
     async def _call_openai(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Dict[str, Any]],
         config: Dict[str, Any]
     ) -> str:
         """Call OpenAI API"""
@@ -201,11 +219,21 @@ class AIService:
             
             client = openai.AsyncOpenAI(api_key=config['api_key'])
             
+            # OpenAI requires a slightly different format for system prompt if using O1 or some models,
+            # but standard GPT-4/o works with system messages.
+            # Structured Outputs (response_format) is supported in newer models.
+            
+            # Check if we should enforce JSON object
+            kwargs = {}
+            if "json" in config.get('system_prompt', '').lower():
+                kwargs['response_format'] = {"type": "json_object"}
+            
             response = await client.chat.completions.create(
                 model=config['model'],
                 messages=messages,
                 temperature=config['temperature'],
-                max_tokens=config['max_tokens']
+                max_tokens=config['max_tokens'],
+                **kwargs
             )
             
             return response.choices[0].message.content.strip()

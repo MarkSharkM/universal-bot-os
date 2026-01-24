@@ -15,7 +15,8 @@ from app.models.user import User
 from app.adapters.telegram import TelegramAdapter
 from app.services import (
     UserService, TranslationService, CommandService,
-    PartnerService, ReferralService, EarningsService
+    PartnerService, ReferralService, EarningsService,
+    PartnerBotService
 )
 from app.services.wallet_service import WalletService
 
@@ -67,6 +68,7 @@ async def telegram_webhook(
             db, bot_id, user_service, translation_service,
             partner_service, referral_service, earnings_service
         )
+        partner_bot_service = PartnerBotService(db, bot_id)
         
         # Initialize adapter
         adapter = TelegramAdapter()
@@ -117,6 +119,10 @@ async def telegram_webhook(
         elif event_type == 'callback_query':
             background_tasks.add_task(_handle_callback_async,
                 update, user.id, bot_id
+            )
+        elif event_type == 'photo':
+            background_tasks.add_task(_handle_photo_async,
+                update, user.id, bot_id, event_data
             )
         elif event_type in ['pre_checkout_query', 'successful_payment']:
             background_tasks.add_task(_handle_payment_async,
@@ -258,6 +264,18 @@ async def _handle_message(
         # DEBUG: Log if we are about to update inviter
         logger.info(f"Ref Check: is_referral={is_referral}, inviter_id={inviter_id}, start_param={start_param}")
     
+    # Handle Partner Bot Start
+    # Check if bot is admin helper
+    is_partner_bot = False
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if bot and bot.config and bot.config.get('role') == 'admin_helper':
+        is_partner_bot = True
+        
+    if is_partner_bot and command == 'start':
+        partner_bot_service = PartnerBotService(db, bot_id)
+        await partner_bot_service.handle_start(user)
+        return
+
     # Handle command
     response = {'message': '', 'buttons': []}  # Default empty response
     if command:
@@ -522,9 +540,64 @@ async def _handle_callback(
             )
         else:
             logger.warning(f"Unknown command in callback: {data}")
+    elif data.startswith('approve_partner:') or data.startswith('cancel_partner:'):
+        # Handle partner bot callbacks
+        partner_bot_service = PartnerBotService(db, bot_id)
+        action, proposal_id = data.split(':', 1)
+        
+        if action == 'approve_partner':
+            await partner_bot_service.handle_approval(user, proposal_id)
+        elif action == 'cancel_partner':
+            # Just delete the proposal and message
+            from app.models.business_data import BusinessData
+            try:
+                proposal_uuid = UUID(proposal_id)
+                db.query(BusinessData).filter(BusinessData.id == proposal_uuid).delete()
+                db.commit()
+                await adapter.send_message(bot_id, user.external_id, "❌ Validierung abgebrochen.")
+            except Exception as e:
+                logger.error(f"Error cancelling proposal: {e}")
     else:
-        # Unknown callback
+        # Unknown callback (check parent if needed, or log)
         logger.warning(f"Unknown callback data: {data}")
+
+
+async def _handle_photo_async(
+    update: Dict[str, Any],
+    user_id: UUID, 
+    bot_id: UUID, 
+    event_data: Dict[str, Any]
+):
+    """Handle photo event in background"""
+    from app.core.database import SessionLocal
+    db = SessionLocal()
+    try:
+        from app.models.user import User
+        from app.models.bot import Bot
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return
+            
+        # Check if bot is configured as admin helper
+        bot = db.query(Bot).filter(Bot.id == bot_id).first()
+        is_partner_bot = False
+        if bot and bot.config and bot.config.get('role') == 'admin_helper':
+            is_partner_bot = True
+            
+        if is_partner_bot:
+            partner_bot_service = PartnerBotService(db, bot_id)
+            photo_data = event_data.get('metadata', {}).get('photo')
+            if photo_data:
+                await partner_bot_service.process_photo(user, photo_data)
+        else:
+            # Regular bot logic for photos? (Maybe ignore or generic reply)
+            pass
+            
+    except Exception as e:
+        logger.error(f"Error handling photo: {e}", exc_info=True)
+    finally:
+        db.close()
 
 
 async def _handle_payment_async(

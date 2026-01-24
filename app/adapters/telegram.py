@@ -554,6 +554,61 @@ class TelegramAdapter(BaseAdapter):
         finally:
             db.close()
     
+    async def get_file_path(self, bot_id: UUID, file_id: str) -> Optional[str]:
+        """
+        Get file URL from Telegram API.
+        
+        Args:
+            bot_id: Bot UUID
+            file_id: Telegram File ID
+        
+        Returns:
+            Full URL to file or None
+        """
+        db = SessionLocal()
+        try:
+            bot = db.query(Bot).filter(Bot.id == bot_id).first()
+            if not bot:
+                raise ValueError(f"Bot {bot_id} not found")
+            
+            token = bot.token
+            if token and is_encrypted(token):
+                token = decrypt_token(token)
+            
+            # Step 1: Get file path from file_id
+            url = f"{self.BASE_URL}{token}/getFile"
+            
+            async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
+                response = await client.post(url, json={"file_id": file_id})
+                
+                if response.status_code != 200:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"getFile failed for {file_id}: HTTP {response.status_code}")
+                    return None
+                
+                result = response.json()
+                if not result.get('ok'):
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"getFile failed for {file_id}: {result}")
+                    return None
+                
+                file_path = result.get('result', {}).get('file_path')
+                if not file_path:
+                    return None
+                
+                # Step 2: Return full URL
+                return f"https://api.telegram.org/file/bot{token}/{file_path}"
+                
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error getting file path: {e}", exc_info=True)
+            return None
+        finally:
+            db.close()
+            
     async def handle_webhook(
         self,
         bot_id: UUID,
@@ -583,9 +638,18 @@ class TelegramAdapter(BaseAdapter):
                         "payment": message.get("successful_payment"),
                     }
                 }
+            
+            # Check for photo
+            photo = message.get("photo")
+            photo_data = None
+            if photo:
+                # Get largest photo (last in list)
+                photo_data = photo[-1]
+                
             # Extract start parameter if present (for deep linking)
             start_param = None
-            text = message.get("text", "")
+            text = message.get("text", message.get("caption", "")) # Use caption if text missing (for photos)
+            
             if text and text.startswith("/start"):
                 # Telegram sends /start with parameter as: /start _tgr_xxx
                 import re
@@ -593,8 +657,12 @@ class TelegramAdapter(BaseAdapter):
                 if match:
                     start_param = match.group(1).strip()
             
+            event_type = "message"
+            if photo:
+                event_type = "photo"
+                
             return {
-                "event_type": "message",
+                "event_type": event_type,
                 "user_external_id": str(message["from"]["id"]),
                 "text": text,
                 "metadata": {
@@ -602,7 +670,8 @@ class TelegramAdapter(BaseAdapter):
                     "chat_id": message.get("chat", {}).get("id"),
                     "username": message.get("from", {}).get("username"),
                     "first_name": message.get("from", {}).get("first_name"),
-                    "start_parameter": start_param,  # Include start parameter in metadata
+                    "start_parameter": start_param,
+                    "photo": photo_data, # Include photo info in metadata
                 }
             }
         elif "callback_query" in payload:
