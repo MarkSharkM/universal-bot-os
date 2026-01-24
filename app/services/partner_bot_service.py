@@ -221,13 +221,39 @@ class PartnerBotService:
                 desc = escape(trans.get('description', 'N/A')[:80])  # First 80 chars
                 preview_msg += f"{flag} <b>{lang.upper()}:</b> {title}\n{desc}...\n\n"
             
-            buttons = [
-                [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
-                [
-                    {"text": "✅ Approve & Add", "callback_data": f"approve_partner:{proposal.id}"},
-                    {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+            # Get list of available bots for selection
+            available_bots = self.db.query(Bot).filter(
+                Bot.platform_type == "telegram",
+                Bot.is_active == True
+            ).all()
+            
+            # Filter out admin helper bots (Partner Bot itself)
+            main_bots = [b for b in available_bots if not (b.config and b.config.get('role') == 'admin_helper')]
+            
+            # Create buttons with bot selection
+            buttons = []
+            
+            if len(main_bots) == 1:
+                # Only one bot - skip selection, go straight to approve
+                target_bot = main_bots[0]
+                buttons = [
+                    [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
+                    [
+                        {"text": f"✅ Add to {target_bot.name}", "callback_data": f"approve_partner:{proposal.id}:{target_bot.id}"},
+                        {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+                    ]
                 ]
-            ]
+            else:
+                # Multiple bots - show selection
+                buttons.append([{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}])
+                
+                for bot in main_bots:
+                    bot_name = bot.name[:25]  # Truncate long names
+                    buttons.append([
+                        {"text": f"➕ Add to {bot_name}", "callback_data": f"approve_partner:{proposal.id}:{bot.id}"}
+                    ])
+                
+                buttons.append([{"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}])
             
             await self.adapter.send_message(
                 self.bot_id,
@@ -263,27 +289,55 @@ class PartnerBotService:
             await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal data.")
             return
 
-        # Create Real Partner Record
-        # This corresponds to how admin/partners.js works -> likely writes to BusinessData type='partner'
+    async def handle_approval(self, user: User, proposal_id: str, target_bot_id: str = None):
+        """
+        Handle approval callback - adds partner to TARGET bot.
         
-        # Structure for 'partner' type:
-        # {
-        #   "name": ...,
-        #   "category": "NEW",
-        #   "referral_link": "https://t.me/...",
-        #   "commission": ...,
-        #   "active": "Yes",
-        #   "verified": "Yes",
-        #   "duration": "9999",
-        #   "roi": 0,
-        #   "description_en": ...,
-        #   "description_de": ...,
-        #   ...
-        # }
+        Args:
+            user: User who approved
+            proposal_id: Proposal UUID
+            target_bot_id: Target bot UUID (from callback_data)
+        """
+        try:
+            # Ensure valid UUID
+            uuid_obj = UUID(proposal_id)
+        except ValueError:
+            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal UUID.")
+            return
+
+        proposal = self.db.query(BusinessData).filter(
+            BusinessData.id == uuid_obj
+        ).first()
         
-        # Map AI data to Partner Schema
-        # IMPORTANT: Store translations as FLAT keys (description_en, description_de, etc.)
-        # NOT as nested object - this matches existing partners format
+        if not proposal:
+            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Proposal not found or expired.")
+            return
+            
+        data = proposal.data.get('payload')
+        if not data:
+            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal data.")
+            return
+
+        # Convert target_bot_id to UUID if provided
+        if target_bot_id:
+            try:
+                from uuid import UUID as UUID_type
+                target_bot_uuid = UUID_type(target_bot_id)
+            except ValueError:
+                await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Invalid target bot ID: {target_bot_id}")
+                return
+        else:
+            # No target specified - should not happen with new UI, but handle gracefully
+            await self.adapter.send_message(self.bot_id, user.external_id, "❌ No target bot specified.")
+            return
+
+        # Verify target bot exists
+        target_bot = self.db.query(Bot).filter(Bot.id == target_bot_uuid).first()
+        if not target_bot:
+            await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Target bot not found: {target_bot_id}")
+            return
+
+        # Create Real Partner Record in TARGET bot
         translations = data.get("translations", {})
         
         partner_data = {
@@ -308,21 +362,20 @@ class PartnerBotService:
         }
         
         new_partner = BusinessData(
-            bot_id=self.bot_id,
+            bot_id=target_bot_uuid,  # Add to TARGET bot (selected by admin)
             data_type='partner',
             data=partner_data
         )
         self.db.add(new_partner)
         
-        # Delete proposal? Or keep as archive?
-        # Let's delete to keep clean.
+        # Delete proposal
         self.db.delete(proposal)
         self.db.commit()
         
         await self.adapter.send_message(
             self.bot_id,
             user.external_id,
-            f"🎉 <b>Partner Added!</b>\n\n{data.get('program_name')} is now in the database.",
+            f"🎉 <b>Partner Added!</b>\n\n{data.get('program_name')} додано в <b>{target_bot.name}</b>.",
             parse_mode="HTML"
         )
 
@@ -495,13 +548,39 @@ class PartnerBotService:
             desc = escape(trans.get('description', 'N/A')[:80])
             preview_msg += f"{flag} <b>{lang.upper()}:</b> {title}\n{desc}...\n\n"
         
-        buttons = [
-            [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
-            [
-                {"text": "✅ Approve & Add", "callback_data": f"approve_partner:{proposal.id}"},
-                {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+        # Get list of available bots for selection
+        available_bots = self.db.query(Bot).filter(
+            Bot.platform_type == "telegram",
+            Bot.is_active == True
+        ).all()
+        
+        # Filter out admin helper bots
+        main_bots = [b for b in available_bots if not (b.config and b.config.get('role') == 'admin_helper')]
+        
+        # Create buttons with bot selection
+        buttons = []
+        
+        if len(main_bots) == 1:
+            # Only one bot - skip selection
+            target_bot = main_bots[0]
+            buttons = [
+                [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
+                [
+                    {"text": f"✅ Add to {target_bot.name}", "callback_data": f"approve_partner:{proposal.id}:{target_bot.id}"},
+                    {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+                ]
             ]
-        ]
+        else:
+            # Multiple bots - show selection
+            buttons.append([{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}])
+            
+            for bot in main_bots:
+                bot_name = bot.name[:25]  # Truncate long names
+                buttons.append([
+                    {"text": f"➕ Add to {bot_name}", "callback_data": f"approve_partner:{proposal.id}:{bot.id}"}
+                ])
+            
+            buttons.append([{"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}])
         
         await self.adapter.send_message(
             self.bot_id,

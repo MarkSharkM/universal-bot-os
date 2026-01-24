@@ -576,10 +576,15 @@ async def _handle_callback(
     elif data.startswith('approve_partner:') or data.startswith('cancel_partner:') or data.startswith('edit_partner:') or data.startswith('preview_partner:'):
         # Handle partner bot callbacks
         partner_bot_service = PartnerBotService(db, bot_id)
-        action, proposal_id = data.split(':', 1)
+        
+        # Parse callback_data format: "action:proposal_id" or "action:proposal_id:target_bot_id"
+        parts = data.split(':', 2)
+        action = parts[0] if len(parts) > 0 else None
+        proposal_id = parts[1] if len(parts) > 1 else None
+        target_bot_id = parts[2] if len(parts) > 2 else None
         
         if action == 'approve_partner':
-            await partner_bot_service.handle_approval(user, proposal_id)
+            await partner_bot_service.handle_approval(user, proposal_id, target_bot_id)
         elif action == 'edit_partner':
             await partner_bot_service.handle_edit(user, proposal_id)
         elif action == 'preview_partner':
