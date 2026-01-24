@@ -302,6 +302,12 @@ async def _handle_message(
         partner_bot_service = PartnerBotService(db, bot_id)
         await partner_bot_service.handle_start(user)
         return
+    
+    # Handle Partner Bot text editing (format: "field: value")
+    if is_partner_bot and text and not command and ':' in text:
+        partner_bot_service = PartnerBotService(db, bot_id)
+        await partner_bot_service.handle_text_edit(user, text)
+        return
 
     # Handle command
     response = {'message': '', 'buttons': []}  # Default empty response
@@ -567,13 +573,28 @@ async def _handle_callback(
             )
         else:
             logger.warning(f"Unknown command in callback: {data}")
-    elif data.startswith('approve_partner:') or data.startswith('cancel_partner:'):
+    elif data.startswith('approve_partner:') or data.startswith('cancel_partner:') or data.startswith('edit_partner:') or data.startswith('preview_partner:'):
         # Handle partner bot callbacks
         partner_bot_service = PartnerBotService(db, bot_id)
         action, proposal_id = data.split(':', 1)
         
         if action == 'approve_partner':
             await partner_bot_service.handle_approval(user, proposal_id)
+        elif action == 'edit_partner':
+            await partner_bot_service.handle_edit(user, proposal_id)
+        elif action == 'preview_partner':
+            # Show preview again
+            from app.models.business_data import BusinessData
+            try:
+                proposal_uuid = UUID(proposal_id)
+                proposal = db.query(BusinessData).filter(BusinessData.id == proposal_uuid).first()
+                if proposal:
+                    await partner_bot_service.show_preview(user, proposal)
+                else:
+                    await adapter.send_message(bot_id, user.external_id, "❌ Proposal not found.")
+            except Exception as e:
+                logger.error(f"Error showing preview: {e}")
+                await adapter.send_message(bot_id, user.external_id, f"❌ Error: {str(e)}")
         elif action == 'cancel_partner':
             # Just delete the proposal and message
             from app.models.business_data import BusinessData
@@ -581,7 +602,7 @@ async def _handle_callback(
                 proposal_uuid = UUID(proposal_id)
                 db.query(BusinessData).filter(BusinessData.id == proposal_uuid).delete()
                 db.commit()
-                await adapter.send_message(bot_id, user.external_id, "❌ Validierung abgebrochen.")
+                await adapter.send_message(bot_id, user.external_id, "❌ Cancelled.")
             except Exception as e:
                 logger.error(f"Error cancelling proposal: {e}")
     else:

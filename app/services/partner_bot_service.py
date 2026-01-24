@@ -165,26 +165,46 @@ class PartnerBotService:
             
             # 5. Show Preview
             # Format a nice message using HTML (more reliable than Markdown)
-            # Escape special HTML characters in data
+            # Show ALL translations for review
             from html import escape
             
             program_name = escape(data.get('program_name', 'N/A'))
             bot_username = escape(data.get('bot_username', 'N/A'))
             commission = escape(str(data.get('commission', 'N/A')))
-            en_desc = escape(data.get('translations', {}).get('en', {}).get('description', 'N/A'))
             
+            translations = data.get('translations', {})
+            
+            # Build preview with all translations
             preview_msg = (
                 f"✅ <b>Analysis Complete!</b>\n\n"
                 f"👤 <b>Name:</b> {program_name}\n"
                 f"🔗 <b>Username:</b> {bot_username}\n"
                 f"💰 <b>Commission:</b> {commission}\n\n"
-                f"🇬🇧 <b>EN:</b> {en_desc[:100]}...\n"
+                f"📝 <b>Translations:</b>\n\n"
             )
             
-            buttons = [[
-                {"text": "✅ Approve & Add", "callback_data": f"approve_partner:{proposal.id}"},
-                {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
-            ]]
+            # Add all languages
+            lang_flags = {
+                'en': '🇬🇧',
+                'de': '🇩🇪', 
+                'es': '🇪🇸',
+                'fr': '🇫🇷',
+                'pl': '🇵🇱'
+            }
+            
+            for lang, flag in lang_flags.items():
+                trans = translations.get(lang, {})
+                title = escape(trans.get('title', 'N/A'))
+                desc = escape(trans.get('description', 'N/A')[:80])  # First 80 chars
+                preview_msg += f"{flag} <b>{lang.upper()}:</b> {title}\n{desc}...\n\n"
+            
+            buttons = [
+                [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
+                [
+                    {"text": "✅ Approve & Add", "callback_data": f"approve_partner:{proposal.id}"},
+                    {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+                ]
+            ]
             
             await self.adapter.send_message(
                 self.bot_id,
@@ -277,6 +297,190 @@ class PartnerBotService:
         await self.adapter.send_message(
             self.bot_id,
             user.external_id,
-            f"🎉 **Partner Added!**\n\n{data.get('program_name')} is now in the database.",
-            parse_mode="Markdown"
+            f"🎉 <b>Partner Added!</b>\n\n{data.get('program_name')} is now in the database.",
+            parse_mode="HTML"
+        )
+
+    async def handle_edit(self, user: User, proposal_id: str):
+        """Handle edit callback - show editable fields"""
+        try:
+            uuid_obj = UUID(proposal_id)
+        except ValueError:
+            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal UUID.")
+            return
+
+        proposal = self.db.query(BusinessData).filter(
+            BusinessData.id == uuid_obj
+        ).first()
+        
+        if not proposal:
+            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Proposal not found or expired.")
+            return
+            
+        data = proposal.data.get('payload')
+        if not data:
+            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal data.")
+            return
+        
+        # Show edit menu with buttons for each field
+        from html import escape
+        
+        edit_msg = (
+            f"✏️ <b>Edit Partner Data</b>\n\n"
+            f"Оберіть що хочете змінити:\n\n"
+            f"<b>Поточні дані:</b>\n"
+            f"• Name: {escape(data.get('program_name', 'N/A'))}\n"
+            f"• Username: {escape(data.get('bot_username', 'N/A'))}\n"
+            f"• Commission: {escape(str(data.get('commission', 'N/A')))}\n\n"
+            f"Або відправте текст в форматі:\n"
+            f"<code>field: value</code>\n\n"
+            f"<b>Доступні поля:</b>\n"
+            f"• name: [назва програми]\n"
+            f"• username: @username\n"
+            f"• commission: 30%\n"
+            f"• en_title: [English title]\n"
+            f"• en_description: [English desc]\n"
+            f"• de_title, es_title, fr_title, pl_title\n"
+            f"• de_description, es_description, fr_description, pl_description\n\n"
+            f"<b>Приклад:</b>\n"
+            f"<code>commission: 40%</code>\n"
+            f"<code>en_title: My New Title</code>"
+        )
+        
+        buttons = [
+            [{"text": "🔙 Back to Preview", "callback_data": f"preview_partner:{proposal.id}"}],
+            [
+                {"text": "✅ Save & Approve", "callback_data": f"approve_partner:{proposal.id}"},
+                {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+            ]
+        ]
+        
+        await self.adapter.send_message(
+            self.bot_id,
+            user.external_id,
+            edit_msg,
+            reply_markup={"inline_keyboard": buttons},
+            parse_mode="HTML"
+        )
+        
+    async def handle_text_edit(self, user: User, text: str):
+        """Handle text-based editing of proposal"""
+        # Find latest pending proposal for this user
+        proposal = self.db.query(BusinessData).filter(
+            BusinessData.bot_id == self.bot_id,
+            BusinessData.data_type == 'partner_proposal',
+            BusinessData.data['status'].astext == 'pending',
+            BusinessData.data['user_id'].astext == str(user.id)
+        ).order_by(BusinessData.created_at.desc()).first()
+        
+        if not proposal:
+            await self.adapter.send_message(
+                self.bot_id, 
+                user.external_id, 
+                "❌ Не знайдено активного proposal для редагування.\nСпочатку надішліть скріншот."
+            )
+            return
+        
+        # Parse text: "field: value"
+        if ':' not in text:
+            await self.adapter.send_message(
+                self.bot_id,
+                user.external_id,
+                "❌ Невірний формат. Використовуйте:\n<code>field: value</code>",
+                parse_mode="HTML"
+            )
+            return
+        
+        field, value = text.split(':', 1)
+        field = field.strip().lower()
+        value = value.strip()
+        
+        data = proposal.data.get('payload', {})
+        
+        # Update based on field
+        if field == 'name':
+            data['program_name'] = value
+        elif field == 'username':
+            data['bot_username'] = value if value.startswith('@') else f'@{value}'
+        elif field == 'commission':
+            data['commission'] = value
+        elif '_' in field:  # Language-specific field (e.g., en_title)
+            lang, sub_field = field.split('_', 1)
+            if lang in ['en', 'de', 'es', 'fr', 'pl']:
+                if 'translations' not in data:
+                    data['translations'] = {}
+                if lang not in data['translations']:
+                    data['translations'][lang] = {}
+                data['translations'][lang][sub_field] = value
+        else:
+            await self.adapter.send_message(
+                self.bot_id,
+                user.external_id,
+                f"❌ Невідоме поле: {field}\nДив. список доступних полів."
+            )
+            return
+        
+        # Save updated data
+        proposal.data['payload'] = data
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(proposal, 'data')
+        self.db.commit()
+        
+        await self.adapter.send_message(
+            self.bot_id,
+            user.external_id,
+            f"✅ Оновлено: <b>{field}</b> = {value}",
+            parse_mode="HTML"
+        )
+        
+        # Show updated preview
+        await self.show_preview(user, proposal)
+    
+    async def show_preview(self, user: User, proposal: BusinessData):
+        """Show preview of proposal data"""
+        data = proposal.data.get('payload', {})
+        from html import escape
+        
+        program_name = escape(data.get('program_name', 'N/A'))
+        bot_username = escape(data.get('bot_username', 'N/A'))
+        commission = escape(str(data.get('commission', 'N/A')))
+        
+        translations = data.get('translations', {})
+        
+        preview_msg = (
+            f"✅ <b>Updated Preview</b>\n\n"
+            f"👤 <b>Name:</b> {program_name}\n"
+            f"🔗 <b>Username:</b> {bot_username}\n"
+            f"💰 <b>Commission:</b> {commission}\n\n"
+            f"📝 <b>Translations:</b>\n\n"
+        )
+        
+        lang_flags = {
+            'en': '🇬🇧',
+            'de': '🇩🇪',
+            'es': '🇪🇸',
+            'fr': '🇫🇷',
+            'pl': '🇵🇱'
+        }
+        
+        for lang, flag in lang_flags.items():
+            trans = translations.get(lang, {})
+            title = escape(trans.get('title', 'N/A'))
+            desc = escape(trans.get('description', 'N/A')[:80])
+            preview_msg += f"{flag} <b>{lang.upper()}:</b> {title}\n{desc}...\n\n"
+        
+        buttons = [
+            [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
+            [
+                {"text": "✅ Approve & Add", "callback_data": f"approve_partner:{proposal.id}"},
+                {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+            ]
+        ]
+        
+        await self.adapter.send_message(
+            self.bot_id,
+            user.external_id,
+            preview_msg,
+            reply_markup={"inline_keyboard": buttons},
+            parse_mode="HTML"
         )
