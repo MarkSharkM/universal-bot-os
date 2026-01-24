@@ -326,6 +326,10 @@ app.include_router(sentry_test.router, tags=["sentry"])
 from app.api.v1 import product_monitoring
 app.include_router(product_monitoring.router, prefix="/api/v1/admin", tags=["monitoring"])
 
+# User Analytics (separate module)
+from app.api.v1 import user_analytics
+app.include_router(user_analytics.router, prefix="/api/v1/admin", tags=["user-analytics"])
+
 # Mount static files (must be after routers to avoid conflicts)
 import pathlib
 static_dir = pathlib.Path(__file__).parent / "static"

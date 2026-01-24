@@ -72,6 +72,11 @@ function showTab(tabName) {
             loadProductMonitoring();
         }
     }
+    if (tabName === 'users') {
+        if (currentBotId && window.initUsersTab) {
+            initUsersTab();
+        }
+    }
 }
 
 // Global Bot Selector Logic
@@ -141,6 +146,7 @@ function onGlobalBotChange() {
         if (tabId === 'partners' && currentBotId) loadPartners();
         if (tabId === 'ai' && currentBotId) loadAIConfig();
         if (tabId === 'stats' && currentBotId) loadStats();
+        if (tabId === 'users' && currentBotId && window.initUsersTab) initUsersTab();
         if (tabId === 'monitoring' && currentBotId) loadProductMonitoring();
     }
 }
