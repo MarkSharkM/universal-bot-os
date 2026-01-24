@@ -596,8 +596,38 @@ async def _handle_payment(
         logger.info(f"Payment received: payload={invoice_payload}, user_id={user.id}")
         
         # Verify it's a buy_top payment
+                # Verify it's a buy_top payment
         if invoice_payload.startswith('buy_top_'):
             try:
+                # LOG PAYMENT Analytics first (timestamped record)
+                from app.models.business_data import BusinessData
+                import datetime
+                
+                # Extract amount if available (default 1)
+                amount = payment.get('total_amount', 1) 
+                # Note: Telegram Stars amount is integer (1 star = 1 amount), 
+                # but legacy currencies use cents (100 = 1.00). 
+                # Assuming stars (XTR) based on logic below.
+                
+                payment_log = BusinessData(
+                    bot_id=bot_id,
+                    data_type='payment',
+                    data={
+                        'event': 'buy_top_success',
+                        'user_id': str(user.id),
+                        'external_id': user.external_id,
+                        'amount': amount,
+                        'currency': payment.get('currency', 'XTR'),
+                        'payload': invoice_payload,
+                        'telegram_payment_charge_id': payment.get('telegram_payment_charge_id'),
+                        'provider_payment_charge_id': payment.get('provider_payment_charge_id'),
+                        'timestamp': datetime.datetime.utcnow().isoformat()
+                    }
+                )
+                db.add(payment_log)
+                db.commit() # Commit log immediately
+                logger.info(f"Payment logged to BusinessData for user {user.id}")
+
                 # Send confirmation FIRST (don't block on DB commit)
                 translation_service = TranslationService(db, bot_id)
                 lang = translation_service.detect_language(user.language_code)
