@@ -447,68 +447,78 @@ async function handleBuyTop(price) {
                 // Track event
                 trackEvent('top_purchase_success');
 
-                // Reload app data to get updated TOP status
-                // IMPORTANT: Wait 1.5 seconds for webhook to process payment and update DB
-                // Otherwise we get race condition - loadAppData returns old status
-                setTimeout(() => {
-                if (typeof loadAppData === 'function') {
-                    loadAppData(true).then(() => {
-                        console.log('App data reloaded after payment, re-rendering...');
-                        // Update AppState with new TOP status
+                // Reload app data with retry logic to handle webhook race condition
+                // Webhook needs time to process payment and update DB
+                const reloadWithRetry = async (attempt = 1, maxAttempts = 5) => {
+                    console.log(`[TOP Purchase] Attempt ${attempt}/${maxAttempts} to load updated status...`);
+                    
+                    try {
+                        if (typeof loadAppData === 'function') {
+                            await loadAppData(true);
+                        }
+                        
                         const appData = AppState.getAppData();
-                        if (appData && appData.user) {
-                            const topStatus = appData.user.top_status || 'locked';
-                            AppState.setTopLocked(topStatus === 'locked');
-                            console.log('Updated TOP status in AppState:', topStatus);
+                        const topStatus = appData?.user?.top_status || 'locked';
+                        console.log(`[TOP Purchase] Attempt ${attempt}: top_status = ${topStatus}`);
+                        
+                        // Check if TOP is now unlocked
+                        if (topStatus === 'open' || topStatus === 'unlocked') {
+                            console.log('✅ TOP status confirmed unlocked!');
+                            AppState.setTopLocked(false);
+                            renderAfterPayment();
+                            return;
                         }
-
-                        // Re-render ALL components to show updated state
-                        const currentPage = AppState.getCurrentPage() || 'home';
-                        console.log('Current page:', currentPage);
-
-                        // Always re-render home page (has Primary Action Card)
-                        if (typeof Render !== 'undefined' && Render.renderHome) {
-                            Render.renderHome();
-                        } else if (typeof renderHome === 'function') {
-                            renderHome();
-                        }
-
-                        // Re-render TOP page if we're on it
-                        if (currentPage === 'top') {
-                            if (typeof Render !== 'undefined' && Render.renderTop) {
-                                Render.renderTop();
-                            } else if (typeof renderTop === 'function') {
-                                renderTop();
+                        
+                        // Still locked - retry if attempts left
+                        if (attempt < maxAttempts) {
+                            console.log(`[TOP Purchase] Still locked, retrying in 1s...`);
+                            setTimeout(() => reloadWithRetry(attempt + 1, maxAttempts), 1000);
+                        } else {
+                            // Max attempts reached - force unlock locally (payment was successful!)
+                            console.warn('[TOP Purchase] Max attempts reached, forcing unlock locally');
+                            AppState.setTopLocked(false);
+                            // Update local appData to show unlocked
+                            if (appData && appData.user) {
+                                appData.user.top_status = 'open';
+                                AppState.setAppData(appData);
                             }
+                            renderAfterPayment();
                         }
-
-                        // Re-render Primary Action Card (shows on home page)
-                        // Always re-render home page (has Hero with TOP status)
-                        if (typeof Pages !== 'undefined' && Pages.Home && Pages.Home.render) {
-                            Pages.Home.render();
-                            console.log('✅ Home page re-rendered with updated TOP status');
+                    } catch (err) {
+                        console.error('[TOP Purchase] Error loading data:', err);
+                        if (attempt < maxAttempts) {
+                            setTimeout(() => reloadWithRetry(attempt + 1, maxAttempts), 1000);
+                        } else {
+                            // Force unlock anyway - payment was successful
+                            AppState.setTopLocked(false);
+                            renderAfterPayment();
                         }
-
-                        console.log('✅ UI updated after payment');
-                    }).catch(err => {
-                        console.error('Error reloading app data after payment:', err);
-                        // Force re-render even if loadAppData fails
-                        if (typeof Render !== 'undefined' && Render.renderApp) {
-                            Render.renderApp();
-                        } else if (typeof renderApp === 'function') {
-                            renderApp();
-                        }
-                    });
-                } else {
-                    console.warn('loadAppData function not available, forcing re-render');
-                    // Fallback: force re-render
-                    if (typeof Render !== 'undefined' && Render.renderApp) {
-                        Render.renderApp();
-                    } else if (typeof renderApp === 'function') {
-                        renderApp();
                     }
-                }
-                }, 1500); // Wait 1.5s for webhook to update DB
+                };
+                
+                const renderAfterPayment = () => {
+                    const currentPage = AppState.getCurrentPage() || 'home';
+                    console.log('[TOP Purchase] Re-rendering, current page:', currentPage);
+                    
+                    // Re-render current page
+                    if (currentPage === 'top') {
+                        if (typeof Pages !== 'undefined' && Pages.Top && Pages.Top.render) {
+                            Pages.Top.render();
+                        } else if (typeof Render !== 'undefined' && Render.renderTop) {
+                            Render.renderTop();
+                        }
+                    }
+                    
+                    // Also update home page components
+                    if (typeof Pages !== 'undefined' && Pages.Home && Pages.Home.render) {
+                        Pages.Home.render();
+                    }
+                    
+                    console.log('✅ UI updated after TOP purchase');
+                };
+                
+                // Start retry loop after initial 1s delay
+                setTimeout(() => reloadWithRetry(1, 5), 1000);
             } else if (status === 'failed' || status === 'cancelled') {
                 const translations = AppState.getAppData()?.translations || {};
                 // Payment failed or cancelled
