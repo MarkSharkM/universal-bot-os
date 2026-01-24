@@ -127,7 +127,7 @@ async def tonconnect_manifest(
     manifest_path = app_dir / "static" / "tonconnect-manifest.json"
     
     # Defaults
-    bot_name = os.getenv("PROJECT_NAME", "EarnHub")
+    bot_name = os.getenv("PROJECT_NAME", "Bot")
     
     # If bot_id is provided, try to find that specific bot
     if bot_id:
@@ -898,6 +898,9 @@ async def get_mini_app_data(
             import re
             bot_username = re.sub(r'[^a-zA-Z0-9_]', '', bot.name).strip().lower()
         
+        # Get bot name for share text (dynamic, no hardcode)
+        bot_name = bot_config.get('name') or bot_config.get('first_name') or bot_config.get('username') or bot.name or 'Bot'
+        
         # Group all UI translations
         ui_translations = {
             # Navigation
@@ -964,9 +967,9 @@ async def get_mini_app_data(
             "share_btn": translation_service.get_translation('share_btn', user_lang),
             
             # Footer
-            "about_earnhub": translation_service.get_translation('about_earnhub', user_lang),
-            "footer_about_text": translation_service.get_translation('footer_about_text', user_lang),
-            "footer_disclaimer": translation_service.get_translation('footer_disclaimer', user_lang),
+            "about_earnhub": translation_service.get_translation('about_earnhub', user_lang, {'platform_name': bot_name}),
+            "footer_about_text": translation_service.get_translation('footer_about_text', user_lang, {'platform_name': bot_name}),
+            "footer_disclaimer": translation_service.get_translation('footer_disclaimer', user_lang, {'platform_name': bot_name}),
             "terms_of_use": translation_service.get_translation('terms_of_use', user_lang),
             "privacy_policy": translation_service.get_translation('privacy_policy', user_lang),
             "support": translation_service.get_translation('support', user_lang),
@@ -1068,8 +1071,8 @@ async def get_mini_app_data(
             "activate_7_note": translation_service.get_translation('activate_7_note', user_lang),
             
             # Share
-            "share_text_pro": translation_service.get_translation('share_text_pro', user_lang),
-            "share_text_starter": translation_service.get_translation('share_text_starter', user_lang),
+            "share_text_pro": translation_service.get_translation('share_text_pro', user_lang, {'bot_name': bot_name}),
+            "share_text_starter": translation_service.get_translation('share_text_starter', user_lang, {'bot_name': bot_name}),
             "share_popup_text": translation_service.get_translation('share_popup_text', user_lang),
             "close_btn": translation_service.get_translation('close_btn', user_lang),
             

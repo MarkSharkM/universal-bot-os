@@ -202,11 +202,14 @@ class CommandService:
         # 1. Check for TGR Link (Saved by user)
         tgr_link = user.custom_data.get('tgr_link') if user.custom_data else None
 
+        # Get bot name for share text (dynamic, no hardcode)
+        bot_name = self._get_bot_config().get('name') or self._get_bot_config().get('username') or 'Bot'
+        
         if tgr_link:
             # Use share_text_pro - unified text for all share types (TGR and standard)
-            share_text = self.translation_service.get_translation('share_text_pro', lang)
+            share_text = self.translation_service.get_translation('share_text_pro', lang, {'bot_name': bot_name})
             if not share_text or share_text == 'share_text_pro':
-                 share_text = "🚀 Долучайся до EarnHubAggregatorBot — отримуй зірки за активність!" if lang == 'uk' else "🚀 Join EarnHubAggregatorBot — earn Stars for your activity!"
+                 share_text = f"🚀 Join {bot_name} — earn Stars for your activity!"
             # Return TGR link and unified text
             return tgr_link, share_text
 
@@ -214,7 +217,7 @@ class CommandService:
         referral_link = self.referral_service.generate_referral_link(user.id)
         
         # Use share_text_pro for standard links too (unified message)
-        share_text = self.translation_service.get_translation('share_text_pro', lang)
+        share_text = self.translation_service.get_translation('share_text_pro', lang, {'bot_name': bot_name})
         
         # Fallback to old 'share_referral' logic if share_text_pro missing
         if not share_text or share_text == 'share_text_pro':

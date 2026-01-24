@@ -1,10 +1,11 @@
 # 🤖 Налаштування Telegram Бота
 
-## 📋 Інформація про тестовий бот
+## 📋 Інформація
 
-- **Bot Username:** `EarnHubAggregatorBot`
-- **Bot Token:** `8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww`
 - **Deployment URL:** `https://api-production-57e8.up.railway.app`
+- **Admin Panel:** `https://api-production-57e8.up.railway.app/admin`
+
+> ⚠️ **Токени:** Див. `../AI_DOCS/01_AI_AGENT_QUICK_START/HOW_TO_VIEW_LOGS.md`
 
 ---
 
@@ -13,24 +14,26 @@
 ### Варіант A: Через Admin UI (рекомендовано)
 
 1. Відкрий Admin Panel: `https://api-production-57e8.up.railway.app/admin`
-2. Перейди на вкладку **"Bots"**
-3. Натисни **"+ Create Bot"**
-4. Заповни форму:
-   - **Name:** `EarnHubAggregatorBot` (або будь-яка назва)
+2. Залогінься (credentials в Railway env vars)
+3. Перейди на вкладку **"Bots"**
+4. Натисни **"+ Create Bot"**
+5. Заповни форму:
+   - **Name:** назва бота
    - **Platform:** `telegram`
-   - **Token:** `8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww`
+   - **Token:** токен від @BotFather
    - **Default Language:** `uk` (або інша мова)
-5. Натисни **"Create"**
+6. Натисни **"Create"**
 
 ### Варіант B: Через API (curl)
 
 ```bash
 curl -X POST https://api-production-57e8.up.railway.app/api/v1/admin/bots \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "name": "EarnHubAggregatorBot",
+    "name": "YourBotName",
     "platform_type": "telegram",
-    "token": "8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww",
+    "token": "YOUR_BOT_TOKEN",
     "default_lang": "uk",
     "config": {}
   }'
@@ -44,18 +47,12 @@ curl -X POST https://api-production-57e8.up.railway.app/api/v1/admin/bots \
 
 Після створення бота, налаштуй webhook, щоб Telegram надсилав оновлення на наш сервер.
 
-### Варіант A: Через Telegram Bot API (curl)
+### Через Telegram Bot API (curl)
 
 ```bash
-curl -X POST "https://api.telegram.org/bot8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww/setWebhook" \
-  -d "url=https://api-production-57e8.up.railway.app/api/v1/webhooks/telegram/8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww"
-```
-
-### Варіант B: Через браузер
-
-Відкрий в браузері:
-```
-https://api.telegram.org/bot8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww/setWebhook?url=https://api-production-57e8.up.railway.app/api/v1/webhooks/telegram/8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww
+# Замініть YOUR_BOT_TOKEN на реальний токен
+curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook" \
+  -d "url=https://api-production-57e8.up.railway.app/api/v1/webhooks/telegram/YOUR_BOT_TOKEN"
 ```
 
 **Очікувана відповідь:**
@@ -74,29 +71,14 @@ https://api.telegram.org/bot8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww/setWe
 ### 3.1 Перевір webhook
 
 ```bash
-curl "https://api.telegram.org/bot8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww/getWebhookInfo"
-```
-
-**Очікувана відповідь:**
-```json
-{
-  "ok": true,
-  "result": {
-    "url": "https://api-production-57e8.up.railway.app/api/v1/webhooks/telegram/8067111045:AAFTM3kZEFrQvFnRnVI76WziDu2IHnix3ww",
-    "has_custom_certificate": false,
-    "pending_update_count": 0
-  }
-}
+curl "https://api.telegram.org/botYOUR_BOT_TOKEN/getWebhookInfo"
 ```
 
 ### 3.2 Відправ тестове повідомлення
 
-1. Відкрий бота в Telegram: `@EarnHubAggregatorBot`
-2. Надішли будь-яке повідомлення (наприклад, `/start`)
-3. Перевір логи в Railway:
-   - Відкрий Railway Dashboard
-   - Перейди в сервіс `api` → `Deploy Logs`
-   - Мають з'явитися записи про обробку повідомлення
+1. Відкрий бота в Telegram
+2. Надішли `/start`
+3. Перевір логи в Railway Dashboard → Deploy Logs
 
 ### 3.3 Перевір в Admin UI
 
