@@ -26,17 +26,13 @@ PARTNER_ANALYSIS_PROMPT = """
 ### ІНСТРУКЦІЇ:
 
 1. ВІЗУАЛЬНИЙ АНАЛІЗ: Проскануй зображення на наявність:
-   - Program Name: Головна назва бота або сервісу.
+   - Program Name: Головна назва бота або сервісу (видима назва на скріні).
    - Bot Username: Юзернейм, що починається з '@' (наприклад, @GoGift_bot).
-   - Referral Link: ПОВНЕ реферальне посилання, якщо видиме (наприклад, https://t.me/m5bank_bot?start=_tgr_JUV1QD8zMDUy)
-     * Якщо посилання НЕ видиме на скріні - залиш ПОРОЖНІМ рядком ""
-     * НЕ генеруй посилання з username - ТІЛЬКИ те що бачиш на скріні!
-   - Commission: Відсоток комісії (ЛИШЕ ЧИСЛО, наприклад: 30, 20, 15, НЕ "30%")
-   - Duration: Тривалість партнерської програми в днях (число: 365, 30, 9999 для безстрокової)
-     * Якщо не вказано - використовуй 9999
-   - Average Income: Середній дохід користувача (число, якщо видно, інакше 0)
    - Context: Зрозумій суть сервісу, щоб написати якісний опис.
    - Icon/Emoji: Якщо бачиш емодзі/іконку бота - включи її в опис (наприклад, 🎁, 💎, 🏦).
+   
+   ВАЖЛИВО: НЕ витягуй referral_link, commission, duration, average_income зі скріна!
+   Адмін додасть ці дані вручну через Edit.
 
 2. ГЕНЕРАЦІЯ ТА ПЕРЕКЛАД КОНТЕНТУ:
    Створи структурований об'єкт для 5 мов: Українська (uk), Англійська (en), Російська (ru), Німецька (de), Іспанська (es).
@@ -61,10 +57,6 @@ PARTNER_ANALYSIS_PROMPT = """
 {
   "program_name": "String",
   "bot_username": "@String",
-  "referral_link": "https://t.me/... or empty string",
-  "commission": 30,
-  "duration": 365,
-  "average_income": 0,
   "translations": {
     "uk": {
       "title": "String",
@@ -202,6 +194,8 @@ class PartnerBotService:
             
             program_name = escape(data.get('program_name', 'N/A'))
             bot_username = escape(data.get('bot_username', 'N/A'))
+            
+            # These fields are added manually by admin via Edit
             commission = data.get('commission', 0)
             duration = data.get('duration', 9999)
             average_income = data.get('average_income', 0)
@@ -216,8 +210,9 @@ class PartnerBotService:
             preview_msg = (
                 f"✅ <b>Analysis Complete!</b>\n\n"
                 f"👤 <b>Name:</b> {program_name}\n"
-                f"🔗 <b>Username:</b> {bot_username}\n"
-                f"🔗 <b>Link:</b> {escape(referral_link[:50]) if referral_link else 'Not provided'}...\n"
+                f"🔗 <b>Username:</b> {bot_username}\n\n"
+                f"<b>📊 Фінансові дані (додай через Edit):</b>\n"
+                f"🔗 <b>Link:</b> {escape(referral_link[:50]) if referral_link else '❌ Не вказано'}...\n"
                 f"💰 <b>Commission:</b> {commission}%\n"
                 f"⏳ <b>Duration:</b> {duration} days\n"
                 f"📊 <b>Avg Income:</b> {average_income}\n"
@@ -359,17 +354,30 @@ class PartnerBotService:
         # Create Real Partner Record in TARGET bot
         translations = data.get("translations", {})
         
-        # Calculate ROI: (commission / 100) * average_income
-        commission = float(data.get("commission", 0))
-        average_income = float(data.get("average_income", 0))
-        roi_score = round((commission / 100) * average_income, 1) if commission and average_income else 0.0
-        
-        # Get referral_link from AI (if extracted from screenshot) or generate from username
+        # Validate required fields
         referral_link = data.get("referral_link", "").strip()
         if not referral_link:
-            # Fallback: generate from username if not provided by AI
-            bot_username = data.get('bot_username', '').replace('@', '')
-            referral_link = f"https://t.me/{bot_username}" if bot_username else ""
+            await self.adapter.send_message(
+                self.bot_id,
+                user.external_id,
+                "❌ <b>Referral Link відсутній!</b>\n\nДодайте через Edit:\n<code>referral_link: https://t.me/...</code>",
+                parse_mode="HTML"
+            )
+            return
+        
+        commission = float(data.get("commission", 0))
+        if not commission:
+            await self.adapter.send_message(
+                self.bot_id,
+                user.external_id,
+                "❌ <b>Commission відсутня!</b>\n\nДодайте через Edit:\n<code>commission: 30</code>",
+                parse_mode="HTML"
+            )
+            return
+        
+        # Calculate ROI: (commission / 100) * average_income
+        average_income = float(data.get("average_income", 0))
+        roi_score = round((commission / 100) * average_income, 1) if commission and average_income else 0.0
         
         partner_data = {
             "bot_name": data.get("program_name"),  # Main name
@@ -605,8 +613,9 @@ class PartnerBotService:
         preview_msg = (
             f"✅ <b>Updated Preview</b>\n\n"
             f"👤 <b>Name:</b> {program_name}\n"
-            f"🔗 <b>Username:</b> {bot_username}\n"
-            f"🔗 <b>Link:</b> {escape(referral_link[:50]) if referral_link else 'Not provided'}...\n"
+            f"🔗 <b>Username:</b> {bot_username}\n\n"
+            f"<b>📊 Фінансові дані:</b>\n"
+            f"🔗 <b>Link:</b> {escape(referral_link[:50]) if referral_link else '❌ Не вказано'}...\n"
             f"💰 <b>Commission:</b> {commission}%\n"
             f"⏳ <b>Duration:</b> {duration} days\n"
             f"📊 <b>Avg Income:</b> {average_income}\n"
