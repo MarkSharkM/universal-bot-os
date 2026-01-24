@@ -31,9 +31,8 @@ async function saveAIConfig() {
     };
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}`, {
+        const res = await authFetch(`${API_BASE}/bots/${botId}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 

@@ -23,6 +23,103 @@ function setCache(key, data) {
     cache[key] = { data, timestamp: Date.now(), ttl: cache[key]?.ttl || 60000 };
 }
 
+// Authentication Logic
+const AUTH = {
+    token: localStorage.getItem('admin_token'),
+
+    setToken(token) {
+        this.token = token;
+        localStorage.setItem('admin_token', token);
+    },
+
+    logout() {
+        this.token = null;
+        localStorage.removeItem('admin_token');
+        showLoginModal();
+    },
+
+    isAuthenticated() {
+        return !!this.token;
+    },
+
+    getHeaders() {
+        const headers = { 'Content-Type': 'application/json' };
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+        return headers;
+    }
+};
+
+async function authFetch(url, options = {}) {
+    // Default headers
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+    };
+
+    if (AUTH.token) {
+        headers['Authorization'] = `Bearer ${AUTH.token}`;
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers
+    });
+
+    if (response.status === 401 || response.status === 403) {
+        showMessage('global-message', 'Session expired. Please login.', 'error');
+        AUTH.logout();
+        throw new Error('Unauthorized');
+    }
+
+    return response;
+}
+
+// Login UI Handlers
+function showLoginModal() {
+    const modal = document.getElementById('login-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function hideLoginModal() {
+    const modal = document.getElementById('login-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+
+    errorEl.style.display = 'none';
+
+    try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            AUTH.setToken(data.access_token);
+            hideLoginModal();
+            showMessage('global-message', 'Logged in successfully', 'success');
+            setTimeout(() => location.reload(), 500); // Reload to refresh state
+        } else {
+            const err = await res.json();
+            errorEl.textContent = err.detail || 'Login failed';
+            errorEl.style.display = 'block';
+        }
+    } catch (err) {
+        console.error(err);
+        errorEl.textContent = 'Connection error';
+        errorEl.style.display = 'block';
+    }
+}
+
 // Global Message Handler
 function showMessage(elementId, message, type = 'success') {
     const el = document.getElementById(elementId);
