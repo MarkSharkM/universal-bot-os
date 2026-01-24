@@ -2,7 +2,7 @@
 AI Service - Multi-tenant AI integration
 Supports OpenAI and Anthropic with user language awareness
 """
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 from sqlalchemy.orm import Session
 from uuid import UUID
 import logging
@@ -134,7 +134,7 @@ class AIService:
         user_id: UUID,
         user_message: str,
         user_lang: Optional[str] = None,
-        image_url: Optional[str] = None
+        image_url: Optional[Union[str, List[str]]] = None
     ) -> str:
         """
         Generate AI response with context and language awareness.
@@ -144,7 +144,7 @@ class AIService:
             user_id: User UUID
             user_message: User's message
             user_lang: User's language code
-            image_url: Optional URL to image for analysis
+            image_url: Optional URL(s) to image(s) for analysis (str or list of str)
         
         Returns:
             AI-generated response
@@ -175,10 +175,16 @@ class AIService:
         
         # Build new user message content
         if image_url:
-            user_content = [
-                {"type": "text", "text": user_message},
-                {"type": "image_url", "image_url": {"url": image_url}}
-            ]
+            # Support both single URL (str) and multiple URLs (list)
+            if isinstance(image_url, list):
+                user_content = [{"type": "text", "text": user_message}]
+                for url in image_url:
+                    user_content.append({"type": "image_url", "image_url": {"url": url}})
+            else:
+                user_content = [
+                    {"type": "text", "text": user_message},
+                    {"type": "image_url", "image_url": {"url": image_url}}
+                ]
         else:
             user_content = user_message
         
