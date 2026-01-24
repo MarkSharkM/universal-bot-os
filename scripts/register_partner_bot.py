@@ -4,7 +4,7 @@ load_dotenv() # Load .env file
 
 from app.core.database import SessionLocal
 from app.models.bot import Bot
-from app.utils.encryption import encrypt_token
+from app.utils.encryption import encrypt_token, hash_token
 
 def register_bot():
     db = SessionLocal()
@@ -20,10 +20,13 @@ def register_bot():
             return
 
         encrypted_token = encrypt_token(token)
+        token_hash_value = hash_token(token)  # SHA-256 hash for fast lookup
+        
         bot = Bot(
             name="HubPartnerbot",
             platform_type="telegram",
-            token=encrypted_token, 
+            token=encrypted_token,
+            token_hash=token_hash_value,  # Add hash for O(1) lookup
             default_lang="uk",
             config={
                 "role": "admin_helper",
@@ -38,6 +41,7 @@ def register_bot():
         db.add(bot)
         db.commit()
         print(f"Bot created: {bot.id}")
+        print(f"Token hash: {token_hash_value[:16]}... (for debugging)")
     except Exception as e:
         print(f"Error: {e}")
     finally:

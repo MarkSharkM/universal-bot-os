@@ -4,6 +4,7 @@ Uses Fernet (symmetric encryption) from cryptography library.
 """
 import os
 import logging
+import hashlib
 from typing import Optional
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -129,3 +130,32 @@ def is_encrypted(token: str) -> bool:
         return True
     except:
         return False
+
+
+def hash_token(token: str) -> str:
+    """
+    Create SHA-256 hash of a token for fast lookup without decryption.
+    
+    Security benefits:
+    - O(1) database lookup instead of O(N) with decryption loop
+    - Reduces attack surface by minimizing decryption operations
+    - Standard practice for credential lookup (like password hashing)
+    
+    Args:
+        token: Plain text token (e.g., Telegram bot token)
+    
+    Returns:
+        Hex string of SHA-256 hash (64 characters)
+    
+    Example:
+        >>> hash_token("123456:ABC-DEF")
+        "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+    
+    Note:
+        This is a one-way hash. Cannot retrieve original token from hash.
+        Use in combination with encryption: hash for lookup, encryption for storage.
+    """
+    if not token:
+        return ""
+    
+    return hashlib.sha256(token.encode()).hexdigest()

@@ -16,7 +16,8 @@ class Bot(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     platform_type = Column(String(50), nullable=False)  # telegram, web, whatsapp
-    token = Column(String(500), nullable=False)  # Encrypted bot token
+    token = Column(String(500), nullable=False)  # Encrypted bot token (AES-256)
+    token_hash = Column(String(64), nullable=True, unique=True, index=True)  # SHA-256 hash for O(1) lookup
     name = Column(String(200), nullable=False)
     config = Column(JSON, nullable=False, default=dict)  # AI prompts, colors, keys, settings
     default_lang = Column(String(10), nullable=False, default="uk")  # uk, en, ru, pl, de

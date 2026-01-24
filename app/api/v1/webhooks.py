@@ -45,21 +45,34 @@ async def telegram_webhook(
         OK response
     """
     try:
-        # Get bot by token (need to decrypt tokens since they're encrypted in DB)
-        from app.utils.encryption import decrypt_token
-        bot = None
-        all_bots = db.query(Bot).filter(Bot.platform_type == "telegram", Bot.is_active == True).all()
+        # Get bot by token hash (O(1) lookup instead of O(N) decryption loop)
+        # Security: Hash incoming token and lookup in indexed column
+        # Only decrypt when hash matches (typically 1 bot, not all bots)
+        from app.utils.encryption import decrypt_token, hash_token
         
-        for b in all_bots:
-            try:
-                decrypted_token = decrypt_token(b.token)
-                if decrypted_token == bot_token:
-                    bot = b
-                    break
-            except Exception as e:
-                # Skip bots with invalid encryption
-                logger.warning(f"Failed to decrypt token for bot {b.id}: {e}")
-                continue
+        token_hash_value = hash_token(bot_token)
+        bot = db.query(Bot).filter(
+            Bot.token_hash == token_hash_value,
+            Bot.platform_type == "telegram",
+            Bot.is_active == True
+        ).first()
+        
+        # Fallback for bots without token_hash (migration in progress)
+        # TODO: Remove this fallback after all bots migrated
+        if not bot:
+            logger.warning(f"Bot not found by hash, trying decryption fallback for token: {bot_token[:10]}...")
+            all_bots = db.query(Bot).filter(Bot.platform_type == "telegram", Bot.is_active == True).all()
+            
+            for b in all_bots:
+                try:
+                    decrypted_token = decrypt_token(b.token)
+                    if decrypted_token == bot_token:
+                        bot = b
+                        logger.warning(f"Bot {b.id} found via fallback - needs token_hash migration!")
+                        break
+                except Exception as e:
+                    logger.warning(f"Failed to decrypt token for bot {b.id}: {e}")
+                    continue
         
         if not bot:
             logger.warning(f"Bot not found for token: {bot_token[:10]}...")
