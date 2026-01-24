@@ -167,21 +167,23 @@ class PartnerBotService:
         photos.append(photo_data)
         photo_count_before_wait = len(photos)
         
-        # Save back to Redis with 10 second TTL
-        cache.set(group_key, photos, ttl=10)
+        # Save back to Redis with 30 second TTL (photos can arrive slowly)
+        cache.set(group_key, photos, ttl=30)
         
-        # Wait for more photos
-        await asyncio.sleep(2.5)
+        # Wait for more photos (increased to 5 seconds for slow uploads)
+        await asyncio.sleep(5)
         
         # Try to acquire processing lock (only one processor should run)
         if cache.get(lock_key):
             # Another handler is already processing
+            logger.info(f"Media group {media_group_id}: Lock exists, skipping (remembered count={photo_count_before_wait})")
             return
         
         # Check if more photos arrived during wait
         current_data = cache.get(group_key)
         if not current_data:
             # Already processed by another handler
+            logger.info(f"Media group {media_group_id}: Already processed, skipping")
             return
             
         current_photos = current_data if isinstance(current_data, list) else json.loads(current_data)
@@ -189,10 +191,12 @@ class PartnerBotService:
         # Only process if no new photos arrived since our wait started
         if len(current_photos) > photo_count_before_wait:
             # New photos arrived - let the last one process
+            logger.info(f"Media group {media_group_id}: New photos arrived ({photo_count_before_wait} → {len(current_photos)}), waiting")
             return
         
         # Acquire lock and process
-        cache.set(lock_key, "processing", ttl=60)
+        logger.info(f"Media group {media_group_id}: Processing {len(current_photos)} photos")
+        cache.set(lock_key, "processing", ttl=120)
         cache.delete(group_key)
         
         await self.adapter.send_message(
@@ -596,12 +600,18 @@ class PartnerBotService:
     async def handle_text_edit(self, user: User, text: str):
         """Handle text-based editing of proposal"""
         # Find latest pending proposal for this user
-        proposal = self.db.query(BusinessData).filter(
+        # Simple query without JSONB operators (more compatible)
+        proposals = self.db.query(BusinessData).filter(
             BusinessData.bot_id == self.bot_id,
-            BusinessData.data_type == 'partner_proposal',
-            BusinessData.data['status'].astext == 'pending',
-            BusinessData.data['user_id'].astext == str(user.id)
-        ).order_by(BusinessData.created_at.desc()).first()
+            BusinessData.data_type == 'partner_proposal'
+        ).order_by(BusinessData.created_at.desc()).all()
+        
+        # Filter in Python for status and user_id
+        proposal = None
+        for p in proposals:
+            if p.data.get('status') == 'pending' and p.data.get('user_id') == str(user.id):
+                proposal = p
+                break
         
         if not proposal:
             await self.adapter.send_message(
