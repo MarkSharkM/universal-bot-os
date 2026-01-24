@@ -30,12 +30,18 @@ PARTNER_ANALYSIS_PROMPT = """
    - Bot Username: Юзернейм, що починається з '@' (наприклад, @GoGift_bot).
    - Commission: Відсоток або сума винагороди (наприклад, "10%", "0.5 TON").
    - Context: Зрозумій суть сервісу, щоб написати якісний опис.
+   - Icon/Emoji: Якщо бачиш емодзі/іконку бота - включи її в опис (наприклад, 🎁, 💎, 🏦).
 
 2. ГЕНЕРАЦІЯ ТА ПЕРЕКЛАД КОНТЕНТУ:
-   Створи структурований об'єкт для 5 мов: Англійська (en), Німецька (de), Іспанська (es), Французька (fr), Польська (pl).
+   Створи структурований об'єкт для 6 мов: Українська (uk), Англійська (en), Російська (ru), Німецька (de), Іспанська (es), Французька (fr).
+   
+   ВАЖЛИВО: Обов'язково додавай емодзі/іконки в описи для візуальної привабливості!
+   
    Для КОЖНОЇ мови згенеруй:
    - title: Назва програми (транслітерація або переклад, якщо доречно).
    - description: Привабливий маркетинговий опис (1-2 речення) на основі тексту зі скріншоту.
+     * ОБОВ'ЯЗКОВО включай емодзі в опис (🎁, 💎, 🏦, 🎯, 💰, ⭐, 🚀, etc.)
+     * Формат: "Emoji Короткий опис що це Emoji"
    - terms: Коротке резюме умов винагороди (наприклад, "Отримуйте 10% від кожного реферала безстроково").
 
 3. СУВОРИЙ ФОРМАТ ВИВОДУ:
@@ -51,15 +57,33 @@ PARTNER_ANALYSIS_PROMPT = """
   "bot_username": "@String",
   "commission": "String",
   "translations": {
-    "en": {
+    "uk": {
       "title": "String",
-      "description": "String",
+      "description": "String with Emoji 🎁",
       "terms": "String"
     },
-    # ... other languages
+    "en": {
+      "title": "String",
+      "description": "String with Emoji 🎁",
+      "terms": "String"
+    },
+    "ru": {
+      "title": "String", 
+      "description": "String with Emoji 🎁",
+      "terms": "String"
+    },
+    "de": {...},
+    "es": {...},
+    "fr": {...}
   }
 }
-Please ensure strict JSON syntax.
+
+ПРИКЛАД ХОРОШОГО ОПИСУ:
+"🎁 Подарунки за активність" (UK)
+"🎁 Gifts for activity" (EN)
+"💎 Зірки за транзакції 🏦" (UK)
+
+Please ensure strict JSON syntax and ALWAYS include emojis in descriptions!
 """
 
 class PartnerBotService:
@@ -185,8 +209,10 @@ class PartnerBotService:
             
             # Add all languages
             lang_flags = {
+                'uk': '🇺🇦',
                 'en': '🇬🇧',
-                'de': '🇩🇪', 
+                'ru': '🇷🇺',
+                'de': '🇩🇪',
                 'es': '🇪🇸',
                 'fr': '🇫🇷',
                 'pl': '🇵🇱'
@@ -259,28 +285,32 @@ class PartnerBotService:
         # }
         
         # Map AI data to Partner Schema
+        # IMPORTANT: Store translations as FLAT keys (description_en, description_de, etc.)
+        # NOT as nested object - this matches existing partners format
+        translations = data.get("translations", {})
+        
         partner_data = {
-            "name": data.get("program_name"),
+            "bot_name": data.get("program_name"),  # Main name
             "category": "NEW",
-            "referral_link": f"https://t.me/{data.get('bot_username').replace('@', '')}",
+            "referral_link": f"https://t.me/{data.get('bot_username', '').replace('@', '')}",
             "commission": data.get("commission"),
             "active": "Yes",
             "verified": "Yes",
             "duration": "9999",
-            "roi": 0,
-            "created_at": str(asyncio.get_event_loop().time()), # simplistic timestamp
-            # Translations
+            "roi_score": 0,
+            "gpt": "",
+            "short_link": "",
+            # Flat translation structure (matches existing partners)
+            # Primary description (Ukrainian as main)
+            "description": translations.get("uk", {}).get("description", translations.get("en", {}).get("description", "")),
+            # All language descriptions
+            "description_en": translations.get("en", {}).get("description", ""),
+            "description_ru": translations.get("ru", {}).get("description", translations.get("en", {}).get("description", "")),
+            "description_de": translations.get("de", {}).get("description", ""),
+            "description_es": translations.get("es", {}).get("description", ""),
+            "description_fr": translations.get("fr", {}).get("description", ""),
+            "description_pl": translations.get("pl", {}).get("description", ""),
         }
-        
-        # Add flat translations (based on how frontend/admin usage expects it)
-        # Assuming admin stores them as description_{lang} keys or similar.
-        # Let's check admin.py listing... it seemed to return raw data.
-        # I will store structured translations if possible, or flat if that's the convention.
-        # The AI schema returns "translations": { "en": {...} }
-        # I'll store it as "translations" object inside data.
-        partner_data["translations"] = data.get("translations")
-        partner_data["program_name"] = data.get("program_name")
-        partner_data["bot_username"] = data.get("bot_username")
         
         new_partner = BusinessData(
             bot_id=self.bot_id,
@@ -338,13 +368,16 @@ class PartnerBotService:
             f"• name: [назва програми]\n"
             f"• username: @username\n"
             f"• commission: 30%\n"
-            f"• en_title: [English title]\n"
-            f"• en_description: [English desc]\n"
-            f"• de_title, es_title, fr_title, pl_title\n"
-            f"• de_description, es_description, fr_description, pl_description\n\n"
+            f"• uk_title, uk_description, uk_terms\n"
+            f"• en_title, en_description, en_terms\n"
+            f"• ru_title, ru_description, ru_terms\n"
+            f"• de_title, de_description, de_terms\n"
+            f"• es_title, es_description, es_terms\n"
+            f"• fr_title, fr_description, fr_terms\n"
+            f"• pl_title, pl_description, pl_terms\n\n"
             f"<b>Приклад:</b>\n"
             f"<code>commission: 40%</code>\n"
-            f"<code>en_title: My New Title</code>"
+            f"<code>uk_description: 🎁 Подарунки за активність</code>"
         )
         
         buttons = [
@@ -406,7 +439,7 @@ class PartnerBotService:
             data['commission'] = value
         elif '_' in field:  # Language-specific field (e.g., en_title)
             lang, sub_field = field.split('_', 1)
-            if lang in ['en', 'de', 'es', 'fr', 'pl']:
+            if lang in ['uk', 'en', 'ru', 'de', 'es', 'fr', 'pl']:
                 if 'translations' not in data:
                     data['translations'] = {}
                 if lang not in data['translations']:
@@ -456,7 +489,9 @@ class PartnerBotService:
         )
         
         lang_flags = {
+            'uk': '🇺🇦',
             'en': '🇬🇧',
+            'ru': '🇷🇺',
             'de': '🇩🇪',
             'es': '🇪🇸',
             'fr': '🇫🇷',
