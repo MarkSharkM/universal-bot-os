@@ -643,19 +643,25 @@ class PartnerBotService:
             )
             return
         
-        # Parse text: "field: value"
-        if ':' not in text:
+        # Auto-detect URL and treat as referral_link
+        text_lower = text.strip().lower()
+        if text_lower.startswith('http://') or text_lower.startswith('https://') or text_lower.startswith('t.me/'):
+            field = 'referral_link'
+            value = text.strip()
+            if value.startswith('t.me/'):
+                value = 'https://' + value
+        elif ':' not in text:
             await self.adapter.send_message(
                 self.bot_id,
                 user.external_id,
-                "❌ Невірний формат. Використовуйте:\n<code>field: value</code>",
+                "❌ Невірний формат. Використовуйте:\n<code>field: value</code>\n\nАбо просто вставте URL для referral_link.",
                 parse_mode="HTML"
             )
             return
-        
-        field, value = text.split(':', 1)
-        field = field.strip().lower()
-        value = value.strip()
+        else:
+            field, value = text.split(':', 1)
+            field = field.strip().lower()
+            value = value.strip()
         
         data = proposal.data.get('payload', {})
         
