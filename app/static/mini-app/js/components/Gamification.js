@@ -82,7 +82,7 @@ window.Components.Gamification = {
         container.innerHTML = `
             <div class="social-proof-item">👥 ${AppState.getAppData()?.translations?.started_path || '47 людей почали 7% шлях'}</div>
             <div class="social-proof-item">⭐ ${AppState.getAppData()?.translations?.top_opened_today || 'TOP відкривали 19 разів сьогодні'}</div>
-            <div class="social-proof-item">🔥 ${AppState.getAppData()?.translations?.partners_clicked_most || 'Найчастіше клікають партнерів'}</div>
+            <div class="social-proof-item">🔥 ${AppState.getAppData()?.translations?.partners_clicked_most || 'Most clicked partners'}</div>
         `;
     },
 
@@ -119,13 +119,13 @@ window.Components.Gamification = {
 
         if (status === 'starter') {
             progressPercent = Math.min(50, (referralCount * 25));
-            progressLabel = t.to_pro || 'До Pro';
+            progressLabel = t.to_pro || 'To Pro';
         } else if (status === 'pro') {
             progressPercent = Math.min(80, 50 + (referralCount * 10));
-            progressLabel = t.to_hub || 'До Hub';
+            progressLabel = t.to_hub || 'To Hub';
         } else {
             progressPercent = 100;
-            progressLabel = t.max_level || 'Максимальний рівень';
+            progressLabel = t.max_level || 'Max Level';
         }
 
         // TOP progress
@@ -135,7 +135,7 @@ window.Components.Gamification = {
             <div class="gamification-content">
                 <!-- Earnings Overview (Integrated /earnings) -->
                 <div class="earnings-overview">
-                    <div class="earnings-overview-title">${t.your_earnings || 'Ваш заробіток'}</div>
+                    <div class="earnings-overview-title">${t.your_earnings || 'Your Earnings'}</div>
                     <div class="earnings-amount">${balance} ${currency}</div>
                     <div class="earnings-7percent-info">
                         ${AppState.getDidStart7Flow() ? (t.program_active || '✅ 7% Program Active') : (t.program_inactive || '❌ 7% Program Inactive')}
@@ -164,7 +164,7 @@ window.Components.Gamification = {
                 <!-- Badges -->
                 ${badges.length > 0 ? `
                     <div class="user-badges">
-                        <h3 class="badges-title">🏆 ${appData?.translations?.achievements || 'Досягнення'}</h3>
+                        <h3 class="badges-title">🏆 ${appData?.translations?.achievements || 'Achievements'}</h3>
                         <div class="badges-list">
                             ${badges.map(badge => `
                                 <div class="badge-item">
@@ -180,7 +180,7 @@ window.Components.Gamification = {
                 ${topLocked ? `
                     <div class="top-progress">
                         <div class="progress-header">
-                            <span class="progress-label">${appData?.translations?.unlock_top || 'Розблокувати TOP'}</span>
+                            <span class="progress-label">${appData?.translations?.unlock_top || 'Unlock TOP'}</span>
                             <span class="progress-percent">${referralCount} / 5</span>
                         </div>
                         <div class="progress-bar">

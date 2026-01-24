@@ -36,7 +36,7 @@ window.Components.Hero = function (isTop, referralCount) {
                      ${savedLink && !AppState.getIsEditingTgrLink()
                 ? `<div class="tgr-input-group saved-state">
                            <div class="tgr-input-icon" 
-                                onclick="navigator.clipboard.writeText('${savedLink}').then(() => { const trans = AppState.getAppData()?.translations || {}; if (typeof Toast !== 'undefined') Toast.success(trans.link_copied || 'Скопійовано!'); })" 
+                                onclick="navigator.clipboard.writeText('${savedLink}').then(() => { const trans = AppState.getAppData()?.translations || {}; if (typeof Toast !== 'undefined') Toast.success(trans.link_copied || 'Copied!'); })" 
                                 style="cursor:pointer; padding:0 8px;"
                                 title="Copy">🔗</div>
                            <div onmousedown="event.preventDefault(); Actions.editTgrLink()" 
@@ -45,10 +45,10 @@ window.Components.Hero = function (isTop, referralCount) {
                            <button onmousedown="event.preventDefault(); Actions.editTgrLink()" 
                                    class="tgr-save-btn" 
                                    style="background:linear-gradient(135deg, rgba(0,230,118,0.2), rgba(0,200,100,0.15)); border-color:rgba(0,230,118,0.4); color:#00E676;">
-                               ✅ ${t.saved || 'Збережено'}
+                               ✅ ${t.saved || 'Saved'}
                            </button>
                    </div>
-                   <div class="input-helper-text" onmousedown="event.preventDefault(); Actions.editTgrLink()">${t.change_link || 'Змінити лінку?'}</div>`
+                   <div class="input-helper-text" onmousedown="event.preventDefault(); Actions.editTgrLink()">${t.change_link || 'Change link?'}</div>`
                 : `<div class="tgr-input-group">
                        <div class="tgr-input-icon">🔗</div>
                        <input type="url" 
@@ -60,7 +60,7 @@ window.Components.Hero = function (isTop, referralCount) {
                               id="tgr-link-input" 
                               class="tgr-input" 
                               value="${savedLink || ''}"
-                              placeholder="${t.paste_link_placeholder || 'Встав свою 7% лінку тут...'}"
+                              placeholder="${t.paste_link_placeholder || 'Paste your 7% link here...'}"
                               oninput="Actions.validateTgrInput(this)"
                               onpaste="setTimeout(() => Actions.validateTgrInput(this), 50)"
                               onchange="Actions.validateTgrInput(this)"
@@ -68,13 +68,13 @@ window.Components.Hero = function (isTop, referralCount) {
                               onblur="document.body.classList.remove('keyboard-open')"
                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); Actions.saveTgrLink(); }">
                        <button type="button" id="tgr-save-btn" class="tgr-save-btn ${savedLink ? '' : 'disabled'}" ${savedLink ? '' : 'disabled'} onmousedown="event.preventDefault(); Actions.saveTgrLink();">
-                           ${t.save || 'ЗБЕРЕГТИ'}
+                           ${t.save || 'SAVE'}
                        </button>
 
 
                    </div>
                    <div id="tgr-input-helper" class="input-helper-status" style="display:none;"></div>
-                   <div class="input-helper-text" onmousedown="event.preventDefault(); Actions.showActivate7Instructions()">${t.where_to_get_link || 'Де взяти лінку?'}</div>`
+                   <div class="input-helper-text" onmousedown="event.preventDefault(); Actions.showActivate7Instructions()">${t.where_to_get_link || 'Where to get link?'}</div>`
             }
                 </div>
 

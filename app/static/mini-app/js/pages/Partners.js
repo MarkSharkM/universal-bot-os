@@ -32,7 +32,7 @@ window.Pages.Partners = {
         if (partners.length === 0) {
             const container = document.getElementById('partners-list');
             if (container) {
-                container.innerHTML = `<p class="empty-state">${AppState.getAppData()?.translations?.no_partners || 'Партнерів поки немає'}</p>`;
+                container.innerHTML = `<p class="empty-state">${AppState.getAppData()?.translations?.no_partners || 'No partners yet'}</p>`;
             }
             return;
         }
@@ -62,8 +62,8 @@ window.Pages.Partners = {
                 const header = document.createElement('div');
                 header.className = 'partners-recommended-header';
                 header.innerHTML = `
-                    <h2>🤖 ${t.recommended_title || 'Перевірені Telegram-боти'}</h2>
-                    <p class="recommended-subtitle">${t.recommended_subtitle || 'Обери будь-який — запускай та прокачуйся! 💪'}</p>
+                    <h2>🤖 ${t.recommended_title || 'Verified Telegram Bots'}</h2>
+                    <p class="recommended-subtitle">${t.recommended_subtitle || 'Choose any — launch and level up! 💪'}</p>
                 `;
                 container.appendChild(header);
             } else {
@@ -85,7 +85,7 @@ window.Pages.Partners = {
             if (!isExpanded && sortedPartners.length > 5) {
                 const showMoreBtn = document.createElement('button');
                 showMoreBtn.className = 'show-more-btn';
-                showMoreBtn.textContent = AppState.getAppData()?.translations?.show_all || 'Показати всіх';
+                showMoreBtn.textContent = AppState.getAppData()?.translations?.show_all || 'Show all';
                 showMoreBtn.addEventListener('click', () => {
                     if (window.trackEvent) trackEvent('partners_expanded');
                     AppState.setPartnersExpanded(true);
@@ -106,7 +106,7 @@ window.Pages.Partners = {
         if (partners.length === 0) {
             const emptyState = document.createElement('p');
             emptyState.className = 'empty-state';
-            emptyState.textContent = t.no_partners_found || 'Партнерів не знайдено';
+            emptyState.textContent = t.no_partners_found || 'No partners found';
             container.appendChild(emptyState);
             return;
         }
@@ -186,7 +186,7 @@ window.Pages.Partners = {
                 </div>
                 <div class="partner-row-right">
                     <button class="partner-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
-                        ${t.launch_btn || 'Запустити ↗'}
+                        ${t.launch_btn || 'Launch ↗'}
                     </button>
                 </div>
             `;
