@@ -22,6 +22,7 @@ class BotUpdate(BaseModel):
     config: Optional[Dict[str, Any]] = None
     default_lang: Optional[str] = None
     is_active: Optional[bool] = None
+    token: Optional[str] = None
 
 
 class BotResponse(BaseModel):

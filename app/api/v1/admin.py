@@ -183,12 +183,10 @@ async def create_bot(
         Created bot
     """
     # Encrypt token before storing
-    encrypted_token = encrypt_token(bot_data.token) if bot_data.token else None
-    
     bot = Bot(
         name=bot_data.name,
         platform_type=bot_data.platform_type,
-        token=encrypted_token,  # Store encrypted token
+        token=bot_data.token,  # Store plain token (was encrypt_token)
         default_lang=bot_data.default_lang,
         config=bot_data.config or {},
         is_active=True
@@ -260,6 +258,8 @@ async def update_bot(
         bot.default_lang = bot_data.default_lang
     if bot_data.is_active is not None:
         bot.is_active = bot_data.is_active
+    if bot_data.token is not None:
+        bot.token = bot_data.token
     
     db.commit()
     db.refresh(bot)

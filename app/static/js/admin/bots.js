@@ -15,6 +15,7 @@ async function loadBots() {
                     <td>${bot.is_active ? '✅ Active' : '❌ Inactive'}</td>
                     <td>
                         <button onclick="showStatsTab('${bot.id}')" style="margin-right: 5px;">Stats</button>
+                        <button onclick="editBotToken('${bot.id}')" style="margin-right: 5px; background: #f59e0b;">Edit Token</button>
                         <button class="btn-danger" onclick="deleteBot('${bot.id}')">Delete</button>
                     </td>
                 </tr>
@@ -58,6 +59,28 @@ async function createBot() {
         }
     } catch (error) {
         showMessage('bots-message', 'Error: ' + error.message, 'error');
+    }
+}
+
+
+async function editBotToken(botId) {
+    const newToken = prompt("Enter new Telegram Bot Token (plain text):");
+    if (!newToken) return;
+
+    try {
+        const res = await authFetch(`${API_BASE}/bots/${botId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ token: newToken })
+        });
+
+        if (res.ok) {
+            showMessage('bots-message', 'Token updated successfully!', 'success');
+            loadBots();
+        } else {
+            showMessage('bots-message', 'Error updating token', 'error');
+        }
+    } catch (e) {
+        showMessage('bots-message', 'Error: ' + e.message, 'error');
     }
 }
 
