@@ -10,6 +10,7 @@ from app.services.earnings_service import EarningsService
 from app.services.command_service import CommandService
 from app.services.wallet_service import WalletService
 from app.services.ai_service import AIService
+from app.services.partner_bot_service import PartnerBotService
 
 __all__ = [
     "TranslationService",
@@ -20,4 +21,5 @@ __all__ = [
     "CommandService",
     "WalletService",
     "AIService",
+    "PartnerBotService",
 ]
