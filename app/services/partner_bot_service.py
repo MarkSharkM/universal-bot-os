@@ -133,13 +133,14 @@ class PartnerBotService:
         await self._process_single_or_grouped_photos(user, [photo_data])
     
     async def _handle_media_group(self, user: User, photo_data: Dict[str, Any], media_group_id: str):
-        """Store photos from media group and process after timeout"""
+        """
+        Handle photos from media group (album).
+        Shows button for user to click when all photos uploaded.
+        """
         from app.core.redis import cache
         import json
-        import asyncio
         
         if not cache.is_connected:
-            # Fallback if Redis not available - process single photo
             await self._process_single_or_grouped_photos(user, [photo_data])
             return
         
@@ -147,65 +148,98 @@ class PartnerBotService:
         group_key = f"media_group:{self.bot_id}:{user.id}:{media_group_id}"
         lock_key = f"media_group_lock:{self.bot_id}:{user.id}:{media_group_id}"
         
+        # Check if already processing
+        if cache.get(lock_key):
+            return
+        
         # Get existing photos
         existing_data = cache.get(group_key)
         if existing_data:
             photos = existing_data if isinstance(existing_data, list) else json.loads(existing_data)
         else:
             photos = []
-            # Send initial message only once (check with lock)
-            if not cache.get(lock_key + ":msg"):
-                cache.set(lock_key + ":msg", "1", ttl=10)
-                await self.adapter.send_message(
-                    self.bot_id,
-                    user.external_id,
-                    "📸 *Отримую фото...*",
-                    parse_mode="Markdown"
-                )
         
         # Add new photo
         photos.append(photo_data)
-        photo_count_before_wait = len(photos)
         
-        # Save back to Redis with 30 second TTL (photos can arrive slowly)
-        cache.set(group_key, photos, ttl=30)
+        # Save to Redis with 5 minute TTL
+        cache.set(group_key, photos, ttl=300)
         
-        # Wait for more photos (increased to 5 seconds for slow uploads)
-        await asyncio.sleep(5)
+        # Store mapping for callback (short_id -> full keys)
+        short_id = media_group_id[-8:]
+        mapping_key = f"mg_map:{short_id}"
+        cache.set(mapping_key, {
+            "group_key": group_key,
+            "lock_key": lock_key,
+            "user_id": str(user.id)
+        }, ttl=300)
         
-        # Try to acquire processing lock (only one processor should run)
-        if cache.get(lock_key):
-            # Another handler is already processing
-            logger.info(f"Media group {media_group_id}: Lock exists, skipping (remembered count={photo_count_before_wait})")
-            return
-        
-        # Check if more photos arrived during wait
-        current_data = cache.get(group_key)
-        if not current_data:
-            # Already processed by another handler
-            logger.info(f"Media group {media_group_id}: Already processed, skipping")
-            return
-            
-        current_photos = current_data if isinstance(current_data, list) else json.loads(current_data)
-        
-        # Only process if no new photos arrived since our wait started
-        if len(current_photos) > photo_count_before_wait:
-            # New photos arrived - let the last one process
-            logger.info(f"Media group {media_group_id}: New photos arrived ({photo_count_before_wait} → {len(current_photos)}), waiting")
-            return
-        
-        # Acquire lock and process
-        logger.info(f"Media group {media_group_id}: Processing {len(current_photos)} photos")
-        cache.set(lock_key, "processing", ttl=120)
-        cache.delete(group_key)
+        # Show button with current count
+        keyboard = {
+            "inline_keyboard": [
+                [{"text": f"🔍 Аналізувати {len(photos)} фото", "callback_data": f"analyze_mg:{short_id}"}]
+            ]
+        }
         
         await self.adapter.send_message(
             self.bot_id,
             user.external_id,
-            f"⏳ *Аналізую {len(current_photos)} фото...*",
-            parse_mode="Markdown"
+            f"📸 <b>Отримано {len(photos)} фото</b>\n\nНатисни кнопку коли завантажиш усі:",
+            parse_mode="HTML",
+            reply_markup=keyboard
         )
-        await self._process_single_or_grouped_photos(user, current_photos)
+        logger.info(f"Media group {media_group_id}: Received photo #{len(photos)}")
+    
+    async def handle_analyze_media_group(self, user: User, short_id: str):
+        """Handle 'Analyze photos' button click"""
+        from app.core.redis import cache
+        import json
+        
+        mapping_key = f"mg_map:{short_id}"
+        mapping = cache.get(mapping_key)
+        
+        if not mapping:
+            await self.adapter.send_message(
+                self.bot_id, user.external_id,
+                "❌ Фото не знайдено. Надішліть знову."
+            )
+            return
+        
+        group_key = mapping.get("group_key")
+        lock_key = mapping.get("lock_key")
+        
+        # Prevent double processing
+        if cache.get(lock_key):
+            await self.adapter.send_message(
+                self.bot_id, user.external_id,
+                "⏳ Вже аналізую..."
+            )
+            return
+        
+        # Get photos
+        photos_data = cache.get(group_key)
+        if not photos_data:
+            await self.adapter.send_message(
+                self.bot_id, user.external_id,
+                "❌ Фото не знайдено. Надішліть знову."
+            )
+            return
+        
+        photos = photos_data if isinstance(photos_data, list) else json.loads(photos_data)
+        
+        # Lock and cleanup
+        cache.set(lock_key, "1", ttl=120)
+        cache.delete(group_key)
+        cache.delete(mapping_key)
+        
+        await self.adapter.send_message(
+            self.bot_id, user.external_id,
+            f"⏳ <b>Аналізую {len(photos)} фото...</b>",
+            parse_mode="HTML"
+        )
+        
+        logger.info(f"Analyzing {len(photos)} photos for user {user.id}")
+        await self._process_single_or_grouped_photos(user, photos)
     
     async def _process_single_or_grouped_photos(self, user: User, photos: list):
         """

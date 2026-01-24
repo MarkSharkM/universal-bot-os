@@ -573,6 +573,12 @@ async def _handle_callback(
             )
         else:
             logger.warning(f"Unknown command in callback: {data}")
+    elif data.startswith('analyze_mg:'):
+        # Handle "Analyze photos" button for media groups
+        partner_bot_service = PartnerBotService(db, bot_id)
+        short_id = data.split(':')[1] if ':' in data else None
+        if short_id:
+            await partner_bot_service.handle_analyze_media_group(user, short_id)
     elif data.startswith('approve_p:') or data.startswith('cancel_p:') or data.startswith('edit_partner:') or data.startswith('preview_partner:') or data.startswith('editfield:'):
         # Handle partner bot callbacks (using short IDs to fit in 64 byte limit)
         partner_bot_service = PartnerBotService(db, bot_id)
