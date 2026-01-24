@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 def migrate_token_hashes():
     """
     Populate token_hash for all bots that don't have it.
+    Handles both encrypted and plain-text tokens.
     """
     db = SessionLocal()
     try:
@@ -57,8 +58,24 @@ def migrate_token_hashes():
         
         for bot in bots_without_hash:
             try:
-                # Decrypt token (in memory only)
-                decrypted_token = decrypt_token(bot.token)
+                # Check if token is encrypted
+                from app.utils.encryption import is_encrypted
+                
+                if is_encrypted(bot.token):
+                    # Try to decrypt (might fail if different SECRET_KEY)
+                    try:
+                        decrypted_token = decrypt_token(bot.token)
+                        logger.info(f"✅ Decrypted token for bot: {bot.name}")
+                    except Exception as e:
+                        logger.error(f"❌ Cannot decrypt token for bot {bot.id} ({bot.name}): {e}")
+                        logger.error(f"   This bot was encrypted with a different SECRET_KEY")
+                        logger.error(f"   Skipping this bot - manual intervention required")
+                        error_count += 1
+                        continue
+                else:
+                    # Token is plain-text (legacy bot)
+                    decrypted_token = bot.token
+                    logger.info(f"ℹ️  Bot {bot.name} has plain-text token (legacy)")
                 
                 # Compute hash
                 token_hash_value = hash_token(decrypted_token)
@@ -85,7 +102,7 @@ def migrate_token_hashes():
         
         if error_count > 0:
             logger.warning("Some bots failed migration. Check logs above.")
-            sys.exit(1)
+            logger.warning("Bots with different SECRET_KEY need manual token_hash update.")
         
     except Exception as e:
         logger.error(f"Migration failed: {e}")
