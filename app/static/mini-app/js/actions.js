@@ -448,6 +448,9 @@ async function handleBuyTop(price) {
                 trackEvent('top_purchase_success');
 
                 // Reload app data to get updated TOP status
+                // IMPORTANT: Wait 1.5 seconds for webhook to process payment and update DB
+                // Otherwise we get race condition - loadAppData returns old status
+                setTimeout(() => {
                 if (typeof loadAppData === 'function') {
                     loadAppData(true).then(() => {
                         console.log('App data reloaded after payment, re-rendering...');
@@ -505,6 +508,7 @@ async function handleBuyTop(price) {
                         renderApp();
                     }
                 }
+                }, 1500); // Wait 1.5s for webhook to update DB
             } else if (status === 'failed' || status === 'cancelled') {
                 const translations = AppState.getAppData()?.translations || {};
                 // Payment failed or cancelled
