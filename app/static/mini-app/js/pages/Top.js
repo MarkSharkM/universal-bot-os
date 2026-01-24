@@ -50,8 +50,8 @@ window.Pages.Top = {
                     header.className = 'top-header';
                     const t = appData.translations || {};
                     header.innerHTML = `
-                        <h2>🏆 ${t.top_profits_title || 'ТОП партнери'}</h2>
-                        <p class="top-subtitle">${t.top_profits_subtitle || 'Найвигідніші пропозиції тижня'}</p>
+                        <h2>🏆 ${t.top_profits_title || 'TOP Partners'}</h2>
+                        <p class="top-subtitle">${t.top_profits_subtitle || 'Best offers of the week'}</p>
                     `;
                     header.style.opacity = '0.3'; // Dim the header
                     container.appendChild(header);
@@ -116,7 +116,7 @@ window.Pages.Top = {
                             </div>
                             <div class="top-row-right">
                                 <button class="top-open-btn-pill" disabled style="opacity: 0.5;">
-                                    ${t.open_btn || 'Відкрити ↗'}
+                                    ${t.open_btn || 'Open ↗'}
                                 </button>
                             </div>
                         `;
@@ -135,7 +135,7 @@ window.Pages.Top = {
 
                 const goal = appData.earnings?.required_invites || 5;
                 const current = Math.min(currentInvites, goal);
-                const subtitle = (t.top_locked_subtitle || 'Запроси ще {{count}} друзів, щоб відкрити доступ до ексклюзивних пропозицій').replace('{{count}}', invitesNeeded);
+                const subtitle = (t.top_locked_subtitle || 'Invite {{count}} more friends to unlock exclusive offers').replace('{{count}}', invitesNeeded);
                 const progressWidth = Math.round((current / goal) * 100);
 
                 // Create overlay element
@@ -154,15 +154,15 @@ window.Pages.Top = {
                         <!-- Progress Section -->
                         <div style="margin-bottom: 24px; text-align: left;">
                             <div style="display: flex; justify-content: space-between; font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; font-weight: 600;">
-                                <span>${t.my_progress || 'Мій прогрес'}:</span>
+                                <span>${t.my_progress || 'My Progress'}:</span>
                                 <span style="color: #fff; font-weight: 700;">${current} / ${goal}</span>
                             </div>
                             <div style="height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
                                 <div style="height: 100%; width: ${progressWidth}%; background: linear-gradient(90deg, #00c853, #69f0ae); border-radius: 4px; transition: width 0.3s ease;"></div>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-size: 11px; color: rgba(255, 255, 255, 0.5); margin-top: 8px;">
-                                <span>${t.invited_label || 'Запрошено'}: ${current}</span>
-                                <span>• ${t.goal_label || 'Ціль'}: ${goal}</span>
+                                <span>${t.invited_label || 'Invited'}: ${current}</span>
+                                <span>• ${t.goal_label || 'Goal'}: ${goal}</span>
                             </div>
                         </div>
                         
@@ -170,12 +170,12 @@ window.Pages.Top = {
                         <div style="display: flex; gap: 12px;">
                             <button onclick="Actions.handleBuyTop(${buyPrice})" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: 1px solid rgba(100, 150, 200, 0.3); background: linear-gradient(135deg, #1e3a5f, #2d4a6f); color: #fff; min-width: 140px;">
                                 <span style="font-size: 20px;">💎</span>
-                                <span>${t.buy_top_btn || 'Купити'}</span>
+                                <span>${t.buy_top_btn || 'Buy'}</span>
                                 <span style="font-size: 11px; opacity: 0.7;">(${buyPrice} ⭐)</span>
                             </button>
                             <button onclick="Actions.shareReferralLink()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 20px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; background: linear-gradient(135deg, #00c853, #00e676); color: #000; box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35); min-width: 140px;">
                                 <span style="font-size: 20px;">🚀</span>
-                                <span>${t.share_btn || 'Запросити'}</span>
+                                <span>${t.share_btn || 'Invite'}</span>
                             </button>
                         </div>
                     </div>
@@ -186,7 +186,7 @@ window.Pages.Top = {
             }
 
             if (topPartners.length === 0) {
-                container.innerHTML = `<p class="empty-state">${AppState.getAppData()?.translations?.no_top_bots || 'TOP ботів поки немає'}</p>`;
+                    container.innerHTML = `<p class="empty-state">${AppState.getAppData()?.translations?.no_top_bots || 'No TOP bots yet'}</p>`;
                 return;
             }
 
@@ -195,8 +195,8 @@ window.Pages.Top = {
             header.className = 'top-header';
             const t = appData.translations || {};
             header.innerHTML = `
-                <h2>🏆 ${t.top_profits_title || 'ТОП партнери'}</h2>
-                <p class="top-subtitle">${t.top_profits_subtitle || 'Найвигідніші пропозиції тижня'}</p>
+                <h2>🏆 ${t.top_profits_title || 'TOP Partners'}</h2>
+                <p class="top-subtitle">${t.top_profits_subtitle || 'Best offers of the week'}</p>
             `;
             container.appendChild(header);
 
@@ -293,7 +293,7 @@ window.Pages.Top = {
                 </div>
                 <div class="top-row-right">
                     <button class="top-open-btn-pill" onclick="event.stopPropagation(); window.Actions && window.Actions.openPartner ? Actions.openPartner('${link}', '${partnerIdStr}') : window.open('${link}', '_blank')">
-                        ${t.open_btn || 'Відкрити ↗'}
+                        ${t.open_btn || 'Open ↗'}
                     </button>
                 </div>
             `;

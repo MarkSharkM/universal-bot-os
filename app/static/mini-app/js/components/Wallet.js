@@ -126,7 +126,7 @@ window.Components.Wallet = {
                 if (!walletAddress) {
                     const t = AppState.getAppData()?.translations || {};
                     if (typeof Toast !== 'undefined') {
-                        Toast.error(t.enter_wallet_error || 'Введіть адресу гаманця');
+                        Toast.error(t.enter_wallet_error || 'Enter wallet address');
                     }
                     return;
                 }
@@ -136,7 +136,7 @@ window.Components.Wallet = {
                 if (!walletPattern.test(walletAddress)) {
                     const t = AppState.getAppData()?.translations || {};
                     if (typeof Toast !== 'undefined') {
-                        Toast.error(t.invalid_wallet_format || 'Невірний формат адреси гаманця');
+                        Toast.error(t.invalid_wallet_format || 'Invalid wallet address format');
                     }
                     return;
                 }
@@ -180,7 +180,7 @@ window.Components.Wallet = {
                     console.error('Error saving wallet:', error);
                     const t = AppState.getAppData()?.translations || {};
                     if (typeof Toast !== 'undefined') {
-                        Toast.error((t.wallet_save_error || '❌ Помилка збереження: ') + (error.message || 'Невідома помилка'));
+                        Toast.error((t.wallet_save_error || '❌ Save error: ') + (error.message || 'Unknown error'));
                     }
                     if (window.Telegram?.WebApp?.HapticFeedback) {
                         window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
@@ -228,7 +228,7 @@ window.Components.Wallet = {
             const btn = document.getElementById('wallet-banner-btn');
             if (btn && !btn.hasAttribute('data-listener')) {
                 const t = AppState.getAppData()?.translations || {};
-                btn.textContent = t.connect || 'Підключити';
+                btn.textContent = t.connect || 'Connect';
                 btn.setAttribute('data-listener', 'true');
                 btn.addEventListener('click', () => {
                     if (window.trackEvent) trackEvent('wallet_banner_clicked');
@@ -243,7 +243,7 @@ window.Components.Wallet = {
         const bannerText = banner.querySelector('p');
         const t = AppState.getAppData()?.translations || {};
         if (bannerText) {
-            bannerText.textContent = t.wallet_banner_text || 'Підключи гаманець → зможеш виводити';
+            bannerText.textContent = t.wallet_banner_text || 'Connect wallet → enable withdrawals';
         }
     }
 };

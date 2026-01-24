@@ -295,7 +295,7 @@ async function handleWalletConnected(address) {
         console.error('❌ Error saving connected wallet:', error);
         console.error('Error stack:', error.stack);
         if (typeof Toast !== 'undefined') {
-            const errorMsg = error.message || 'Невідома помилка при збереженні гаманця';
+            const errorMsg = error.message || 'Unknown error saving wallet';
             Toast.error(errorMsg);
         }
     }

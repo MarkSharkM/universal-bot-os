@@ -49,7 +49,7 @@ async function handleWalletSubmit(event) {
     const messageEl = document.getElementById('wallet-message');
 
     if (!walletAddress) {
-        const msg = AppState.getAppData()?.translations?.enter_wallet_error || 'Введіть адресу гаманця';
+        const msg = AppState.getAppData()?.translations?.enter_wallet_error || 'Enter wallet address';
         showWalletMessage(msg, 'error');
         return;
     }
@@ -107,7 +107,7 @@ async function saveTgrLink() {
 
         if (!isPartnerLink && !isBotLink) {
             console.log('🔴 saveTgrLink: invalid link format');
-            const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Потрібне посилання з _tgr_ або t.me/Bot?start=';
+            const msg = AppState.getAppData()?.translations?.invalid_tgr_link || 'Need link with _tgr_ or t.me/Bot?start=';
             if (typeof Toast !== 'undefined') Toast.error(msg);
             return;
         }
@@ -124,7 +124,7 @@ async function saveTgrLink() {
 
     try {
         const translations = AppState.getAppData()?.translations || {};
-        if (typeof Toast !== 'undefined') Toast.info(translations.saving || 'Збереження...');
+        if (typeof Toast !== 'undefined') Toast.info(translations.saving || 'Saving...');
         if (typeof trackEvent === 'function') trackEvent('tgr_link_save_attempt');
 
         const initData = AppState.getTg()?.initData || '';
@@ -191,7 +191,7 @@ function openBotForLink() {
         if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
         else window.open(url, '_blank');
     } else {
-        const msg = AppState.getAppData()?.translations?.open_bot_manual || 'Відкрийте бота і натисніть /start';
+        const msg = AppState.getAppData()?.translations?.open_bot_manual || 'Open bot and tap /start';
         if (typeof Toast !== 'undefined') Toast.info(msg);
     }
 }
@@ -209,19 +209,19 @@ async function saveManualWallet() {
     // Validate format
     const walletPattern = /^(?:EQ|UQ|kQ|0Q)[A-Za-z0-9_-]{46,48}$/;
     if (!walletPattern.test(walletAddress)) {
-        showWalletMessage(AppState.getAppData()?.translations?.invalid_wallet || 'Невірний формат адреси гаманця', 'error');
+        showWalletMessage(AppState.getAppData()?.translations?.invalid_wallet || 'Invalid wallet address format', 'error');
         return;
     }
 
     // Validate AppState.getBotId() before making request
     if (!AppState.getBotId()) {
-        showWalletMessage(AppState.getAppData()?.translations?.bot_id_missing || 'Помилка: Bot ID не знайдено', 'error');
+        showWalletMessage(AppState.getAppData()?.translations?.bot_id_missing || 'Error: Bot ID not found', 'error');
         return;
     }
 
     try {
         const translations = AppState.getAppData()?.translations || {};
-        showWalletMessage(translations.saving || 'Збереження...', 'info');
+        showWalletMessage(translations.saving || 'Saving...', 'info');
         if (typeof trackEvent === 'function') trackEvent('wallet_manual_save_attempt');
 
         const initData = AppState.getTg()?.initData || null;
@@ -278,7 +278,7 @@ async function saveManualWallet() {
 
 function copyReferralLink() {
     if (!AppState.getAppData() || !AppState.getAppData().user || !AppState.getAppData().user.referral_link) {
-        const msg = AppState.getAppData()?.translations?.link_missing || 'Реферальна лінка відсутня';
+        const msg = AppState.getAppData()?.translations?.link_missing || 'Referral link missing';
         if (typeof Toast !== 'undefined') {
             Toast.error(msg);
         } else if (AppState.getTg()?.showAlert) {
@@ -374,9 +374,9 @@ async function handleBuyTop(price) {
         // Fallback: show modal with instructions
         const appData = AppState.getAppData() || {};
         const translations = appData.translations || {};
-        const title = translations.buy_top_fallback_title || 'Розблокувати TOP';
+        const title = translations.buy_top_fallback_title || 'Unlock TOP';
         const needed = appData.earnings?.invites_needed || 0;
-        let text = translations.buy_top_fallback_text || "Для розблокування TOP потрібно:\n• Запросити {{needed}} друзів\n• Або купити доступ за {{price}} ⭐\nДля покупки відкрийте бота та натисніть кнопку \"Розблокувати TOP\"";
+        let text = translations.buy_top_fallback_text || "To unlock TOP you need:\n• Invite {{needed}} friends\n• Or buy access for {{price}} ⭐\nTo buy, open the bot and tap \"Unlock TOP\" button";
 
         text = text.replace('{{needed}}', needed).replace('{{price}}', price);
 
@@ -394,10 +394,10 @@ async function handleBuyTop(price) {
                     </div>
                     <div class="modal-actions">
                         <button class="action-btn primary" onclick="openTelegramBot(); this.closest('.modal-overlay').remove();">
-                            ${translations.open_bot || 'Відкрити бота'}
+                            ${translations.open_bot || 'Open bot'}
                         </button>
                         <button class="action-btn secondary" onclick="this.closest('.modal-overlay').remove()">
-                            ${translations.cancel || 'Закрити'}
+                            ${translations.cancel || 'Cancel'}
                         </button>
                     </div>
                 </div>
@@ -420,7 +420,7 @@ async function handleBuyTop(price) {
         const translations = AppState.getAppData()?.translations || {};
         // Show loading state
         if (typeof Toast !== 'undefined') {
-            Toast.info(translations.creating_invoice || 'Створюємо рахунок...');
+            Toast.info(translations.creating_invoice || 'Creating invoice...');
         }
         if (typeof trackEvent === 'function') trackEvent('top_purchase_attempt', { price });
         if (typeof Haptic !== 'undefined') {
@@ -509,7 +509,7 @@ async function handleBuyTop(price) {
                 const translations = AppState.getAppData()?.translations || {};
                 // Payment failed or cancelled
                 if (typeof Toast !== 'undefined') {
-                    Toast.warning(translations.payment_cancelled || 'Оплата скасована');
+                    Toast.warning(translations.payment_cancelled || 'Payment cancelled');
                 }
                 if (typeof Haptic !== 'undefined') {
                     Haptic.error();
@@ -525,7 +525,7 @@ async function handleBuyTop(price) {
 
         // Show error and fallback to bot
         if (typeof Toast !== 'undefined') {
-            Toast.error(translations.payment_error || 'Помилка створення рахунку. Спробуйте через бота.');
+            Toast.error(translations.payment_error || 'Payment error. Try through bot.');
         }
         if (typeof Haptic !== 'undefined') {
             Haptic.error();
