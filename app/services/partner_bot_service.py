@@ -134,12 +134,11 @@ class PartnerBotService:
     
     async def _handle_media_group(self, user: User, photo_data: Dict[str, Any], media_group_id: str):
         """Store photos from media group and process after timeout"""
-        from app.core.redis import get_redis
+        from app.core.redis import cache
         import json
         import asyncio
         
-        redis = get_redis()
-        if not redis:
+        if not cache.is_connected:
             # Fallback if Redis not available - process single photo
             await self._process_single_or_grouped_photos(user, [photo_data])
             return
@@ -148,9 +147,9 @@ class PartnerBotService:
         group_key = f"media_group:{self.bot_id}:{user.id}:{media_group_id}"
         
         # Get existing photos
-        existing_data = redis.get(group_key)
+        existing_data = cache.get(group_key)
         if existing_data:
-            photos = json.loads(existing_data)
+            photos = existing_data if isinstance(existing_data, list) else json.loads(existing_data)
         else:
             photos = []
             # Send initial message only once
@@ -165,18 +164,18 @@ class PartnerBotService:
         photos.append(photo_data)
         
         # Save back to Redis with 5 second TTL
-        redis.setex(group_key, 5, json.dumps(photos))
+        cache.set(group_key, photos, ttl=5)
         
         # Schedule processing after 2 second delay
         await asyncio.sleep(2)
         
         # Check if we're still the last photo (no new photos arrived)
-        current_data = redis.get(group_key)
+        current_data = cache.get(group_key)
         if current_data:
-            current_photos = json.loads(current_data)
+            current_photos = current_data if isinstance(current_data, list) else json.loads(current_data)
             if len(current_photos) == len(photos):
                 # We're the last photo - process all
-                redis.delete(group_key)
+                cache.delete(group_key)
                 await self.adapter.send_message(
                     self.bot_id,
                     user.external_id,
