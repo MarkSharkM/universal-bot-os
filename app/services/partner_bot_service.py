@@ -33,7 +33,7 @@ PARTNER_ANALYSIS_PROMPT = """
    - Icon/Emoji: Якщо бачиш емодзі/іконку бота - включи її в опис (наприклад, 🎁, 💎, 🏦).
 
 2. ГЕНЕРАЦІЯ ТА ПЕРЕКЛАД КОНТЕНТУ:
-   Створи структурований об'єкт для 6 мов: Українська (uk), Англійська (en), Російська (ru), Німецька (de), Іспанська (es), Французька (fr).
+   Створи структурований об'єкт для 5 мов: Українська (uk), Англійська (en), Російська (ru), Німецька (de), Іспанська (es).
    
    ВАЖЛИВО: Обов'язково додавай емодзі/іконки в описи для візуальної привабливості!
    
@@ -73,8 +73,7 @@ PARTNER_ANALYSIS_PROMPT = """
       "terms": "String"
     },
     "de": {...},
-    "es": {...},
-    "fr": {...}
+    "es": {...}
   }
 }
 
@@ -213,9 +212,7 @@ class PartnerBotService:
                 'en': '🇬🇧',
                 'ru': '🇷🇺',
                 'de': '🇩🇪',
-                'es': '🇪🇸',
-                'fr': '🇫🇷',
-                'pl': '🇵🇱'
+                'es': '🇪🇸'
             }
             
             for lang, flag in lang_flags.items():
@@ -308,8 +305,6 @@ class PartnerBotService:
             "description_ru": translations.get("ru", {}).get("description", translations.get("en", {}).get("description", "")),
             "description_de": translations.get("de", {}).get("description", ""),
             "description_es": translations.get("es", {}).get("description", ""),
-            "description_fr": translations.get("fr", {}).get("description", ""),
-            "description_pl": translations.get("pl", {}).get("description", ""),
         }
         
         new_partner = BusinessData(
@@ -368,13 +363,11 @@ class PartnerBotService:
             f"• name: [назва програми]\n"
             f"• username: @username\n"
             f"• commission: 30%\n"
-            f"• uk_title, uk_description, uk_terms\n"
-            f"• en_title, en_description, en_terms\n"
-            f"• ru_title, ru_description, ru_terms\n"
-            f"• de_title, de_description, de_terms\n"
-            f"• es_title, es_description, es_terms\n"
-            f"• fr_title, fr_description, fr_terms\n"
-            f"• pl_title, pl_description, pl_terms\n\n"
+            f"• uk_title, uk_description\n"
+            f"• en_title, en_description\n"
+            f"• ru_title, ru_description\n"
+            f"• de_title, de_description\n"
+            f"• es_title, es_description\n\n"
             f"<b>Приклад:</b>\n"
             f"<code>commission: 40%</code>\n"
             f"<code>uk_description: 🎁 Подарунки за активність</code>"
@@ -439,7 +432,7 @@ class PartnerBotService:
             data['commission'] = value
         elif '_' in field:  # Language-specific field (e.g., en_title)
             lang, sub_field = field.split('_', 1)
-            if lang in ['uk', 'en', 'ru', 'de', 'es', 'fr', 'pl']:
+            if lang in ['uk', 'en', 'ru', 'de', 'es']:
                 if 'translations' not in data:
                     data['translations'] = {}
                 if lang not in data['translations']:
@@ -493,9 +486,7 @@ class PartnerBotService:
             'en': '🇬🇧',
             'ru': '🇷🇺',
             'de': '🇩🇪',
-            'es': '🇪🇸',
-            'fr': '🇫🇷',
-            'pl': '🇵🇱'
+            'es': '🇪🇸'
         }
         
         for lang, flag in lang_flags.items():
