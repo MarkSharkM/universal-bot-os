@@ -401,28 +401,6 @@ class PartnerBotService:
             logger.error(f"Error in process_photo: {e}", exc_info=True)
             await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Error: {str(e)}")
 
-    async def handle_approval(self, user: User, proposal_id: str):
-        """Handle approval callback"""
-        try:
-            # Ensure valid UUID
-            uuid_obj = UUID(proposal_id)
-        except ValueError:
-            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal UUID.")
-            return
-
-        proposal = self.db.query(BusinessData).filter(
-            BusinessData.id == uuid_obj
-        ).first()
-        
-        if not proposal:
-            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Proposal not found or expired.")
-            return
-            
-        data = proposal.data.get('payload')
-        if not data:
-            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal data.")
-            return
-
     async def handle_approval(self, user: User, proposal_short_id: str, bot_index: str = None):
         """
         Handle approval callback - adds partner to TARGET bot.
@@ -506,12 +484,26 @@ class PartnerBotService:
             )
             return
         
+        # Validate program_name
+        program_name = data.get("program_name", "").strip()
+        if not program_name:
+            await self.adapter.send_message(
+                self.bot_id,
+                user.external_id,
+                "❌ <b>Program Name відсутнє!</b>\n\nДодайте через Edit:\n<code>program_name: Bot Name</code>",
+                parse_mode="HTML"
+            )
+            return
+        
         # Calculate ROI: (commission / 100) * average_income
         average_income = float(data.get("average_income", 0))
         roi_score = round((commission / 100) * average_income, 2) if commission and average_income else 0.0
         
+        # Log what we're saving
+        logger.info(f"Creating partner: name={program_name}, commission={commission}, referral_link={referral_link[:50]}")
+        
         partner_data = {
-            "bot_name": data.get("program_name"),  # Main name
+            "bot_name": program_name,  # Main name (validated above)
             "category": "NEW",
             "referral_link": referral_link,
             "commission": commission,
