@@ -303,7 +303,7 @@ class PartnerBotService:
             # These fields are added manually by admin via Edit
             commission = data.get('commission', 0)
             duration = data.get('duration', 9999)
-            average_income = data.get('average_income', 0)
+            average_income = data.get('average_income', 1.0)  # Default 1.0 for better ROI
             referral_link = data.get('referral_link', '')
             
             # Calculate ROI
@@ -496,7 +496,7 @@ class PartnerBotService:
             return
         
         # Calculate ROI: (commission / 100) * average_income
-        average_income = float(data.get("average_income", 0))
+        average_income = float(data.get("average_income", 1.0))  # Default 1.0
         roi_score = round((commission / 100) * average_income, 2) if commission and average_income else 0.0
         
         # Log what we're saving
@@ -744,7 +744,7 @@ class PartnerBotService:
         bot_username = escape(data.get('bot_username', 'N/A'))
         commission = data.get('commission', 0)
         duration = data.get('duration', 9999)
-        average_income = data.get('average_income', 0)
+        average_income = data.get('average_income', 1.0)  # Default 1.0
         referral_link = data.get('referral_link', '')
         
         # Calculate ROI
