@@ -573,23 +573,38 @@ async def _handle_callback(
             )
         else:
             logger.warning(f"Unknown command in callback: {data}")
-    elif data.startswith('approve_p:') or data.startswith('cancel_p:') or data.startswith('edit_partner:') or data.startswith('preview_partner:'):
+    elif data.startswith('approve_p:') or data.startswith('cancel_p:') or data.startswith('edit_partner:') or data.startswith('preview_partner:') or data.startswith('editfield:'):
         # Handle partner bot callbacks (using short IDs to fit in 64 byte limit)
         partner_bot_service = PartnerBotService(db, bot_id)
         
         # Parse callback_data format:
         # "approve_p:short_id" or "approve_p:short_id:bot_index"
         # "edit_partner:short_id"
+        # "editfield:fieldname:short_id"
         # "cancel_p:short_id"
         parts = data.split(':', 2)
         action = parts[0] if len(parts) > 0 else None
-        short_id = parts[1] if len(parts) > 1 else None
-        extra_param = parts[2] if len(parts) > 2 else None
+        param1 = parts[1] if len(parts) > 1 else None
+        param2 = parts[2] if len(parts) > 2 else None
         
         if action == 'approve_p':
-            await partner_bot_service.handle_approval(user, short_id, extra_param)
+            await partner_bot_service.handle_approval(user, param1, param2)
         elif action == 'edit_partner':
-            await partner_bot_service.handle_edit(user, short_id)
+            await partner_bot_service.handle_edit(user, param1)
+        elif action == 'editfield':
+            # Quick edit field - ask user for value
+            field_name = param1
+            short_id = param2
+            
+            field_prompts = {
+                'commission': '💰 Введіть комісію (число, наприклад: 30):',
+                'duration': '⏳ Введіть тривалість в днях (наприклад: 365):',
+                'avgincome': '📊 Введіть середній дохід (наприклад: 23.90):',
+                'reflink': '🔗 Введіть повне реферальне посилання:\n(https://t.me/bot?start=...)'
+            }
+            
+            prompt = field_prompts.get(field_name, '📝 Введіть нове значення:')
+            await adapter.send_message(bot_id, user.external_id, prompt)
         elif action == 'preview_partner':
             # Show preview again - find proposal by short ID
             from app.models.business_data import BusinessData
@@ -601,7 +616,7 @@ async def _handle_callback(
                 
                 proposal = None
                 for p in proposals:
-                    if str(p.id).startswith(short_id):
+                    if str(p.id).startswith(param1):
                         proposal = p
                         break
                 
@@ -622,7 +637,7 @@ async def _handle_callback(
                 ).all()
                 
                 for p in proposals:
-                    if str(p.id).startswith(short_id):
+                    if str(p.id).startswith(param1):
                         db.delete(p)
                         db.commit()
                         break

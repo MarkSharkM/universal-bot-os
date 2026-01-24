@@ -472,7 +472,6 @@ class PartnerBotService:
         
         edit_msg = (
             f"✏️ <b>Edit Partner Data</b>\n\n"
-            f"Оберіть що хочете змінити:\n\n"
             f"<b>Поточні дані:</b>\n"
             f"• Name: {escape(data.get('program_name', 'N/A'))}\n"
             f"• Username: {escape(data.get('bot_username', 'N/A'))}\n"
@@ -480,27 +479,25 @@ class PartnerBotService:
             f"• Duration: {escape(str(data.get('duration', 'N/A')))} days\n"
             f"• Avg Income: {escape(str(data.get('average_income', 'N/A')))}\n"
             f"• Referral Link: {escape(data.get('referral_link', 'N/A')[:50])}...\n\n"
-            f"Або відправте текст в форматі:\n"
+            f"📝 <b>Відправте текст в форматі:</b>\n"
             f"<code>field: value</code>\n\n"
-            f"<b>Доступні поля:</b>\n"
-            f"• name: [назва програми]\n"
-            f"• username: @username\n"
-            f"• commission: 30\n"
-            f"• duration: 365\n"
-            f"• average_income: 23.90\n"
-            f"• referral_link: https://t.me/...\n"
-            f"• uk_title, uk_description\n"
-            f"• en_title, en_description\n"
-            f"• ru_title, ru_description\n"
-            f"• de_title, de_description\n"
-            f"• es_title, es_description\n\n"
-            f"<b>Приклад:</b>\n"
+            f"<b>Приклади:</b>\n"
             f"<code>commission: 40</code>\n"
             f"<code>average_income: 15.5</code>\n"
+            f"<code>referral_link: https://t.me/bot?start=ref123</code>\n"
             f"<code>uk_description: 🎁 Подарунки за активність</code>"
         )
         
+        # Create quick-edit buttons for common fields
         buttons = [
+            [
+                {"text": "💰 Commission", "callback_data": f"editfield:commission:{str(proposal.id)[:8]}"},
+                {"text": "⏳ Duration", "callback_data": f"editfield:duration:{str(proposal.id)[:8]}"}
+            ],
+            [
+                {"text": "📊 Avg Income", "callback_data": f"editfield:avgincome:{str(proposal.id)[:8]}"},
+                {"text": "🔗 Ref Link", "callback_data": f"editfield:reflink:{str(proposal.id)[:8]}"}
+            ],
             [{"text": "🔙 Back to Preview", "callback_data": f"preview_partner:{str(proposal.id)[:8]}"}],
             [
                 {"text": "✅ Save & Approve", "callback_data": f"approve_p:{str(proposal.id)[:8]}"},
