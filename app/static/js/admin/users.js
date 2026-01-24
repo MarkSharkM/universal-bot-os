@@ -155,34 +155,39 @@ function renderUsersTable(users) {
     }
 
     users.forEach(user => {
+        const customData = user.custom_data || {};
+
         // Identify if bought stars
-        const hasBought = user.top_unlock_method === 'payment';
+        const hasBought = customData.top_unlock_method === 'payment';
         const starsBadge = hasBought
             ? '<span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs font-bold border border-yellow-500/30">⭐️ Bought</span>'
             : '<span class="text-gray-600">-</span>';
+
+        // Status
+        const topStatus = customData.top_status || 'locked';
 
         const row = `
             <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
                 <td class="px-4 py-3 text-sm text-gray-300 font-mono">${formatDate(user.created_at)}</td>
                 <td class="px-4 py-3">
                     <div class="flex items-center">
-                        <div class="text-sm font-medium text-white">${escapeHtml(user.first_name || '')} ${escapeHtml(user.last_name || '')}</div>
-                        ${user.username ? `<div class="text-xs text-blue-400 ml-2">@${escapeHtml(user.username)}</div>` : ''}
+                        <div class="text-sm font-medium text-white">${escapeHtml(customData.first_name || '')} ${escapeHtml(customData.last_name || '')}</div>
+                        ${customData.username ? `<div class="text-xs text-blue-400 ml-2">@${escapeHtml(customData.username)}</div>` : ''}
                     </div>
                     <div class="text-xs text-gray-500 font-mono">${user.external_id}</div>
                 </td>
                 <td class="px-4 py-3 text-center">
-                    <span class="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300 font-mono uppercase">${user.language || '??'}</span>
+                    <span class="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300 font-mono uppercase">${user.language_code || '??'}</span>
                 </td>
                 <td class="px-4 py-3 text-center">
                     ${starsBadge}
                 </td>
                 <td class="px-4 py-3 text-center">
-                    <div class="text-sm text-gray-300">${user.total_invited} invites</div>
+                    <div class="text-sm text-gray-300">${customData.total_invited || 0} invites</div>
                 </td>
                 <td class="px-4 py-3 text-center">
-                    <span class="px-2 py-1 rounded text-xs ${user.top_status === 'open' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
-                        ${user.top_status.toUpperCase()}
+                    <span class="px-2 py-1 rounded text-xs ${topStatus === 'open' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                        ${topStatus.toUpperCase()}
                     </span>
                 </td>
                 <td class="px-4 py-3 text-right">

@@ -55,7 +55,7 @@ async def get_users_analytics(
         daily_payments = db.query(
             func.date_trunc('day', BusinessData.created_at).label('date'),
             func.count(BusinessData.id).label('count'),
-            func.sum(cast(BusinessData.data['amount'], Integer)).label('amount') 
+            func.sum(cast(BusinessData.data.op('->>')('amount'), Integer)).label('amount') 
         ).filter(
             BusinessData.bot_id == bot_id,
             BusinessData.data_type == 'payment',
