@@ -25,6 +25,22 @@ class TelegramAdapter(BaseAdapter):
     # Also increased connect timeout to handle network delays from Railway
     TIMEOUT = httpx.Timeout(60.0, connect=15.0, read=60.0)
     
+    def _get_decrypted_token(self, bot: Bot) -> str:
+        """
+        Get decrypted bot token.
+        Helper method to ensure token is always decrypted before use.
+        
+        Args:
+            bot: Bot model instance
+            
+        Returns:
+            Decrypted plain-text token
+        """
+        token = bot.token
+        if token and is_encrypted(token):
+            token = decrypt_token(token)
+        return token
+    
     @property
     def platform_name(self) -> str:
         return "telegram"
@@ -174,7 +190,7 @@ class TelegramAdapter(BaseAdapter):
             if not bot:
                 raise ValueError(f"Bot {bot_id} not found")
             
-            token = bot.token
+            token = self._get_decrypted_token(bot)
             url = f"{self.BASE_URL}{token}/getChat"
             
             async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
@@ -214,7 +230,7 @@ class TelegramAdapter(BaseAdapter):
             if not bot:
                 raise ValueError(f"Bot {bot_id} not found")
             
-            token = bot.token
+            token = self._get_decrypted_token(bot)
             url = f"{self.BASE_URL}{token}/sendInvoice"
             
             payload_data = {
@@ -266,7 +282,7 @@ class TelegramAdapter(BaseAdapter):
             if not bot:
                 raise ValueError(f"Bot {bot_id} not found")
             
-            token = bot.token
+            token = self._get_decrypted_token(bot)
             url = f"{self.BASE_URL}{token}/createInvoiceLink"
             
             payload_data = {
@@ -312,7 +328,11 @@ class TelegramAdapter(BaseAdapter):
             if not bot:
                 raise ValueError(f"Bot {bot_id} not found")
             
+            # Decrypt token if encrypted
             token = bot.token
+            if token and is_encrypted(token):
+                token = decrypt_token(token)
+            
             url = f"{self.BASE_URL}{token}/answerCallbackQuery"
             
             payload = {
@@ -362,7 +382,7 @@ class TelegramAdapter(BaseAdapter):
             if not bot:
                 raise ValueError(f"Bot {bot_id} not found")
             
-            token = bot.token
+            token = self._get_decrypted_token(bot)
             url = f"{self.BASE_URL}{token}/answerPreCheckoutQuery"
             
             payload = {
@@ -405,7 +425,7 @@ class TelegramAdapter(BaseAdapter):
                 }
             
             # Fetch from Telegram API
-            token = bot.token
+            token = self._get_decrypted_token(bot)
             url = f"{self.BASE_URL}{token}/getMe"
             
             async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
@@ -453,7 +473,7 @@ class TelegramAdapter(BaseAdapter):
             if not bot:
                 return None
             
-            token = bot.token
+            token = self._get_decrypted_token(bot)
             
             # Step 1: Get bot chat info (to get user_id)
             get_chat_url = f"{self.BASE_URL}{token}/getChat"

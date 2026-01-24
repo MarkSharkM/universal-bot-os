@@ -164,14 +164,21 @@ class PartnerBotService:
             self.db.refresh(proposal)
             
             # 5. Show Preview
-            # Format a nice message
+            # Format a nice message using HTML (more reliable than Markdown)
+            # Escape special HTML characters in data
+            from html import escape
+            
+            program_name = escape(data.get('program_name', 'N/A'))
+            bot_username = escape(data.get('bot_username', 'N/A'))
+            commission = escape(str(data.get('commission', 'N/A')))
+            en_desc = escape(data.get('translations', {}).get('en', {}).get('description', 'N/A'))
+            
             preview_msg = (
-                f"✅ **Analysis Complete!**\n\n"
-                f"👤 **Name:** {data.get('program_name')}\n"
-                f"🔗 **Username:** {data.get('bot_username')}\n"
-                f"💰 **Commission:** {data.get('commission')}\n\n"
-                f"🇬🇧 **EN:** {data.get('translations', {}).get('en', {}).get('description')}\n"
-                # Add more langs if needed or keep short
+                f"✅ <b>Analysis Complete!</b>\n\n"
+                f"👤 <b>Name:</b> {program_name}\n"
+                f"🔗 <b>Username:</b> {bot_username}\n"
+                f"💰 <b>Commission:</b> {commission}\n\n"
+                f"🇬🇧 <b>EN:</b> {en_desc[:100]}...\n"
             )
             
             buttons = [[
@@ -184,7 +191,7 @@ class PartnerBotService:
                 user.external_id,
                 preview_msg,
                 reply_markup={"inline_keyboard": buttons},
-                parse_mode="Markdown"
+                parse_mode="HTML"
             )
             
         except Exception as e:
