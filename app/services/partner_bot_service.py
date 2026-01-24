@@ -31,8 +31,11 @@ PARTNER_ANALYSIS_PROMPT = """
    - Context: Зрозумій суть сервісу, щоб написати якісний опис.
    - Icon/Emoji: Якщо бачиш емодзі/іконку бота - включи її в опис (наприклад, 🎁, 💎, 🏦).
    
-   ВАЖЛИВО: НЕ витягуй referral_link, commission, duration, average_income зі скріна!
-   Адмін додасть ці дані вручну через Edit.
+   ВАЖЛИВО про фінансові поля:
+   - НЕ витягуй referral_link, commission, duration, average_income зі скріна!
+   - Адмін додасть ці дані вручну через Edit.
+   - Навіть якщо бачиш "78.5%" або "30%" на скріні - ІГНОРУЙ це!
+   - Твоя задача: тільки @username та translations.
 
 2. ГЕНЕРАЦІЯ ТА ПЕРЕКЛАД КОНТЕНТУ:
    Створи структурований об'єкт для 5 мов: Українська (uk), Англійська (en), Російська (ru), Німецька (de), Іспанська (es).
@@ -472,20 +475,21 @@ class PartnerBotService:
         
         edit_msg = (
             f"✏️ <b>Edit Partner Data</b>\n\n"
-            f"<b>Поточні дані:</b>\n"
+            f"<b>📋 Основні дані (з AI):</b>\n"
             f"• Name: {escape(data.get('program_name', 'N/A'))}\n"
-            f"• Username: {escape(data.get('bot_username', 'N/A'))}\n"
-            f"• Commission: {escape(str(data.get('commission', 'N/A')))}\n"
-            f"• Duration: {escape(str(data.get('duration', 'N/A')))} days\n"
-            f"• Avg Income: {escape(str(data.get('average_income', 'N/A')))}\n"
-            f"• Referral Link: {escape(data.get('referral_link', 'N/A')[:50])}...\n\n"
-            f"📝 <b>Відправте текст в форматі:</b>\n"
-            f"<code>field: value</code>\n\n"
-            f"<b>Приклади:</b>\n"
-            f"<code>commission: 40</code>\n"
+            f"• Username: {escape(data.get('bot_username', 'N/A'))}\n\n"
+            f"<b>💰 Фінансові дані (ОБОВ'ЯЗКОВО заповни):</b>\n"
+            f"• Commission: {escape(str(data.get('commission', '❌ НЕ ВКАЗАНО')))}\n"
+            f"• Duration: {escape(str(data.get('duration', '❌ НЕ ВКАЗАНО')))} days\n"
+            f"• Avg Income: {escape(str(data.get('average_income', '❌ НЕ ВКАЗАНО')))}\n"
+            f"• Referral Link: {'✅ Вказано' if data.get('referral_link') else '❌ НЕ ВКАЗАНО'}\n\n"
+            f"<b>⚡ Швидке редагування:</b>\n"
+            f"Натисни кнопку нижче або відправ текст:\n\n"
+            f"<b>📝 Приклади:</b>\n"
+            f"<code>commission: 78.5</code>\n"
             f"<code>average_income: 15.5</code>\n"
-            f"<code>referral_link: https://t.me/bot?start=ref123</code>\n"
-            f"<code>uk_description: 🎁 Подарунки за активність</code>"
+            f"<code>duration: 90</code>\n"
+            f"<code>referral_link: https://t.me/bot?start=ref123</code>"
         )
         
         # Create quick-edit buttons for common fields
