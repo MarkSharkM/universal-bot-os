@@ -805,19 +805,3 @@ window.Actions = {
     fallbackCopyText,
     showCopySuccess
 };
-// Developer Tools
-window.toggleDevMode = function (mode) {
-    if (mode === 'top') {
-        console.log('⚡️ Switching to TOP Mode');
-        AppState.setReferralCount(10);
-        AppState.setTopLocked(false);
-    } else {
-        console.log('🌱 Switching to Starter Mode');
-        AppState.setReferralCount(2);
-        AppState.setTopLocked(true);
-        AppState.setTgrLink(null); // Clear link to test input
-    }
-    if (typeof Render !== 'undefined') Render.renderHome();
-    return "Done";
-};
-

@@ -81,6 +81,64 @@ app.add_middleware(
 )
 
 
+# Admin Authentication Middleware
+# Protects ALL /api/v1/admin/* endpoints except /auth/login
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse as StarletteJSONResponse
+from app.core.security import decode_access_token
+
+class AdminAuthMiddleware(BaseHTTPMiddleware):
+    """Middleware to protect all admin endpoints with JWT authentication"""
+    
+    # Endpoints that don't require authentication
+    PUBLIC_PATHS = [
+        "/api/v1/admin/auth/login",
+        "/api/v1/admin/auth/verify",  # verify uses its own Depends
+    ]
+    
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        
+        # Skip non-admin paths
+        if not path.startswith("/api/v1/admin"):
+            return await call_next(request)
+        
+        # Skip public admin paths
+        if any(path.startswith(public) for public in self.PUBLIC_PATHS):
+            return await call_next(request)
+        
+        # Check for Authorization header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return StarletteJSONResponse(
+                status_code=401,
+                content={"detail": "Not authenticated. Please login first."}
+            )
+        
+        # Validate token
+        token = auth_header.replace("Bearer ", "")
+        try:
+            payload = decode_access_token(token)
+            if payload is None:
+                return StarletteJSONResponse(
+                    status_code=401,
+                    content={"detail": "Invalid or expired token"}
+                )
+            # Token is valid, continue
+            request.state.admin = payload
+        except Exception as e:
+            logger.warning(f"Admin auth failed: {e}")
+            return StarletteJSONResponse(
+                status_code=401,
+                content={"detail": "Invalid token"}
+            )
+        
+        return await call_next(request)
+
+app.add_middleware(AdminAuthMiddleware)
+logger.info("✅ Admin authentication middleware enabled")
+
+
 @app.on_event("startup")
 async def startup():
     """Initialize database on startup"""
