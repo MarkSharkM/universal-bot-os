@@ -96,7 +96,8 @@ window.Pages.Top = {
                         const partnerImage = partner.icon || partner.image || partner.image_url || tgFallbackUrl || '/static/mini-app/icon.png';
                         const commission = partner.commission || 0;
                         const score = partner.roi_score || 0;
-                        const scoreDisplay = score > 0 ? `🔥 ${score}/10` : `🔥 High`;
+                        const scoreDisplay = score > 0 ? `🔥 ${score}` : '';
+                        const description = partner.description || '';
                         const link = partner.referral_link || partner.link;
                         const commissionLabel = (t.estimated_share || '{{percent}}% share').replace('{{percent}}', commission);
 
@@ -107,9 +108,10 @@ window.Pages.Top = {
                             </div>
                             <div class="top-row-middle">
                                 <div class="top-name-new">${escapeHtml(partnerName)}</div>
+                                ${description ? `<div class="top-description" style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">${escapeHtml(description)}</div>` : ''}
                                 <div class="top-metrics">
-                                    <span class="metric-score">${scoreDisplay}</span>
-                                    ${commission > 0 ? `<span class="metric-separator">•</span><span class="metric-commission">${commissionLabel}</span>` : ''}
+                                    ${score > 0 ? `<span class="metric-score">${scoreDisplay}</span>` : ''}
+                                    ${commission > 0 ? `${score > 0 ? '<span class="metric-separator">•</span>' : ''}<span class="metric-commission">${commissionLabel}</span>` : ''}
                                 </div>
                             </div>
                             <div class="top-row-right">
@@ -267,7 +269,8 @@ window.Pages.Top = {
 
             const commission = partner.commission || 0;
             const score = partner.roi_score || 0;
-            const scoreDisplay = score > 0 ? `🔥 ${score}/10` : `🔥 High`;
+            const scoreDisplay = score > 0 ? `🔥 ${score}` : '';
+            const description = partner.description || '';
 
             const link = partner.referral_link || partner.link;
 
@@ -282,9 +285,10 @@ window.Pages.Top = {
                 </div>
                 <div class="top-row-middle">
                     <div class="top-name-new">${escapeHtml(partnerName)}</div>
+                    ${description ? `<div class="top-description" style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">${escapeHtml(description)}</div>` : ''}
                     <div class="top-metrics">
-                        <span class="metric-score">${scoreDisplay}</span>
-                        ${commission > 0 ? `<span class="metric-separator">•</span><span class="metric-commission">${commissionLabel}</span>` : ''}
+                        ${score > 0 ? `<span class="metric-score">${scoreDisplay}</span>` : ''}
+                        ${commission > 0 ? `${score > 0 ? '<span class="metric-separator">•</span>' : ''}<span class="metric-commission">${commissionLabel}</span>` : ''}
                     </div>
                 </div>
                 <div class="top-row-right">
