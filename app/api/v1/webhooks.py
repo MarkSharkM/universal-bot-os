@@ -45,8 +45,22 @@ async def telegram_webhook(
         OK response
     """
     try:
-        # Get bot by token
-        bot = db.query(Bot).filter(Bot.token == bot_token).first()
+        # Get bot by token (need to decrypt tokens since they're encrypted in DB)
+        from app.utils.encryption import decrypt_token
+        bot = None
+        all_bots = db.query(Bot).filter(Bot.platform_type == "telegram", Bot.is_active == True).all()
+        
+        for b in all_bots:
+            try:
+                decrypted_token = decrypt_token(b.token)
+                if decrypted_token == bot_token:
+                    bot = b
+                    break
+            except Exception as e:
+                # Skip bots with invalid encryption
+                logger.warning(f"Failed to decrypt token for bot {b.id}: {e}")
+                continue
+        
         if not bot:
             logger.warning(f"Bot not found for token: {bot_token[:10]}...")
             return {"ok": False, "error": "Bot not found"}
