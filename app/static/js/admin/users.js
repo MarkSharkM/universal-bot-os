@@ -16,11 +16,10 @@ function initUsersTab() {
 
 // Load Analytics (Charts & Top Cards)
 async function loadUsersAnalytics() {
-    const botId = getBotId();
-    if (!botId) return;
+    if (!currentBotId) return;
 
     try {
-        const response = await fetchWithAuth(`/api/v1/admin/bots/${botId}/users/analytics?days=30`);
+        const response = await fetch(`/api/v1/admin/bots/${currentBotId}/users/analytics?days=30`);
         const data = await response.json();
 
         // Update Stats Cards
@@ -32,7 +31,7 @@ async function loadUsersAnalytics() {
 
     } catch (error) {
         console.error('Error loading user analytics:', error);
-        showToast('Error loading analytics', 'error');
+        // showToast not defined, use console or alert if critical
     }
 }
 
@@ -126,14 +125,13 @@ function renderRevenueChart(chartData) {
 
 // Load Unique Users Table
 async function loadUsersTable() {
-    const botId = getBotId();
-    if (!botId) return;
+    if (!currentBotId) return;
 
     showLoader('#users-table-body');
 
     try {
         // Use existing endpoint but render differently
-        const response = await fetchWithAuth(`/api/v1/admin/bots/${botId}/users?limit=100`);
+        const response = await fetch(`/api/v1/admin/bots/${currentBotId}/users?limit=100`);
         const users = await response.json();
 
         renderUsersTable(users);
