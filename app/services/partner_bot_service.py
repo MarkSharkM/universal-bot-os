@@ -307,7 +307,7 @@ class PartnerBotService:
             referral_link = data.get('referral_link', '')
             
             # Calculate ROI
-            roi_score = round((float(commission) / 100) * float(average_income), 1) if commission and average_income else 0.0
+            roi_score = round((float(commission) / 100) * float(average_income), 2) if commission and average_income else 0.0
             
             translations = data.get('translations', {})
             
@@ -508,7 +508,7 @@ class PartnerBotService:
         
         # Calculate ROI: (commission / 100) * average_income
         average_income = float(data.get("average_income", 0))
-        roi_score = round((commission / 100) * average_income, 1) if commission and average_income else 0.0
+        roi_score = round((commission / 100) * average_income, 2) if commission and average_income else 0.0
         
         partner_data = {
             "bot_name": data.get("program_name"),  # Main name
@@ -749,7 +749,7 @@ class PartnerBotService:
         referral_link = data.get('referral_link', '')
         
         # Calculate ROI
-        roi_score = round((float(commission) / 100) * float(average_income), 1) if commission and average_income else 0.0
+        roi_score = round((float(commission) / 100) * float(average_income), 2) if commission and average_income else 0.0
         
         translations = data.get('translations', {})
         
