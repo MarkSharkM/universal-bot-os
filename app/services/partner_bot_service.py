@@ -143,8 +143,9 @@ class PartnerBotService:
             await self._process_single_or_grouped_photos(user, [photo_data])
             return
         
-        # Store photo in Redis with TTL
+        # Keys for this media group
         group_key = f"media_group:{self.bot_id}:{user.id}:{media_group_id}"
+        lock_key = f"media_group_lock:{self.bot_id}:{user.id}:{media_group_id}"
         
         # Get existing photos
         existing_data = cache.get(group_key)
@@ -152,37 +153,55 @@ class PartnerBotService:
             photos = existing_data if isinstance(existing_data, list) else json.loads(existing_data)
         else:
             photos = []
-            # Send initial message only once
-            await self.adapter.send_message(
-                self.bot_id,
-                user.external_id,
-                "📸 *Отримую фото...*",
-                parse_mode="Markdown"
-            )
-        
-        # Add new photo
-        photos.append(photo_data)
-        
-        # Save back to Redis with 5 second TTL
-        cache.set(group_key, photos, ttl=5)
-        
-        # Schedule processing after 2 second delay
-        await asyncio.sleep(2)
-        
-        # Check if we're still the last photo (no new photos arrived)
-        current_data = cache.get(group_key)
-        if current_data:
-            current_photos = current_data if isinstance(current_data, list) else json.loads(current_data)
-            if len(current_photos) == len(photos):
-                # We're the last photo - process all
-                cache.delete(group_key)
+            # Send initial message only once (check with lock)
+            if not cache.get(lock_key + ":msg"):
+                cache.set(lock_key + ":msg", "1", ttl=10)
                 await self.adapter.send_message(
                     self.bot_id,
                     user.external_id,
-                    f"⏳ *Аналізую {len(current_photos)} фото...*",
+                    "📸 *Отримую фото...*",
                     parse_mode="Markdown"
                 )
-                await self._process_single_or_grouped_photos(user, current_photos)
+        
+        # Add new photo
+        photos.append(photo_data)
+        photo_count_before_wait = len(photos)
+        
+        # Save back to Redis with 10 second TTL
+        cache.set(group_key, photos, ttl=10)
+        
+        # Wait for more photos
+        await asyncio.sleep(2.5)
+        
+        # Try to acquire processing lock (only one processor should run)
+        if cache.get(lock_key):
+            # Another handler is already processing
+            return
+        
+        # Check if more photos arrived during wait
+        current_data = cache.get(group_key)
+        if not current_data:
+            # Already processed by another handler
+            return
+            
+        current_photos = current_data if isinstance(current_data, list) else json.loads(current_data)
+        
+        # Only process if no new photos arrived since our wait started
+        if len(current_photos) > photo_count_before_wait:
+            # New photos arrived - let the last one process
+            return
+        
+        # Acquire lock and process
+        cache.set(lock_key, "processing", ttl=60)
+        cache.delete(group_key)
+        
+        await self.adapter.send_message(
+            self.bot_id,
+            user.external_id,
+            f"⏳ *Аналізую {len(current_photos)} фото...*",
+            parse_mode="Markdown"
+        )
+        await self._process_single_or_grouped_photos(user, current_photos)
     
     async def _process_single_or_grouped_photos(self, user: User, photos: list):
         """
