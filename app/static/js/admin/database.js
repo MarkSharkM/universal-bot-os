@@ -15,7 +15,7 @@ async function loadDatabaseData() {
 async function loadPartnersForCache() {
     if (!currentBotId) return;
     try {
-        const res = await fetch(`${API_BASE}/bots/${currentBotId}/partners?active_only=false&limit=500`);
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/partners?active_only=false&limit=500`);
         const partners = await res.json();
         partnersCache.clear();
         partners.forEach(p => {
@@ -65,7 +65,7 @@ async function loadMessages(offset = 0, reset = false) {
     if (filterCommand) url += `&command=${filterCommand}`;
 
     try {
-        const res = await fetch(url);
+        const res = await authFetch(url);
         const messages = await res.json();
         const tbody = document.getElementById('database-messages-tbody');
 
@@ -315,7 +315,7 @@ function toggleExpand(id) {
 async function loadUsersForMessagesFilter() {
     if (!currentBotId) return;
     try {
-        const res = await fetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=100`);
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/users?skip=0&limit=100`);
         const users = await res.json();
         const select = document.getElementById('messages-user-filter');
         let options = '<option value="">All users</option>';
@@ -365,7 +365,7 @@ async function updateUser() {
     });
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}?${params}`, { method: 'PATCH' });
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/users/${userId}?${params}`, { method: 'PATCH' });
         if (res.ok) {
             showMessage('database-message', 'User updated successfully!');
             hideEditUserForm();
@@ -424,7 +424,7 @@ function updateUserRowsInTable(userId, newData) {
 async function deleteUser(userId, externalId) {
     if (!confirm(`⚠️ PERMANENTLY DELETE user ${externalId} and ALL related messages/analytics? This cannot be undone!`)) return;
     try {
-        const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}`, { method: 'DELETE' });
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/users/${userId}`, { method: 'DELETE' });
         if (res.ok) {
             alert('Deleted!');
             loadMessages(0, true);
@@ -439,7 +439,7 @@ async function resetInvites() {
     if (!confirm('Reset invites to 0?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/reset-invites`, { method: 'POST' });
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/reset-invites`, { method: 'POST' });
         if (res.ok) {
             showMessage('database-message', 'Invites reset successfully!');
             hideEditUserForm();
@@ -460,7 +460,7 @@ async function test5Invites() {
     if (!confirm('Simulate 5 invites?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/test-5-invites`, { method: 'POST' });
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/users/${userId}/test-5-invites`, { method: 'POST' });
         const result = await res.json();
 
         if (result.success) {

@@ -2,7 +2,7 @@
 
 async function loadBots() {
     try {
-        const res = await fetch(`${API_BASE}/bots?is_active=true`);
+        const res = await authFetch(`${API_BASE}/bots?is_active=true`);
         const bots = await res.json();
         const tbody = document.getElementById('bots-tbody');
         if (bots.length === 0) {
@@ -44,9 +44,8 @@ async function createBot() {
     };
 
     try {
-        const res = await fetch(`${API_BASE}/bots`, {
+        const res = await authFetch(`${API_BASE}/bots`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
@@ -88,7 +87,7 @@ async function deleteBot(botId) {
     if (!confirm('Are you sure you want to delete this bot?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}`, { method: 'DELETE' });
+        const res = await authFetch(`${API_BASE}/bots/${botId}`, { method: 'DELETE' });
         if (res.ok) {
             showMessage('bots-message', 'Bot deleted successfully', 'success');
             setTimeout(() => loadBots(), 500);
@@ -104,7 +103,7 @@ async function deleteBot(botId) {
 // Utils needed for other modules
 async function loadBotsForSelect(selectId, callback) {
     try {
-        const res = await fetch(`${API_BASE}/bots`);
+        const res = await authFetch(`${API_BASE}/bots`);
         const bots = await res.json();
         const select = document.getElementById(selectId);
         select.innerHTML = '<option value="">Select Bot</option>' +

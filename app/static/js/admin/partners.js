@@ -19,7 +19,7 @@ async function loadPartners() {
         const showInactive = document.getElementById('show-inactive-partners')?.checked || false;
         const activeOnly = !showInactive;
         const url = `${API_BASE}/bots/${botId}/partners?active_only=${activeOnly}`;
-        const res = await fetch(url);
+        const res = await authFetch(url);
 
         if (!res.ok) {
             const error = await res.json().catch(() => ({ detail: 'Failed to load partners' }));
@@ -188,7 +188,7 @@ async function createPartner() {
     };
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}/partners`, {
+        const res = await authFetch(`${API_BASE}/bots/${botId}/partners`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -265,7 +265,7 @@ async function updatePartner() {
     };
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}`, {
+        const res = await authFetch(`${API_BASE}/bots/${botId}/partners/${partnerId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -365,7 +365,7 @@ async function deletePartner(botId, partnerId, hardDelete = false) {
 
     try {
         const url = `${API_BASE}/bots/${botId}/partners/${partnerId}?hard_delete=${hardDelete}`;
-        const res = await fetch(url, { method: 'DELETE' });
+        const res = await authFetch(url, { method: 'DELETE' });
         if (res.ok) {
             showMessage('partners-message', hardDelete ? 'Permanently deleted!' : 'Deleted!', 'success');
             removePartnerRowFromTable(partnerId);
@@ -396,7 +396,7 @@ async function showDeletedPartners() {
     }
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}/partners/deleted`);
+        const res = await authFetch(`${API_BASE}/bots/${botId}/partners/deleted`);
         const deleted = await res.json();
 
         const tbody = document.getElementById('deleted-partners-tbody');
@@ -428,7 +428,7 @@ function hideDeletedPartners() {
 
 async function restorePartner(botId, partnerId) {
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}/partners/${partnerId}/restore`, { method: 'POST' });
+        const res = await authFetch(`${API_BASE}/bots/${botId}/partners/${partnerId}/restore`, { method: 'POST' });
         if (res.ok) {
             alert('Partner restored!');
             const row = document.getElementById(`deleted-row-${partnerId}`);

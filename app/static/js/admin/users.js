@@ -19,7 +19,7 @@ async function loadUsersAnalytics() {
     if (!currentBotId) return;
 
     try {
-        const response = await fetch(`/api/v1/admin/bots/${currentBotId}/users/analytics?days=30`);
+        const response = await authFetch(`/api/v1/admin/bots/${currentBotId}/users/analytics?days=30`);
         const data = await response.json();
 
         // Update Stats Cards
@@ -139,7 +139,7 @@ async function loadUsersTable() {
 
     try {
         // Use existing endpoint but render differently
-        const response = await fetch(`/api/v1/admin/bots/${currentBotId}/users?limit=100`);
+        const response = await authFetch(`/api/v1/admin/bots/${currentBotId}/users?limit=100`);
         const users = await response.json();
 
         renderUsersTable(users);

@@ -4,7 +4,7 @@ async function loadAIConfig() {
     if (!botId) return;
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}`);
+        const res = await authFetch(`${API_BASE}/bots/${botId}`);
         const bot = await res.json();
         const config = bot.config || {};
 
@@ -52,7 +52,7 @@ async function loadStats() {
     if (!botId) return;
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${botId}/stats`);
+        const res = await authFetch(`${API_BASE}/bots/${botId}/stats`);
         const stats = await res.json();
 
         document.getElementById('stats-users-total').textContent = stats.users.total;
@@ -88,7 +88,7 @@ async function loadMiniAppAnalytics() {
             }
         }
 
-        const res = await fetch(`${API_BASE}/bots/${botId}/mini-app-analytics${query}`);
+        const res = await authFetch(`${API_BASE}/bots/${botId}/mini-app-analytics${query}`);
         const data = await res.json();
 
         // Update counters
@@ -142,7 +142,7 @@ async function loadMonitoring() {
     }
 
     try {
-        const res = await fetch(`${API_BASE}/bots/${currentBotId}/stats/analytics?days=30`);
+        const res = await authFetch(`${API_BASE}/bots/${currentBotId}/stats/analytics?days=30`);
         const data = await res.json();
 
         // 1. Render Line Chart

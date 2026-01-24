@@ -178,6 +178,12 @@ function showTab(tabName) {
 
 // Global Bot Selector Logic
 async function loadGlobalBotSelector() {
+    // Check if user is authenticated first
+    if (!AUTH.isAuthenticated()) {
+        showLoginModal();
+        return;
+    }
+    
     try {
         // Check cache first
         const cached = getCached('bots');
@@ -186,7 +192,7 @@ async function loadGlobalBotSelector() {
             return;
         }
 
-        const res = await fetch(`${API_BASE}/bots?limit=50`);
+        const res = await authFetch(`${API_BASE}/bots?limit=50`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const bots = await res.json();
@@ -195,6 +201,10 @@ async function loadGlobalBotSelector() {
 
     } catch (error) {
         console.error('Error loading bots:', error);
+        // If unauthorized, show login modal
+        if (error.message === 'Unauthorized') {
+            return; // authFetch already shows login modal
+        }
         const select = document.getElementById('global-bot-select');
         if (select) select.innerHTML = '<option value="">Error loading bots</option>';
     }

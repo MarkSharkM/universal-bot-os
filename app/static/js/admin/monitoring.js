@@ -27,7 +27,7 @@ async function loadProductMonitoring() {
             query = `?start_date=${start}&end_date=${end}`;
         }
 
-        const res = await fetch(`${MONITORING_API}/product/${currentBotId}${query}`);
+        const res = await authFetch(`${MONITORING_API}/product/${currentBotId}${query}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();
