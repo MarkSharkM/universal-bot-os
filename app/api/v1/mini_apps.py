@@ -1034,6 +1034,50 @@ async def get_mini_app_data(
             "starter": translation_service.get_translation('starter', user_lang),
             "pro": translation_service.get_translation('pro', user_lang),
             "hub": translation_service.get_translation('hub', user_lang),
+            
+            # Hero Additional
+            "saved": translation_service.get_translation('saved', user_lang),
+            "change_link": translation_service.get_translation('change_link', user_lang),
+            "link_copied": translation_service.get_translation('link_copied', user_lang),
+            "saving": translation_service.get_translation('saving', user_lang),
+            "invalid_tgr_link": translation_service.get_translation('invalid_tgr_link', user_lang),
+            "tgr_link_updated": translation_service.get_translation('tgr_link_updated', user_lang),
+            
+            # Actions / Errors
+            "link_missing": translation_service.get_translation('link_missing', user_lang),
+            "open_bot_manual": translation_service.get_translation('open_bot_manual', user_lang),
+            "bot_id_missing": translation_service.get_translation('bot_id_missing', user_lang),
+            "copied": translation_service.get_translation('copied', user_lang),
+            "copy_failed": translation_service.get_translation('copy_failed', user_lang),
+            
+            # Payment / TOP
+            "creating_invoice": translation_service.get_translation('creating_invoice', user_lang),
+            "top_unlocked": translation_service.get_translation('top_unlocked', user_lang),
+            "payment_cancelled": translation_service.get_translation('payment_cancelled', user_lang),
+            "payment_error": translation_service.get_translation('payment_error', user_lang),
+            "buy_top_fallback_title": translation_service.get_translation('buy_top_fallback_title', user_lang),
+            "buy_top_fallback_text": translation_service.get_translation('buy_top_fallback_text', user_lang),
+            "open_bot": translation_service.get_translation('open_bot', user_lang),
+            
+            # Activate 7% Instructions
+            "activate_7_title": translation_service.get_translation('activate_7_title', user_lang, {'percent': commission_percent}),
+            "activate_7_step_1": translation_service.get_translation('activate_7_step_1', user_lang, {'username': bot_username}),
+            "activate_7_step_2": translation_service.get_translation('activate_7_step_2', user_lang),
+            "activate_7_step_3": translation_service.get_translation('activate_7_step_3', user_lang),
+            "activate_7_footer": translation_service.get_translation('activate_7_footer', user_lang, {'percent': commission_percent}),
+            "activate_7_note": translation_service.get_translation('activate_7_note', user_lang),
+            
+            # Share
+            "share_text_pro": translation_service.get_translation('share_text_pro', user_lang),
+            "share_text_starter": translation_service.get_translation('share_text_starter', user_lang),
+            "share_popup_text": translation_service.get_translation('share_popup_text', user_lang),
+            "close_btn": translation_service.get_translation('close_btn', user_lang),
+            
+            # Wallet Modal
+            "wallet_connect_title": translation_service.get_translation('wallet_connect_title', user_lang),
+            "wallet_connect_subtitle": translation_service.get_translation('wallet_connect_subtitle', user_lang),
+            "wallet_modal_copy": translation_service.get_translation('wallet_modal_copy', user_lang),
+            "wallet_connected": translation_service.get_translation('wallet_connected', user_lang),
         }
         
         # Get user custom_data for Revenue Launcher
