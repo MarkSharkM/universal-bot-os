@@ -35,16 +35,24 @@ async function loadUsersAnalytics() {
     }
 }
 
+// Helper: Show Loader
+function showLoader(selector) {
+    const el = document.querySelector(selector);
+    if (el) {
+        el.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">Loading...</td></tr>';
+    }
+}
+
 // Update Top Cards
 function updateUserStatsCards(stats) {
     // Total Users
-    $('#users-total-count').text(stats.total_users.toLocaleString());
+    document.getElementById('users-total-count').textContent = stats.total_users.toLocaleString();
 
     // Total Buyers (Star Purchasers)
-    $('#users-total-buyers').text(stats.total_buyers.toLocaleString());
+    document.getElementById('users-total-buyers').textContent = stats.total_buyers.toLocaleString();
 
     // Total Revenue
-    $('#users-total-revenue').text(`${stats.total_revenue.toLocaleString()} ⭐️`);
+    document.getElementById('users-total-revenue').textContent = `${stats.total_revenue.toLocaleString()} ⭐️`;
 }
 
 // Render User Growth Chart
@@ -138,17 +146,20 @@ async function loadUsersTable() {
 
     } catch (error) {
         console.error('Error loading users table:', error);
-        $('#users-table-body').html('<tr><td colspan="7" class="text-center text-red-400 py-4">Error loading data</td></tr>');
+        const tbody = document.querySelector('#users-table-body');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center text-red-400 py-4">Error loading data</td></tr>';
     }
 }
 
 // Render Table Rows
 function renderUsersTable(users) {
-    const tbody = $('#users-table-body');
-    tbody.empty();
+    const tbody = document.querySelector('#users-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = ''; // Clear existing
 
     if (users.length === 0) {
-        tbody.html('<tr><td colspan="7" class="text-center text-gray-500 py-4">No users found</td></tr>');
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-500 py-4">No users found</td></tr>';
         return;
     }
 
@@ -164,8 +175,10 @@ function renderUsersTable(users) {
         // Status
         const topStatus = customData.top_status || 'locked';
 
-        const row = `
-            <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-700 hover:bg-gray-800/50 transition-colors';
+
+        tr.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-300 font-mono">${formatDate(user.created_at)}</td>
                 <td class="px-4 py-3">
                     <div class="flex items-center">
@@ -193,9 +206,8 @@ function renderUsersTable(users) {
                         <i class="fas fa-edit"></i>
                     </button>
                 </td>
-            </tr>
         `;
-        tbody.append(row);
+        tbody.appendChild(tr);
     });
 }
 
