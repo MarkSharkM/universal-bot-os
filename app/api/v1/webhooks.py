@@ -573,26 +573,38 @@ async def _handle_callback(
             )
         else:
             logger.warning(f"Unknown command in callback: {data}")
-    elif data.startswith('approve_partner:') or data.startswith('cancel_partner:') or data.startswith('edit_partner:') or data.startswith('preview_partner:'):
-        # Handle partner bot callbacks
+    elif data.startswith('approve_p:') or data.startswith('cancel_p:') or data.startswith('edit_partner:') or data.startswith('preview_partner:'):
+        # Handle partner bot callbacks (using short IDs to fit in 64 byte limit)
         partner_bot_service = PartnerBotService(db, bot_id)
         
-        # Parse callback_data format: "action:proposal_id" or "action:proposal_id:target_bot_id"
+        # Parse callback_data format:
+        # "approve_p:short_id" or "approve_p:short_id:bot_index"
+        # "edit_partner:short_id"
+        # "cancel_p:short_id"
         parts = data.split(':', 2)
         action = parts[0] if len(parts) > 0 else None
-        proposal_id = parts[1] if len(parts) > 1 else None
-        target_bot_id = parts[2] if len(parts) > 2 else None
+        short_id = parts[1] if len(parts) > 1 else None
+        extra_param = parts[2] if len(parts) > 2 else None
         
-        if action == 'approve_partner':
-            await partner_bot_service.handle_approval(user, proposal_id, target_bot_id)
+        if action == 'approve_p':
+            await partner_bot_service.handle_approval(user, short_id, extra_param)
         elif action == 'edit_partner':
-            await partner_bot_service.handle_edit(user, proposal_id)
+            await partner_bot_service.handle_edit(user, short_id)
         elif action == 'preview_partner':
-            # Show preview again
+            # Show preview again - find proposal by short ID
             from app.models.business_data import BusinessData
             try:
-                proposal_uuid = UUID(proposal_id)
-                proposal = db.query(BusinessData).filter(BusinessData.id == proposal_uuid).first()
+                proposals = db.query(BusinessData).filter(
+                    BusinessData.bot_id == bot_id,
+                    BusinessData.data_type == 'partner_proposal'
+                ).all()
+                
+                proposal = None
+                for p in proposals:
+                    if str(p.id).startswith(short_id):
+                        proposal = p
+                        break
+                
                 if proposal:
                     await partner_bot_service.show_preview(user, proposal)
                 else:
@@ -600,13 +612,21 @@ async def _handle_callback(
             except Exception as e:
                 logger.error(f"Error showing preview: {e}")
                 await adapter.send_message(bot_id, user.external_id, f"❌ Error: {str(e)}")
-        elif action == 'cancel_partner':
+        elif action == 'cancel_p':
             # Just delete the proposal and message
             from app.models.business_data import BusinessData
             try:
-                proposal_uuid = UUID(proposal_id)
-                db.query(BusinessData).filter(BusinessData.id == proposal_uuid).delete()
-                db.commit()
+                proposals = db.query(BusinessData).filter(
+                    BusinessData.bot_id == bot_id,
+                    BusinessData.data_type == 'partner_proposal'
+                ).all()
+                
+                for p in proposals:
+                    if str(p.id).startswith(short_id):
+                        db.delete(p)
+                        db.commit()
+                        break
+                        
                 await adapter.send_message(bot_id, user.external_id, "❌ Cancelled.")
             except Exception as e:
                 logger.error(f"Error cancelling proposal: {e}")

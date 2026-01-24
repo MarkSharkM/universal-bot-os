@@ -250,24 +250,39 @@ class PartnerBotService:
             if len(main_bots) == 1:
                 # Only one bot - skip selection, go straight to approve
                 target_bot = main_bots[0]
+                # Store target_bot_id in proposal for later use
+                data['_target_bot_id'] = str(target_bot.id)
+                proposal.data['payload'] = data
+                from sqlalchemy.orm.attributes import flag_modified
+                flag_modified(proposal, 'data')
+                self.db.commit()
+                
                 buttons = [
-                    [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
+                    [{"text": "✏️ Edit", "callback_data": f"edit_partner:{str(proposal.id)[:8]}"}],
                     [
-                        {"text": f"✅ Add to {target_bot.name}", "callback_data": f"approve_partner:{proposal.id}:{target_bot.id}"},
-                        {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+                        {"text": f"✅ Add to {target_bot.name}", "callback_data": f"approve_p:{str(proposal.id)[:8]}"},
+                        {"text": "❌ Cancel", "callback_data": f"cancel_p:{str(proposal.id)[:8]}"}
                     ]
                 ]
             else:
-                # Multiple bots - show selection
-                buttons.append([{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}])
+                # Multiple bots - show selection buttons with bot index
+                buttons.append([{"text": "✏️ Edit", "callback_data": f"edit_partner:{str(proposal.id)[:8]}"}])
                 
-                for bot in main_bots:
-                    bot_name = bot.name[:25]  # Truncate long names
+                # Store bot list in proposal for lookup
+                bot_mapping = {str(i): str(bot.id) for i, bot in enumerate(main_bots)}
+                data['_bot_mapping'] = bot_mapping
+                proposal.data['payload'] = data
+                from sqlalchemy.orm.attributes import flag_modified
+                flag_modified(proposal, 'data')
+                self.db.commit()
+                
+                for i, bot in enumerate(main_bots):
+                    bot_name = bot.name[:20]  # Truncate long names
                     buttons.append([
-                        {"text": f"➕ Add to {bot_name}", "callback_data": f"approve_partner:{proposal.id}:{bot.id}"}
+                        {"text": f"➕ Add to {bot_name}", "callback_data": f"approve_p:{str(proposal.id)[:8]}:{i}"}
                     ])
                 
-                buttons.append([{"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}])
+                buttons.append([{"text": "❌ Cancel", "callback_data": f"cancel_p:{str(proposal.id)[:8]}"}])
             
             await self.adapter.send_message(
                 self.bot_id,
@@ -303,25 +318,26 @@ class PartnerBotService:
             await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal data.")
             return
 
-    async def handle_approval(self, user: User, proposal_id: str, target_bot_id: str = None):
+    async def handle_approval(self, user: User, proposal_short_id: str, bot_index: str = None):
         """
         Handle approval callback - adds partner to TARGET bot.
         
         Args:
             user: User who approved
-            proposal_id: Proposal UUID
-            target_bot_id: Target bot UUID (from callback_data)
+            proposal_short_id: Short proposal ID (first 8 chars of UUID)
+            bot_index: Bot index from callback_data (for multi-bot selection)
         """
-        try:
-            # Ensure valid UUID
-            uuid_obj = UUID(proposal_id)
-        except ValueError:
-            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal UUID.")
-            return
-
-        proposal = self.db.query(BusinessData).filter(
-            BusinessData.id == uuid_obj
-        ).first()
+        # Find proposal by short ID (match first 8 chars)
+        proposals = self.db.query(BusinessData).filter(
+            BusinessData.bot_id == self.bot_id,
+            BusinessData.data_type == 'partner_proposal'
+        ).all()
+        
+        proposal = None
+        for p in proposals:
+            if str(p.id).startswith(proposal_short_id):
+                proposal = p
+                break
         
         if not proposal:
             await self.adapter.send_message(self.bot_id, user.external_id, "❌ Proposal not found or expired.")
@@ -332,23 +348,33 @@ class PartnerBotService:
             await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal data.")
             return
 
-        # Convert target_bot_id to UUID if provided
-        if target_bot_id:
-            try:
-                from uuid import UUID as UUID_type
-                target_bot_uuid = UUID_type(target_bot_id)
-            except ValueError:
-                await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Invalid target bot ID: {target_bot_id}")
+        # Get target_bot_id from proposal data or bot_index
+        if bot_index is not None:
+            # Multi-bot selection - lookup bot_id from mapping
+            bot_mapping = data.get('_bot_mapping', {})
+            target_bot_id_str = bot_mapping.get(bot_index)
+            if not target_bot_id_str:
+                await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Invalid bot selection.")
                 return
         else:
-            # No target specified - should not happen with new UI, but handle gracefully
-            await self.adapter.send_message(self.bot_id, user.external_id, "❌ No target bot specified.")
+            # Single bot - get from stored target_bot_id
+            target_bot_id_str = data.get('_target_bot_id')
+            if not target_bot_id_str:
+                await self.adapter.send_message(self.bot_id, user.external_id, "❌ No target bot specified.")
+                return
+        
+        # Convert to UUID
+        try:
+            from uuid import UUID as UUID_type
+            target_bot_uuid = UUID_type(target_bot_id_str)
+        except ValueError:
+            await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Invalid target bot ID.")
             return
 
         # Verify target bot exists
         target_bot = self.db.query(Bot).filter(Bot.id == target_bot_uuid).first()
         if not target_bot:
-            await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Target bot not found: {target_bot_id}")
+            await self.adapter.send_message(self.bot_id, user.external_id, f"❌ Target bot not found.")
             return
 
         # Create Real Partner Record in TARGET bot
@@ -418,17 +444,19 @@ class PartnerBotService:
             parse_mode="HTML"
         )
 
-    async def handle_edit(self, user: User, proposal_id: str):
+    async def handle_edit(self, user: User, proposal_short_id: str):
         """Handle edit callback - show editable fields"""
-        try:
-            uuid_obj = UUID(proposal_id)
-        except ValueError:
-            await self.adapter.send_message(self.bot_id, user.external_id, "❌ Invalid proposal UUID.")
-            return
-
-        proposal = self.db.query(BusinessData).filter(
-            BusinessData.id == uuid_obj
-        ).first()
+        # Find proposal by short ID
+        proposals = self.db.query(BusinessData).filter(
+            BusinessData.bot_id == self.bot_id,
+            BusinessData.data_type == 'partner_proposal'
+        ).all()
+        
+        proposal = None
+        for p in proposals:
+            if str(p.id).startswith(proposal_short_id):
+                proposal = p
+                break
         
         if not proposal:
             await self.adapter.send_message(self.bot_id, user.external_id, "❌ Proposal not found or expired.")
@@ -473,10 +501,10 @@ class PartnerBotService:
         )
         
         buttons = [
-            [{"text": "🔙 Back to Preview", "callback_data": f"preview_partner:{proposal.id}"}],
+            [{"text": "🔙 Back to Preview", "callback_data": f"preview_partner:{str(proposal.id)[:8]}"}],
             [
-                {"text": "✅ Save & Approve", "callback_data": f"approve_partner:{proposal.id}"},
-                {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+                {"text": "✅ Save & Approve", "callback_data": f"approve_p:{str(proposal.id)[:8]}"},
+                {"text": "❌ Cancel", "callback_data": f"cancel_p:{str(proposal.id)[:8]}"}
             ]
         ]
         
@@ -652,24 +680,39 @@ class PartnerBotService:
         if len(main_bots) == 1:
             # Only one bot - skip selection
             target_bot = main_bots[0]
+            # Store target_bot_id in proposal
+            data['_target_bot_id'] = str(target_bot.id)
+            proposal.data['payload'] = data
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(proposal, 'data')
+            self.db.commit()
+            
             buttons = [
-                [{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}],
+                [{"text": "✏️ Edit", "callback_data": f"edit_partner:{str(proposal.id)[:8]}"}],
                 [
-                    {"text": f"✅ Add to {target_bot.name}", "callback_data": f"approve_partner:{proposal.id}:{target_bot.id}"},
-                    {"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}
+                    {"text": f"✅ Add to {target_bot.name}", "callback_data": f"approve_p:{str(proposal.id)[:8]}"},
+                    {"text": "❌ Cancel", "callback_data": f"cancel_p:{str(proposal.id)[:8]}"}
                 ]
             ]
         else:
-            # Multiple bots - show selection
-            buttons.append([{"text": "✏️ Edit", "callback_data": f"edit_partner:{proposal.id}"}])
+            # Multiple bots - show selection with bot index
+            buttons.append([{"text": "✏️ Edit", "callback_data": f"edit_partner:{str(proposal.id)[:8]}"}])
             
-            for bot in main_bots:
-                bot_name = bot.name[:25]  # Truncate long names
+            # Store bot mapping
+            bot_mapping = {str(i): str(bot.id) for i, bot in enumerate(main_bots)}
+            data['_bot_mapping'] = bot_mapping
+            proposal.data['payload'] = data
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(proposal, 'data')
+            self.db.commit()
+            
+            for i, bot in enumerate(main_bots):
+                bot_name = bot.name[:20]  # Truncate long names
                 buttons.append([
-                    {"text": f"➕ Add to {bot_name}", "callback_data": f"approve_partner:{proposal.id}:{bot.id}"}
+                    {"text": f"➕ Add to {bot_name}", "callback_data": f"approve_p:{str(proposal.id)[:8]}:{i}"}
                 ])
             
-            buttons.append([{"text": "❌ Cancel", "callback_data": f"cancel_partner:{proposal.id}"}])
+            buttons.append([{"text": "❌ Cancel", "callback_data": f"cancel_p:{str(proposal.id)[:8]}"}])
         
         await self.adapter.send_message(
             self.bot_id,
