@@ -534,10 +534,17 @@ class PartnerBotService:
         self.db.delete(proposal)
         self.db.commit()
         
+        # Clear partners cache for target bot (so Mini App sees new partner immediately)
+        from app.core.redis import cache
+        for lang in ['uk', 'en', 'ru', 'de', 'es']:
+            cache.delete(f"partners:regular:{target_bot_uuid}:100:{lang}")
+            cache.delete(f"partners:top:{target_bot_uuid}:10:{lang}")
+        logger.info(f"Cleared partners cache for bot {target_bot_uuid}")
+        
         await self.adapter.send_message(
             self.bot_id,
             user.external_id,
-            f"🎉 <b>Partner Added!</b>\n\n{data.get('program_name')} додано в <b>{target_bot.name}</b>.",
+            f"🎉 <b>Partner Added!</b>\n\n{program_name} додано в <b>{target_bot.name}</b>.",
             parse_mode="HTML"
         )
 

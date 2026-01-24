@@ -984,6 +984,12 @@ async def create_partner(
     db.commit()
     db.refresh(partner)
     
+    # Clear partners cache so Mini App sees new partner immediately
+    from app.core.redis import cache
+    for lang in ['uk', 'en', 'ru', 'de', 'es']:
+        cache.delete(f"partners:regular:{bot_id}:100:{lang}")
+        cache.delete(f"partners:top:{bot_id}:10:{lang}")
+    
     return {
         "id": str(partner.id),
         "bot_id": str(bot_id),
@@ -1025,6 +1031,12 @@ async def update_partner(
     partner.data = current_data
     db.commit()
     db.refresh(partner)
+    
+    # Clear partners cache
+    from app.core.redis import cache
+    for lang in ['uk', 'en', 'ru', 'de', 'es']:
+        cache.delete(f"partners:regular:{bot_id}:100:{lang}")
+        cache.delete(f"partners:top:{bot_id}:10:{lang}")
     
     return {
         "id": str(partner.id),
@@ -1072,6 +1084,12 @@ async def delete_partner(
         message = "Partner deleted (can be restored)"
     
     db.commit()
+    
+    # Clear partners cache
+    from app.core.redis import cache
+    for lang in ['uk', 'en', 'ru', 'de', 'es']:
+        cache.delete(f"partners:regular:{bot_id}:100:{lang}")
+        cache.delete(f"partners:top:{bot_id}:10:{lang}")
     
     return {"message": message, "hard_delete": hard_delete}
 
