@@ -485,10 +485,16 @@ class CommandService:
             # Use translation key for locked message (with needed parameter)
             # Use top_locked_message for /top command (full message with share prompt)
             # earnings_step1_locked is shorter and used in /earnings
+            # Use translation key for locked message (with needed parameter)
+            # Use top_locked_message for /top command (full message with share prompt)
+            # earnings_step1_locked is shorter and used in /earnings
             message = self.translation_service.get_translation(
                 'top_locked_message',
                 lang,
-                {'needed': invites_needed}
+                {
+                    'needed': invites_needed,
+                    'price': buy_top_price
+                }
             )
             
             # Fallback to earnings_step1_locked if top_locked_message not found
@@ -496,7 +502,10 @@ class CommandService:
                 message = self.translation_service.get_translation(
                     'earnings_step1_locked',
                     lang,
-                    {'needed': invites_needed}
+                    {
+                        'needed': invites_needed,
+                        'price': buy_top_price
+                    }
                 )
             
             # Get share content (TGR/Pro or Standard/Starter)
