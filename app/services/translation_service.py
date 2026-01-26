@@ -136,7 +136,11 @@ class TranslationService:
             'activate_7_footer': '→ {{percent}}% активуються назавжди',
             'buy_top_fallback_title': 'Розблокувати ТОП',
             'buy_top_fallback_text': "Для розблокування ТОП потрібно:\n• Запросити {{needed}} друзів\n• Або купити доступ за {{price}} ⭐\nДля покупки відкрийте бота та натисніть кнопку \"Розблокувати ТОП\"",
+            'buy_top_fallback_text': "Для розблокування ТОП потрібно:\n• Запросити {{needed}} друзів\n• Або купити доступ за {{price}} ⭐\nДля покупки відкрийте бота та натисніть кнопку \"Розблокувати ТОП\"",
             'open_bot': 'Відкрити бота',
+            'buy_top_title': 'Розблокувати ТОП',
+            'buy_top_description': 'Доступ до ексклюзивних партнерів та x7 заробітку',
+            'buy_top_label': '{{price}} зірок',
             
             # --- Frontend Aliases (Fix for v5.0 UI) ---
             'stat_friends': 'Друзі',
@@ -282,7 +286,11 @@ class TranslationService:
             'activate_7_footer': '→ {{percent}}% active forever',
             'buy_top_fallback_title': 'Unlock TOP',
             'buy_top_fallback_text': "To unlock TOP you need:\n• Invite {{needed}} friends\n• Or buy access for {{price}} ⭐\nTo buy, open the bot and click \"Unlock TOP\" button",
+            'buy_top_fallback_text': "To unlock TOP you need:\n• Invite {{needed}} friends\n• Or buy access for {{price}} ⭐\nTo buy, open the bot and click \"Unlock TOP\" button",
             'open_bot': 'Open Bot',
+            'buy_top_title': 'Unlock TOP',
+            'buy_top_description': 'Access to exclusive partners and x7 earnings',
+            'buy_top_label': '{{price}} Stars',
 
             # --- Frontend Aliases (Fix for v5.0 UI) ---
             'stat_friends': 'Friends',
@@ -428,7 +436,11 @@ class TranslationService:
             'activate_7_footer': '→ {{percent}}% активируются навсегда',
             'buy_top_fallback_title': 'Разблокировать ТОП',
             'buy_top_fallback_text': "Для разблокировки ТОП нужно:\n• Пригласить {{needed}} друзей\n• Или купить доступ за {{price}} ⭐\nДля покупки откройте бота и нажмите кнопку \"Разблокировать ТОП\"",
+            'buy_top_fallback_text': "Для разблокировки ТОП нужно:\n• Пригласить {{needed}} друзей\n• Или купить доступ за {{price}} ⭐\nДля покупки откройте бота и нажмите кнопку \"Разблокировать ТОП\"",
             'open_bot': 'Открыть бота',
+            'buy_top_title': 'Разблокировать ТОП',
+            'buy_top_description': 'Доступ к эксклюзивным партнерам и x7 заработку',
+            'buy_top_label': '{{price}} звезд',
 
             # --- Frontend Aliases (Fix for v5.0 UI) ---
             'stat_friends': 'Друзья',
@@ -575,7 +587,11 @@ class TranslationService:
             'activate_7_footer': '→ {{percent}}% dauerhaft aktiv',
             'buy_top_fallback_title': 'TOP freischalten',
             'buy_top_fallback_text': "Um TOP freizuschalten, musst du:\n• {{needed}} Freunde einladen\n• Oder Zugang für {{price}} ⭐ kaufen\nZum Kaufen öffne den Bot und drücke \"TOP freischalten\"",
+            'buy_top_fallback_text': "Um TOP freizuschalten, musst du:\n• {{needed}} Freunde einladen\n• Oder Zugang für {{price}} ⭐ kaufen\nZum Kaufen öffne den Bot und drücke \"TOP freischalten\"",
             'open_bot': 'Bot öffnen',
+            'buy_top_title': 'TOP freischalten',
+            'buy_top_description': 'Zugang zu exklusiven Partnern und x7 Verdienst',
+            'buy_top_label': '{{price}} Stars',
 
             # --- Frontend Aliases (Fix for v5.0 UI) ---
             'stat_friends': 'Freunde',
@@ -721,7 +737,11 @@ class TranslationService:
             'activate_7_footer': '→ {{percent}}% activo para siempre',
             'buy_top_fallback_title': 'Desbloquear TOP',
             'buy_top_fallback_text': "Para desbloquear TOP necesitas:\n• Invita a {{needed}} amigos\n• O compra el acceso por {{price}} ⭐\nPara comprar, abre el bot y haz clic en el botón \"Desbloquear TOP\"",
+            'buy_top_fallback_text': "Para desbloquear TOP necesitas:\n• Invita a {{needed}} amigos\n• O compra el acceso por {{price}} ⭐\nPara comprar, abre el bot y haz clic en el botón \"Desbloquear TOP\"",
             'open_bot': 'Abrir bot',
+            'buy_top_title': 'Desbloquear TOP',
+            'buy_top_description': 'Acceso a socios exclusivos y ganancias x7',
+            'buy_top_label': '{{price}} Stars',
 
             # --- Frontend Aliases (Fix for v5.0 UI) ---
             'stat_friends': 'Amigos',
