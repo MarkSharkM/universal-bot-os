@@ -118,11 +118,10 @@ async def list_bot_partners(
             
     if expiry_updates_made:
         db.commit()
-        # Clear cache
-        from app.core.redis import cache
-        for lang in ['uk', 'en', 'ru', 'de', 'es']:
-            cache.delete(f"partners:regular:{bot_id}:100:{lang}")
-            cache.delete(f"partners:top:{bot_id}:10:{lang}")
+        # Clear cache globally
+        from app.services.partner_service import PartnerService
+        partner_service = PartnerService(db, bot_id)
+        partner_service.invalidate_cache()
     
     # Filter in Python to avoid JSONB query issues
     filtered = []
@@ -237,11 +236,10 @@ async def create_partner(
     db.commit()
     db.refresh(partner)
     
-    # Clear partners cache so Mini App sees new partner immediately
-    from app.core.redis import cache
-    for lang in ['uk', 'en', 'ru', 'de', 'es']:
-        cache.delete(f"partners:regular:{bot_id}:100:{lang}")
-        cache.delete(f"partners:top:{bot_id}:10:{lang}")
+    # Clear partners cache globally using PartnerService
+    from app.services.partner_service import PartnerService
+    partner_service = PartnerService(db, bot_id)
+    partner_service.invalidate_cache()
     
     return {
         "id": str(partner.id),
@@ -286,10 +284,9 @@ async def update_partner(
     db.refresh(partner)
     
     # Clear partners cache
-    from app.core.redis import cache
-    for lang in ['uk', 'en', 'ru', 'de', 'es']:
-        cache.delete(f"partners:regular:{bot_id}:100:{lang}")
-        cache.delete(f"partners:top:{bot_id}:10:{lang}")
+    from app.services.partner_service import PartnerService
+    partner_service = PartnerService(db, bot_id)
+    partner_service.invalidate_cache()
     
     return {
         "id": str(partner.id),
@@ -339,10 +336,9 @@ async def delete_partner(
     db.commit()
     
     # Clear partners cache
-    from app.core.redis import cache
-    for lang in ['uk', 'en', 'ru', 'de', 'es']:
-        cache.delete(f"partners:regular:{bot_id}:100:{lang}")
-        cache.delete(f"partners:top:{bot_id}:10:{lang}")
+    from app.services.partner_service import PartnerService
+    partner_service = PartnerService(db, bot_id)
+    partner_service.invalidate_cache()
     
     return {"message": message, "hard_delete": hard_delete}
 
