@@ -43,6 +43,7 @@ async def list_bot_partners(
 ):
     """
     List partners for a bot.
+    Includes auto-expiry check logic.
     
     Args:
         bot_id: Bot UUID
@@ -55,6 +56,8 @@ async def list_bot_partners(
     Returns:
         List of partners
     """
+    from datetime import datetime, timedelta
+    
     bot = db.query(Bot).filter(Bot.id == bot_id).first()
     if not bot:
         raise HTTPException(status_code=404, detail="Bot not found")
@@ -64,11 +67,90 @@ async def list_bot_partners(
         BusinessData.data_type == 'partner'
     )
     
-    # Get all partners first (for filtering), then paginate
+    # Get all partners first (for filtering and expiry check)
     all_partners = query.all()
+    
+    # Check for expired partners and update them
+    expiry_updates_made = False
+    
+    for p in all_partners:
+        partner_data = p.data or {}
+        
+        # Skip if already inactive
+        if partner_data.get('active') != 'Yes':
+            continue
+            
+        # Get start date (priority: explicit start_date -> created_at -> now)
+        start_date_str = partner_data.get('start_date')
+        if start_date_str:
+            try:
+                start_date = datetime.fromisoformat(start_date_str)
+            except ValueError:
+                start_date = p.created_at or datetime.now()
+        else:
+            # Fallback to DB creation time
+            start_date = p.created_at or datetime.now()
+            
+        # Get duration
+        try:
+            duration_days = int(str(partner_data.get('duration', '9999')).replace(' ', ''))
+        except (ValueError, TypeError):
+            duration_days = 9999
+            
+        # Calculate expiry
+        # Use timezone-naive comparisons for simplicity or ensure both are aware
+        # p.created_at is usually timezone aware in this project
+        now = datetime.now(start_date.tzinfo) if start_date.tzinfo else datetime.now()
+        
+        # Calculate end date
+        end_date = start_date + timedelta(days=duration_days)
+        
+        # Check if expired
+        if now > end_date and duration_days < 9000:  # 9000+ means infinite
+            logger.info(f"Partner {p.id} expired! Duration: {duration_days}, Start: {start_date}, End: {end_date}")
+            # Force update JSON
+            new_data = dict(p.data)
+            new_data['active'] = 'No'
+            p.data = new_data
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(p, 'data')
+            expiry_updates_made = True
+            
+    if expiry_updates_made:
+        db.commit()
+        # Clear cache
+        from app.core.redis import cache
+        for lang in ['uk', 'en', 'ru', 'de', 'es']:
+            cache.delete(f"partners:regular:{bot_id}:100:{lang}")
+            cache.delete(f"partners:top:{bot_id}:10:{lang}")
     
     # Filter in Python to avoid JSONB query issues
     filtered = []
+    
+    # Helper to calculate days remaining
+    def get_days_remaining(p_data, p_obj):
+        start_str = p_data.get('start_date')
+        if start_str:
+            try:
+                start = datetime.fromisoformat(start_str)
+            except ValueError:
+                start = p_obj.created_at or datetime.now()
+        else:
+            start = p_obj.created_at or datetime.now()
+            
+        try:
+            dur = int(str(p_data.get('duration', '9999')).replace(' ', ''))
+        except (ValueError, TypeError):
+            dur = 9999
+            
+        if dur > 9000: 
+            return 9999
+            
+        now = datetime.now(start.tzinfo) if start.tzinfo else datetime.now()
+        elapsed = (now - start).days
+        remaining = dur - elapsed
+        return remaining
+
     for p in all_partners:
         partner_data = p.data or {}
         
@@ -87,6 +169,13 @@ async def list_bot_partners(
     for p in paginated:
         partner_data = p.data or {}
         
+        # Resolve start date for display
+        start_date_val = partner_data.get('start_date')
+        if not start_date_val and p.created_at:
+            start_date_val = p.created_at.isoformat()
+            
+        days_left = get_days_remaining(partner_data, p)
+        
         result.append({
             "id": str(p.id),
             "bot_name": partner_data.get('bot_name', ''),
@@ -104,6 +193,8 @@ async def list_bot_partners(
             "duration": partner_data.get('duration', ''),
             "gpt": partner_data.get('gpt', ''),
             "short_link": partner_data.get('short_link', ''),
+            "start_date": start_date_val,
+            "days_remaining": days_left
         })
     
     return result
@@ -126,9 +217,15 @@ async def create_partner(
     Returns:
         Created partner
     """
+    from datetime import datetime
+    
     bot = db.query(Bot).filter(Bot.id == bot_id).first()
     if not bot:
         raise HTTPException(status_code=404, detail="Bot not found")
+    
+    # Auto-add start_date if not present
+    if 'start_date' not in partner_data:
+        partner_data['start_date'] = datetime.now().isoformat()
     
     partner = BusinessData(
         bot_id=bot_id,

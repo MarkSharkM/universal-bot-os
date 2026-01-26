@@ -39,6 +39,20 @@ async function loadPartners() {
         const tbody = document.getElementById('partners-tbody');
         tbody.innerHTML = partners.map(p => {
             const refLink = p.referral_link || '';
+            const startDate = p.start_date ? new Date(p.start_date).toLocaleDateString() : '-';
+
+            let daysLeft = parseInt(p.days_remaining);
+            if (isNaN(daysLeft)) daysLeft = 9999;
+
+            let daysStyle = '';
+            let daysText = daysLeft > 9000 ? '∞' : daysLeft;
+
+            if (daysLeft <= 3) {
+                daysStyle = 'background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;';
+            } else if (daysLeft <= 7) {
+                daysStyle = 'background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;';
+            }
+
             return `
             <tr>
                 <td><strong>${p.bot_name}</strong></td>
@@ -52,6 +66,8 @@ async function loadPartners() {
                 <td>${p.active === 'Yes' ? '✅' : '❌'}</td>
                 <td>${p.verified === 'Yes' ? '✅' : '❌'}</td>
                 <td>${p.duration ? String(p.duration).replace(/\s/g, '') : '-'}</td>
+                <td>${startDate}</td>
+                <td><span style="${daysStyle}">${daysText}</span></td>
                 <td>${p.roi_score || 0}</td>
                 <td>
                     <button onclick="showEditPartnerForm('${p.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
@@ -231,10 +247,23 @@ function showEditPartnerForm(partnerId) {
     document.getElementById('edit-partner-link').value = partner.referral_link || '';
     document.getElementById('edit-partner-commission').value = partner.commission || 0;
     document.getElementById('edit-partner-category').value = partner.category || 'NEW';
-    document.getElementById('edit-partner-active').value = partner.active || 'Yes';
     document.getElementById('edit-partner-verified').value = partner.verified || 'Yes';
     document.getElementById('edit-partner-roi').value = partner.roi_score || 0;
     document.getElementById('edit-partner-duration').value = partner.duration ? String(partner.duration).replace(/\s/g, '') : '';
+
+    // Format start_date for date input (YYYY-MM-DD)
+    if (partner.start_date) {
+        try {
+            const date = new Date(partner.start_date);
+            const dateString = date.toISOString().split('T')[0];
+            document.getElementById('edit-partner-start-date').value = dateString;
+        } catch (e) {
+            console.error('Invalid date format:', partner.start_date);
+            document.getElementById('edit-partner-start-date').value = '';
+        }
+    } else {
+        document.getElementById('edit-partner-start-date').value = '';
+    }
 
     document.getElementById('edit-partner-form').style.display = 'block';
     document.getElementById('edit-partner-form').scrollIntoView({ behavior: 'smooth' });
@@ -261,6 +290,7 @@ async function updatePartner() {
         active: document.getElementById('edit-partner-active').value,
         verified: document.getElementById('edit-partner-verified').value,
         roi_score: parseFloat(document.getElementById('edit-partner-roi').value) || 0,
+        start_date: document.getElementById('edit-partner-start-date').value || null, // Allow empty to reset
         duration: document.getElementById('edit-partner-duration').value || ''
     };
 
@@ -293,6 +323,20 @@ async function updatePartnerRowInTable(partnerId, updatedPartner) {
         if (row.innerHTML.includes(`showEditPartnerForm('${partnerId}')`)) {
             // Rebuild row content
             const refLink = updatedPartner.referral_link || '';
+            const startDate = updatedPartner.start_date ? new Date(updatedPartner.start_date).toLocaleDateString() : '-';
+
+            let daysLeft = parseInt(updatedPartner.days_remaining);
+            if (isNaN(daysLeft)) daysLeft = 9999;
+
+            let daysStyle = '';
+            let daysText = daysLeft > 9000 ? '∞' : daysLeft;
+
+            if (daysLeft <= 3) {
+                daysStyle = 'background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;';
+            } else if (daysLeft <= 7) {
+                daysStyle = 'background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;';
+            }
+
             row.innerHTML = `
                 <td><strong>${updatedPartner.bot_name}</strong></td>
                 <td><span style="background: ${updatedPartner.category === 'TOP' ? '#fbbf24' : '#60a5fa'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${updatedPartner.category}</span></td>
@@ -305,6 +349,8 @@ async function updatePartnerRowInTable(partnerId, updatedPartner) {
                 <td>${updatedPartner.active === 'Yes' ? '✅' : '❌'}</td>
                 <td>${updatedPartner.verified === 'Yes' ? '✅' : '❌'}</td>
                 <td>${updatedPartner.duration ? String(updatedPartner.duration).replace(/\s/g, '') : '-'}</td>
+                <td>${startDate}</td>
+                <td><span style="${daysStyle}">${daysText}</span></td>
                 <td>${updatedPartner.roi_score || 0}</td>
                 <td>
                     <button onclick="showEditPartnerForm('${updatedPartner.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>
@@ -330,6 +376,26 @@ async function addPartnerRowToTable(partner) {
     const tbody = document.getElementById('partners-tbody');
     const row = document.createElement('tr');
     const refLink = partner.referral_link || '';
+    const startDate = partner.start_date ? new Date(partner.start_date).toLocaleDateString() : 'Just now';
+
+    // For new partners, days left is usually duration (unless start date was backdated manually, but here we assume new)
+    let durationVal = parseInt(String(partner.duration || '9999').replace(/\s/g, ''));
+    if (isNaN(durationVal)) durationVal = 9999;
+
+    let daysLeft = durationVal;
+    // If backend returns days_remaining, prefer it
+    if (partner.days_remaining !== undefined) {
+        daysLeft = parseInt(partner.days_remaining);
+    }
+
+    let daysStyle = '';
+    let daysText = daysLeft > 9000 ? '∞' : daysLeft;
+
+    if (daysLeft <= 3) {
+        daysStyle = 'background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;';
+    } else if (daysLeft <= 7) {
+        daysStyle = 'background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;';
+    }
 
     row.innerHTML = `
         <td><strong>${partner.bot_name}</strong></td>
@@ -343,6 +409,8 @@ async function addPartnerRowToTable(partner) {
         <td>${partner.active === 'Yes' ? '✅' : '❌'}</td>
         <td>${partner.verified === 'Yes' ? '✅' : '❌'}</td>
         <td>${partner.duration ? String(partner.duration).replace(/\s/g, '') : '-'}</td>
+        <td>${startDate}</td>
+        <td><span style="${daysStyle}">${daysText}</span></td>
         <td>${partner.roi_score || 0}</td>
         <td>
             <button onclick="showEditPartnerForm('${partner.id}')" style="background: #059669; margin-right: 5px; font-size: 12px; padding: 6px 10px;">Edit</button>

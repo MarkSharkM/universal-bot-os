@@ -502,6 +502,7 @@ class PartnerBotService:
         # Log what we're saving
         logger.info(f"Creating partner: name={program_name}, commission={commission}, referral_link={referral_link[:50]}")
         
+        from datetime import datetime
         partner_data = {
             "bot_name": program_name,  # Main name (validated above)
             "category": "NEW",
@@ -513,6 +514,7 @@ class PartnerBotService:
             "roi_score": roi_score,
             "gpt": "",
             "short_link": "",
+            "start_date": datetime.now().isoformat(),
             # Flat translation structure (matches existing partners)
             # Primary description (Ukrainian as main)
             "description": translations.get("uk", {}).get("description", translations.get("en", {}).get("description", "")),

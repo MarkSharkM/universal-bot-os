@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from uuid import UUID
 import logging
+from datetime import datetime, timedelta
 
 from app.models.business_data import BusinessData
 from app.models.bot import Bot
@@ -96,6 +97,7 @@ class PartnerService:
         # Optimized: Filter in SQL using JSONB operators (PostgreSQL)
         # This avoids loading all partners and filtering in Python
         from sqlalchemy import text
+        from datetime import datetime, timedelta
         
         partners = self.db.query(BusinessData).filter(
             and_(
@@ -109,7 +111,51 @@ class PartnerService:
             )
         ).limit(limit * 2).all()  # Get a bit more for sorting, then limit
         
-        logger.info(f"get_top_partners: Found {len(partners)} TOP partners (filtered in SQL) for bot {self.bot_id}")
+        # Lazy Expiry Check
+        valid_partners = []
+        expired_count = 0
+        now = datetime.now()
+        
+        for p in partners:
+            data = p.data
+            
+            # Check duration/expiry
+            start_str = data.get('start_date')
+            duration_days = 9999
+            try:
+                duration_days = int(str(data.get('duration', 9999)).replace(' ', ''))
+            except:
+                pass
+                
+            if start_str and duration_days < 9000:
+                try:
+                    start_date = datetime.fromisoformat(start_str)
+                    # If naive, assume local (server time)
+                    if start_date.tzinfo is None:
+                        start_date = start_date.replace(tzinfo=None)
+                        
+                    end_date = start_date + timedelta(days=duration_days)
+                    if now > end_date:
+                        # Expired!
+                        logger.info(f"Auto-expiring TOP partner {p.id} (read-time)")
+                        # Explicitly update JSON to ensure SQLAlchemy tracks it
+                        new_data = dict(p.data)
+                        new_data['active'] = 'No'
+                        p.data = new_data
+                        from sqlalchemy.orm.attributes import flag_modified
+                        flag_modified(p, 'data')
+                        expired_count += 1
+                        continue # Skip adding to list
+                except Exception as e:
+                    logger.warning(f"Error checking expiry for {p.id}: {e}")
+            
+            valid_partners.append(p)
+            
+        if expired_count > 0:
+            self.db.commit()
+            
+        partners = valid_partners
+        logger.info(f"get_top_partners: Found {len(partners)} TOP partners (filtered in SQL + Expiry) for bot {self.bot_id}")
         
         # Convert to dicts and sort by ROI Score
         partner_list = []
@@ -290,7 +336,51 @@ class PartnerService:
             )
         ).limit(limit * 2).all()  # Get a bit more for sorting, then limit
         
-        logger.info(f"get_partners: Found {len(partners)} partners (filtered in SQL) for bot {self.bot_id}")
+        # Lazy Expiry Check
+        valid_partners = []
+        expired_count = 0
+        now = datetime.now()
+        
+        for p in partners:
+            data = p.data
+            
+            # Check duration/expiry
+            start_str = data.get('start_date')
+            duration_days = 9999
+            try:
+                duration_days = int(str(data.get('duration', 9999)).replace(' ', ''))
+            except:
+                pass
+                
+            if start_str and duration_days < 9000:
+                try:
+                    start_date = datetime.fromisoformat(start_str)
+                    # If naive, assume local (server time)
+                    if start_date.tzinfo is None:
+                        start_date = start_date.replace(tzinfo=None)
+                        
+                    end_date = start_date + timedelta(days=duration_days)
+                    if now > end_date:
+                        # Expired!
+                        logger.info(f"Auto-expiring partner {p.id} (read-time)")
+                        # Explicitly update JSON to ensure SQLAlchemy tracks it
+                        new_data = dict(p.data)
+                        new_data['active'] = 'No'
+                        p.data = new_data
+                        from sqlalchemy.orm.attributes import flag_modified
+                        flag_modified(p, 'data')
+                        expired_count += 1
+                        continue # Skip adding to list
+                except Exception as e:
+                    logger.warning(f"Error checking expiry for {p.id}: {e}")
+            
+            valid_partners.append(p)
+            
+        if expired_count > 0:
+            self.db.commit()
+            
+        partners = valid_partners
+        logger.info(f"get_partners: Found {len(partners)} partners (filtered in SQL + Expiry) for bot {self.bot_id}")
         
         partner_list = []
         
