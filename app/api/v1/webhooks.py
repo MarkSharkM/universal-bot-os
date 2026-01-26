@@ -845,7 +845,18 @@ async def _handle_buy_top(
     
     title = translation_service.get_translation('buy_top_title', lang)
     description = translation_service.get_translation('buy_top_description', lang)
-    price = int(translation_service.get_translation('buy_top_price', lang) or 1)
+    # Get price from config or translation
+    earnings_config = bot.config.get('earnings', {}) if bot.config else {}
+    config_price = earnings_config.get('buy_top_price')
+    
+    if config_price is not None:
+        try:
+            price = int(config_price)
+        except:
+            price = 1
+    else:
+        # Fallback to translation
+        price = int(translation_service.get_translation('buy_top_price', lang) or 1)
     
     # For Telegram Stars (XTR), amount is the number of stars directly
     # 1 star = amount: 1 (not 100 like other currencies)
@@ -908,9 +919,18 @@ async def _handle_activate_7(
         'bot_username': bot_username
     })
     
+    # Get price from config
+    earnings_config = bot.config.get('earnings', {}) if bot.config else {}
+    buy_top_price = 1
+    if earnings_config.get('buy_top_price') is not None:
+        try:
+            buy_top_price = int(earnings_config.get('buy_top_price'))
+        except:
+            pass
+
     buttons = [[
         {
-            'text': translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': 1}),
+            'text': translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': buy_top_price}),
             'callback_data': 'buy_top'
         },
         {
