@@ -485,19 +485,19 @@ class CommandService:
             # Use translation key for locked message (with needed parameter)
             # Use top_locked_message for /top command (full message with share prompt)
             # earnings_step1_locked is shorter and used in /earnings
+            # Use buy_top_fallback_text which we know exists and has {{price}} placeholder
             message = self.translation_service.get_translation(
-                'top_locked_message',
+                'buy_top_fallback_text',
                 lang,
-                {'needed': invites_needed}
+                {
+                    'needed': invites_needed,
+                    'price': buy_top_price
+                }
             )
             
-            # Fallback to earnings_step1_locked if top_locked_message not found
-            if not message or message == 'top_locked_message':
-                message = self.translation_service.get_translation(
-                    'earnings_step1_locked',
-                    lang,
-                    {'needed': invites_needed}
-                )
+            # Fallback if empty (should not happen as we added it)
+            if not message or message == 'buy_top_fallback_text':
+                 message = f"Unlock TOP for {buy_top_price} Stars or invite 5 friends."
             
             # Get share content (TGR/Pro or Standard/Starter)
             referral_link, share_text = self._get_share_content(user, lang)
