@@ -14,6 +14,7 @@ async function loadBots() {
                     <td>${bot.platform_type}</td>
                     <td>${bot.is_active ? '✅ Active' : '❌ Inactive'}</td>
                     <td>
+                        <button onclick="editBotSettings('${bot.id}')" style="margin-right: 5px; background: #22c55e;">⚙️ Settings</button>
                         <button onclick="showStatsTab('${bot.id}')" style="margin-right: 5px;">Stats</button>
                         <button onclick="editBotToken('${bot.id}')" style="margin-right: 5px; background: #f59e0b;">Edit Token</button>
                         <button class="btn-danger" onclick="deleteBot('${bot.id}')">Delete</button>
@@ -28,6 +29,7 @@ async function loadBots() {
 
 function showCreateBotForm() {
     document.getElementById('create-bot-form').style.display = 'block';
+    document.getElementById('edit-bot-settings-form').style.display = 'none';
 }
 
 function hideCreateBotForm() {
@@ -61,6 +63,61 @@ async function createBot() {
     }
 }
 
+// Settings Logic
+async function editBotSettings(botId) {
+    try {
+        // Fetch fresh bot data to ensuring we have latest config
+        const res = await authFetch(`${API_BASE}/bots/${botId}`);
+        if (!res.ok) throw new Error("Failed to load bot details");
+
+        const bot = await res.json();
+        const config = bot.config || {};
+        const earnings = config.earnings || {};
+
+        // Populate form
+        document.getElementById('setting-bot-id').value = bot.id;
+        document.getElementById('setting-buy-top-price').value = earnings.buy_top_price || 1;
+
+        // Show form
+        hideCreateBotForm();
+        document.getElementById('edit-bot-settings-form').style.display = 'block';
+        window.currentBotConfig = config; // Store full config for merging
+    } catch (e) {
+        showMessage('bots-message', 'Error loading settings: ' + e.message, 'error');
+    }
+}
+
+function hideBotSettingsForm() {
+    document.getElementById('edit-bot-settings-form').style.display = 'none';
+}
+
+async function saveBotSettings() {
+    const botId = document.getElementById('setting-bot-id').value;
+    const buyTopPrice = parseInt(document.getElementById('setting-buy-top-price').value) || 1;
+
+    // Merge with existing config to preserve other settings
+    const config = window.currentBotConfig || {};
+    config.earnings = config.earnings || {};
+    config.earnings.buy_top_price = buyTopPrice;
+
+    try {
+        const res = await authFetch(`${API_BASE}/bots/${botId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ config: config })
+        });
+
+        if (res.ok) {
+            showMessage('bots-message', 'Settings saved successfully!', 'success');
+            hideBotSettingsForm();
+            loadBots();
+        } else {
+            const err = await res.json();
+            showMessage('bots-message', 'Error saving settings: ' + (err.detail || 'Unknown error'), 'error');
+        }
+    } catch (e) {
+        showMessage('bots-message', 'Error: ' + e.message, 'error');
+    }
+}
 
 async function editBotToken(botId) {
     const newToken = prompt("Enter new Telegram Bot Token (plain text):");
