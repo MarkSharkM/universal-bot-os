@@ -766,7 +766,7 @@ class CommandService:
             buttons = [
                 [{'text': self.translation_service.get_translation('share_button', lang), 'url': f"https://t.me/share/url?url={quote(referral_link, safe='')}&text={quote(share_text, safe='')}"}],
                 [
-                    {'text': self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': buy_top_price}), 'callback_data': 'buy_top'},
+                    {'text': self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'price': buy_top_price, 'buy_top_price': buy_top_price}), 'callback_data': 'buy_top'},
                     {'text': self.translation_service.get_translation('earnings_btn_top_partners', lang), 'callback_data': '=/top'}
                 ],
                 [{'text': self.translation_service.get_translation('earnings_btn_activate_7', lang), 'callback_data': 'activate_7'}],

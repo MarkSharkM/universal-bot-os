@@ -277,7 +277,7 @@ class EarningsService:
 
 👥 {total_invited} / {total_steps} {friends_label}
 {bar}  +{invites_needed} {to_top_label}
-({self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'buy_top_price': self._get_buy_top_price_from_config()})})
+({self.translation_service.get_translation('earnings_btn_unlock_top', lang, {'price': self._get_buy_top_price_from_config(), 'buy_top_price': self._get_buy_top_price_from_config()})})
 
 {ref_label}
 {referral_link}
@@ -339,7 +339,7 @@ class EarningsService:
             step1 = self.translation_service.get_translation(
                 'earnings_step1_locked',
                 lang,
-                {'needed': invites_needed}
+                {'needed': invites_needed, 'price': self._get_buy_top_price_from_config(), 'buy_top_price': self._get_buy_top_price_from_config()}
             )
         
         step2 = self.translation_service.get_translation('earnings_step2', lang)
