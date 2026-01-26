@@ -747,6 +747,8 @@ class TranslationService:
             'buy_top_title': 'Desbloquear TOP',
             'buy_top_description': 'Acceso a socios exclusivos y ganancias x7',
             'buy_top_label': '{{price}} Stars',
+            'buy_top_price': '1',
+            'earnings_step1_locked': "🔒 <b>Paso 1:</b> Desbloquea TOP invitando a {{needed}} amigos o comprando acceso por 1⭐",
 
             # --- Frontend Aliases (Fix for v5.0 UI) ---
             'stat_friends': 'Amigos',
